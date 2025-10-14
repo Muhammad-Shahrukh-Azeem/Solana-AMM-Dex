@@ -46,4 +46,8 @@ pub enum ErrorCode {
     InvalidPriceData,
     #[msg("Insufficient fee token balance")]
     InsufficientFeeTokenBalance,
+    #[msg("Fee discount not enabled for this pool")]
+    FeeDiscountNotEnabled,
+    #[msg("Invalid fee token mint")]
+    InvalidFeeToken,
 }

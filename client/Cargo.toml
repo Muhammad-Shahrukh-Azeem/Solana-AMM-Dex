@@ -4,15 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-devnet = ["kedolik-cp-swap/devnet"]
+devnet = ["raydium-cp-swap/devnet"]
 
 [dependencies]
-anchor-client = { version = "0.31.1" }
-anchor-lang = { version = "0.31.1" }
-anchor-spl = { version = "0.31.1" }
-kedolik-cp-swap = { path = "../programs/cp-swap", features = [
+anchor-client = { version = "0.30.1" }
+anchor-lang = { version = "0.30.1" }
+anchor-spl = { version = "0.30.1" }
+raydium-cp-swap = { path = "../programs/cp-swap", features = [
     "no-entrypoint",
-    "client",
 ] }
 solana-sdk = "=2.1.0"
 solana-client = "=2.1.0"
