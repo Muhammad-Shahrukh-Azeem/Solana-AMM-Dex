@@ -19,3 +19,6 @@ pub use initialize_with_permission::*;
 
 pub mod collect_creator_fee;
 pub use collect_creator_fee::*;
+
+pub mod swap_with_k_token;
+pub use swap_with_k_token::*;

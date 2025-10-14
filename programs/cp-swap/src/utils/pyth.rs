@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use pyth_sdk_solana::load_price_feed_from_account_info;
 use crate::error::ErrorCode;
 
 /// Helper functions for working with Pyth oracle price feeds
@@ -9,12 +8,20 @@ impl PythOracle {
     /// Get the current price from a Pyth price feed account
     /// Returns the price scaled by the confidence interval
     /// Price format: price * 10^-expo (convert to base units)
-    pub fn get_price(price_feed: &AccountInfo) -> Result<(i64, i32, i64)> {
-        let price_feed_data = load_price_feed_from_account_info(price_feed)
+    pub fn get_price(price_feed: &AccountInfo) -> Result<(i64, i32, u64)> {
+        // Load the price feed data from the account
+        let price_feed_data = price_feed.try_borrow_data()
             .map_err(|_| error!(ErrorCode::InvalidPriceFeed))?;
         
-        let price_data = price_feed_data
-            .get_current_price()
+        // Parse the Pyth price feed
+        let price_account: &pyth_sdk_solana::state::SolanaPriceAccount = 
+            pyth_sdk_solana::state::load_price_account(&price_feed_data)
+                .map_err(|_| error!(ErrorCode::InvalidPriceFeed))?;
+        
+        // Get current price
+        let current_timestamp = Clock::get()?.unix_timestamp;
+        let price_data = price_account.to_price_feed(&price_feed.key())
+            .get_price_no_older_than(current_timestamp, 60)
             .ok_or(error!(ErrorCode::InvalidPriceData))?;
         
         // Returns: (price, exponent, confidence)

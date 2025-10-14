@@ -178,7 +178,7 @@ impl PoolState {
         self.padding1 = [0u8; 6];
         self.creator_fees_token_0 = 0;
         self.creator_fees_token_1 = 0;
-        self.padding = [0u64; 28];
+        self.padding = [0u64; 23];
     }
 
     pub fn set_status(&mut self, status: u8) {

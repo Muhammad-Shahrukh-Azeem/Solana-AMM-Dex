@@ -1,0 +1,32 @@
+[package]
+name = "kedolik-cp-swap"
+version = "1.0.0"
+description = "Kedolik constant product AMM with K token fee discount"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "kedolik_cp_swap"
+
+[features]
+default = []
+devnet = []
+enable-log = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
+anchor-spl = { version = "0.30.1", features = ["memo"] }
+solana-security-txt = "1.1.1"
+arrayref = "0.3.7"
+uint = "0.9.3"
+bytemuck = "1.14"
+pyth-sdk-solana = "0.10.0"
+
+[dev-dependencies]
+proptest = "1.0"
+spl-math = "0.2"
