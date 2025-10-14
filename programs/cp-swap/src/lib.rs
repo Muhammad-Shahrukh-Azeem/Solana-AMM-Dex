@@ -22,7 +22,7 @@ solana_security_txt::security_txt! {
 #[cfg(feature = "devnet")]
 declare_id!("DRaycpLY18LhpbydsBWbVJtxpNv9oXPgjRSfpF2bWpYb");
 #[cfg(not(feature = "devnet"))]
-declare_id!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
+declare_id!("9HXzD3nbdLwdGz3vfrCXw3Dn5JvbqBB8uMGja3aJMuTm");
 
 pub mod admin {
     use super::{pubkey, Pubkey};
@@ -290,5 +290,20 @@ pub mod kedolik_cp_swap {
     ///
     pub fn swap_base_output(ctx: Context<Swap>, max_amount_in: u64, amount_out: u64) -> Result<()> {
         instructions::swap_base_output(ctx, max_amount_in, amount_out)
+    }
+
+    /// Swap tokens with K token fee payment for 20% discount
+    /// 
+    /// # Arguments
+    /// 
+    /// * `amount_in` - Amount of input token to swap
+    /// * `minimum_amount_out` - Minimum amount of output token to receive (slippage protection)
+    /// 
+    pub fn swap_with_k_token(
+        ctx: Context<SwapWithKToken>,
+        amount_in: u64,
+        minimum_amount_out: u64,
+    ) -> Result<()> {
+        instructions::swap_with_k_token(ctx, amount_in, minimum_amount_out)
     }
 }

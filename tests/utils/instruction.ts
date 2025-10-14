@@ -62,6 +62,8 @@ export async function setupInitializeTest(
     config.protocolFeeRate,
     config.fundFeeRate,
     config.create_fee,
+    undefined,
+    undefined,
     confirmOptions
   );
   return {
@@ -107,6 +109,8 @@ export async function setupDepositTest(
     config.protocolFeeRate,
     config.fundFeeRate,
     config.create_fee,
+    undefined,
+    undefined,
     confirmOptions
   );
 
@@ -178,6 +182,8 @@ export async function setupSwapTest(
     config.protocolFeeRate,
     config.fundFeeRate,
     config.create_fee,
+    undefined,
+    undefined,
     confirmOptions
   );
 
@@ -225,6 +231,8 @@ export async function createAmmConfig(
   protocolFeeRate: BN,
   fundFeeRate: BN,
   create_fee: BN,
+  feeTokenMint?: PublicKey,
+  feeTokenDiscountRate?: BN,
   confirmOptions?: ConfirmOptions
 ): Promise<PublicKey> {
   const [address, _] = await getAmmConfigAddress(
@@ -241,7 +249,9 @@ export async function createAmmConfig(
       tradeFeeRate,
       protocolFeeRate,
       fundFeeRate,
-      create_fee
+      create_fee,
+      feeTokenMint || SystemProgram.programId,
+      feeTokenDiscountRate || new BN(0)
     )
     .accounts({
       owner: owner.publicKey,

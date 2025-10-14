@@ -9,3 +9,4 @@ test-ledger
 .yarn
 Makefile
 KEDOLIK_SWAP_GUIDE.md
+config.bat

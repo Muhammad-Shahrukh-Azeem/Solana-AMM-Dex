@@ -5,7 +5,7 @@ use anchor_spl::{
     token_2022::{self},
     token_interface::{initialize_account3, InitializeAccount3, Mint},
 };
-use spl_token_2022::{
+use anchor_spl::token_interface::spl_token_2022::{
     self,
     extension::{
         transfer_fee::{TransferFeeConfig, MAX_FEE_BASIS_POINTS},
@@ -192,7 +192,6 @@ pub fn is_supported_mint(mint_account: &InterfaceAccount<Mint>) -> Result<bool> 
             && e != ExtensionType::MetadataPointer
             && e != ExtensionType::TokenMetadata
             && e != ExtensionType::InterestBearingConfig
-            && e != ExtensionType::ScaledUiAmount
         {
             return Ok(false);
         }
