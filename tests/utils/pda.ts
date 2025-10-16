@@ -25,6 +25,10 @@ export const ORACLE_SEED = Buffer.from(
   anchor.utils.bytes.utf8.encode("observation")
 );
 
+export const PROTOCOL_TOKEN_CONFIG_SEED = Buffer.from(
+  anchor.utils.bytes.utf8.encode("protocol_token_config")
+);
+
 export function u16ToBytes(num: number) {
   const arr = new ArrayBuffer(2);
   const view = new DataView(arr);
@@ -121,6 +125,16 @@ export async function getOrcleAccountAddress(
 ): Promise<[PublicKey, number]> {
   const [address, bump] = await PublicKey.findProgramAddress(
     [ORACLE_SEED, pool.toBuffer()],
+    programId
+  );
+  return [address, bump];
+}
+
+export async function getProtocolTokenConfigAddress(
+  programId: PublicKey
+): Promise<[PublicKey, number]> {
+  const [address, bump] = await PublicKey.findProgramAddress(
+    [PROTOCOL_TOKEN_CONFIG_SEED],
     programId
   );
   return [address, bump];

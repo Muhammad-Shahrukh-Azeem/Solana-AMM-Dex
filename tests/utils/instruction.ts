@@ -25,6 +25,7 @@ import {
   getPoolVaultAddress,
   createTokenMintAndAssociatedTokenAccount,
   getOrcleAccountAddress,
+  getProtocolTokenConfigAddress,
 } from "./index";
 
 import { ASSOCIATED_PROGRAM_ID } from "@coral-xyz/anchor/dist/cjs/utils/token";
@@ -241,7 +242,8 @@ export async function createAmmConfig(
       tradeFeeRate,
       protocolFeeRate,
       fundFeeRate,
-      create_fee
+      create_fee,
+      new BN(0) // creator_fee_rate
     )
     .accounts({
       owner: owner.publicKey,
@@ -642,6 +644,174 @@ export async function swap_base_output(
       outputTokenMint: outputToken,
       observationState: observationAddress,
     })
+    .rpc(confirmOptions);
+
+  return tx;
+}
+
+export async function createProtocolTokenConfig(
+  program: Program<KedolikCpSwap>,
+  connection: Connection,
+  payer: Signer,
+  protocolTokenMint: PublicKey,
+  discountRate: BN,
+  authority: PublicKey,
+  treasury: PublicKey,
+  protocolTokenPerUsd: BN,
+  confirmOptions?: ConfirmOptions
+) {
+  const [protocolTokenConfig] = await getProtocolTokenConfigAddress(
+    program.programId
+  );
+
+  const tx = await program.methods
+    .createProtocolTokenConfig(
+      protocolTokenMint,
+      discountRate,
+      authority,
+      treasury,
+      protocolTokenPerUsd
+    )
+    .accounts({
+      payer: payer.publicKey,
+      protocolTokenConfig,
+      systemProgram: SystemProgram.programId,
+    })
+    .signers([payer])
+    .rpc(confirmOptions);
+
+  return { tx, protocolTokenConfig };
+}
+
+export async function updateProtocolTokenConfig(
+  program: Program<KedolikCpSwap>,
+  connection: Connection,
+  authority: Signer,
+  discountRate: BN | null,
+  treasury: PublicKey | null,
+  protocolTokenPerUsd: BN | null,
+  newAuthority: PublicKey | null,
+  confirmOptions?: ConfirmOptions
+) {
+  const [protocolTokenConfig] = await getProtocolTokenConfigAddress(
+    program.programId
+  );
+
+  const tx = await program.methods
+    .updateProtocolTokenConfig(
+      discountRate,
+      treasury,
+      protocolTokenPerUsd,
+      newAuthority
+    )
+    .accounts({
+      authority: authority.publicKey,
+      protocolTokenConfig,
+    })
+    .signers([authority])
+    .rpc(confirmOptions);
+
+  return tx;
+}
+
+export async function swapBaseInputWithProtocolToken(
+  program: Program<KedolikCpSwap>,
+  connection: Connection,
+  owner: Signer,
+  configAddress: PublicKey,
+  inputToken: PublicKey,
+  outputToken: PublicKey,
+  inputTokenProgram: PublicKey,
+  outputTokenProgram: PublicKey,
+  amount_in: BN,
+  minimum_amount_out: BN,
+  protocolTokenMint: PublicKey,
+  protocolTokenProgram: PublicKey,
+  confirmOptions?: ConfirmOptions
+) {
+  const [auth] = await getAuthAddress(program.programId);
+  const [poolAddress] = await getPoolAddress(
+    configAddress,
+    inputToken,
+    outputToken,
+    program.programId
+  );
+  if (!(await accountExist(connection, poolAddress))) {
+    return null;
+  }
+  const [inputVault] = await getPoolVaultAddress(
+    poolAddress,
+    inputToken,
+    program.programId
+  );
+  const [outputVault] = await getPoolVaultAddress(
+    poolAddress,
+    outputToken,
+    program.programId
+  );
+
+  const inputTokenAccount = getAssociatedTokenAddressSync(
+    inputToken,
+    owner.publicKey,
+    false,
+    inputTokenProgram
+  );
+  const outputTokenAccount = getAssociatedTokenAddressSync(
+    outputToken,
+    owner.publicKey,
+    false,
+    outputTokenProgram
+  );
+  const [observationAddress] = await getOrcleAccountAddress(
+    poolAddress,
+    program.programId
+  );
+
+  const [protocolTokenConfig] = await getProtocolTokenConfigAddress(
+    program.programId
+  );
+
+  const protocolTokenAccount = getAssociatedTokenAddressSync(
+    protocolTokenMint,
+    owner.publicKey,
+    false,
+    protocolTokenProgram
+  );
+
+  // Get protocol token treasury from config
+  const configData = await program.account.protocolTokenConfig.fetch(
+    protocolTokenConfig
+  );
+  const protocolTokenTreasury = getAssociatedTokenAddressSync(
+    protocolTokenMint,
+    configData.treasury,
+    true,
+    protocolTokenProgram
+  );
+
+  const tx = await program.methods
+    .swapBaseInputWithProtocolToken(amount_in, minimum_amount_out)
+    .accounts({
+      payer: owner.publicKey,
+      authority: auth,
+      ammConfig: configAddress,
+      poolState: poolAddress,
+      inputTokenAccount,
+      outputTokenAccount,
+      inputVault,
+      outputVault,
+      inputTokenProgram: inputTokenProgram,
+      outputTokenProgram: outputTokenProgram,
+      inputTokenMint: inputToken,
+      outputTokenMint: outputToken,
+      observationState: observationAddress,
+      protocolTokenConfig,
+      protocolTokenAccount,
+      protocolTokenMint,
+      protocolTokenTreasury,
+      protocolTokenProgram: protocolTokenProgram,
+    })
+    .signers([owner])
     .rpc(confirmOptions);
 
   return tx;

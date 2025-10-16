@@ -169,6 +169,61 @@ pub mod kedolik_cp_swap {
         instructions::close_permission_pda(ctx)
     }
 
+    /// Create protocol token config for fee payment with discount
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx`- The context of accounts
+    /// * `protocol_token_mint` - The mint address of the protocol token (e.g., KEDOLOG)
+    /// * `discount_rate` - The discount rate when paying with protocol token (e.g., 2000 = 20% discount)
+    /// * `authority` - The authority that can update this config later
+    /// * `treasury` - The treasury account to receive protocol token fees
+    /// * `protocol_token_per_usd` - Price ratio: how many protocol tokens per 1 USD (scaled by 10^6)
+    ///
+    pub fn create_protocol_token_config(
+        ctx: Context<CreateProtocolTokenConfig>,
+        protocol_token_mint: Pubkey,
+        discount_rate: u64,
+        authority: Pubkey,
+        treasury: Pubkey,
+        protocol_token_per_usd: u64,
+    ) -> Result<()> {
+        instructions::create_protocol_token_config(
+            ctx,
+            protocol_token_mint,
+            discount_rate,
+            authority,
+            treasury,
+            protocol_token_per_usd,
+        )
+    }
+
+    /// Update protocol token config
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx`- The context of accounts
+    /// * `discount_rate` - Optional new discount rate
+    /// * `treasury` - Optional new treasury address
+    /// * `protocol_token_per_usd` - Optional new price ratio
+    /// * `new_authority` - Optional new authority
+    ///
+    pub fn update_protocol_token_config(
+        ctx: Context<UpdateProtocolTokenConfig>,
+        discount_rate: Option<u64>,
+        treasury: Option<Pubkey>,
+        protocol_token_per_usd: Option<u64>,
+        new_authority: Option<Pubkey>,
+    ) -> Result<()> {
+        instructions::update_protocol_token_config(
+            ctx,
+            discount_rate,
+            treasury,
+            protocol_token_per_usd,
+            new_authority,
+        )
+    }
+
     /// Creates a pool for the given token pair and the initial price
     ///
     /// # Arguments
@@ -285,5 +340,21 @@ pub mod kedolik_cp_swap {
     ///
     pub fn swap_base_output(ctx: Context<Swap>, max_amount_in: u64, amount_out: u64) -> Result<()> {
         instructions::swap_base_output(ctx, max_amount_in, amount_out)
+    }
+
+    /// Swap the tokens in the pool base input amount with protocol token fee payment
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx`- The context of accounts
+    /// * `amount_in` -  input amount to transfer, output to DESTINATION is based on the exchange rate
+    /// * `minimum_amount_out` -  Minimum amount of output token, prevents excessive slippage
+    ///
+    pub fn swap_base_input_with_protocol_token(
+        ctx: Context<SwapWithProtocolToken>,
+        amount_in: u64,
+        minimum_amount_out: u64,
+    ) -> Result<()> {
+        instructions::swap_base_input_with_protocol_token(ctx, amount_in, minimum_amount_out)
     }
 }

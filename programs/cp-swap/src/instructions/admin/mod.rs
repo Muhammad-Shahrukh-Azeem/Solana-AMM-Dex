@@ -18,3 +18,9 @@ pub use create_permission_pda::*;
 
 pub mod close_permission_pda;
 pub use close_permission_pda::*;
+
+pub mod create_protocol_token_config;
+pub use create_protocol_token_config::*;
+
+pub mod update_protocol_token_config;
+pub use update_protocol_token_config::*;

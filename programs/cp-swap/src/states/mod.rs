@@ -12,3 +12,6 @@ pub use oracle::*;
 
 pub mod permission;
 pub use permission::*;
+
+pub mod protocol_token_config;
+pub use protocol_token_config::*;
