@@ -9,15 +9,18 @@ members = ["programs/cp-swap"]
 seeds = false
 skip-lint = false
 
-[programs.Localnet]
+[programs.localnet]
 kedolik_cp_swap = "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"
+
+[programs.devnet]
+kedolik_cp_swap = "F3mHkHDh3A61A3mp9dd35DzhypacRRKeEKYDNh4dQqRc"
 
 
 [registry]
 url = "https://github.com/kedolik-io/kedolik-cp-swap"
 
 [provider]
-cluster = "Localnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
