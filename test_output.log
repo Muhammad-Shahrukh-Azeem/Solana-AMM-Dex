@@ -1,0 +1,160 @@
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/ubuntu/raydium-cp-swap/programs/cp-swap/Cargo.toml
+workspace: /home/ubuntu/raydium-cp-swap/Cargo.toml
+warning: use of deprecated function `anchor_spl::token_2022::transfer`: please use `transfer_checked` or `transfer_checked_with_fee` instead
+   --> programs/cp-swap/src/instructions/swap_base_input_with_protocol_token.rs:382:34
+    |
+382 |     anchor_spl::token_interface::transfer(cpi_ctx, amount)?;
+    |                                  ^^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+warning: `kedolik-cp-swap` (lib) generated 1 warning
+    Finished `release` profile [optimized] target(s) in 2.24s
+warning: profiles for the non root package will be ignored, specify profiles at the workspace root:
+package:   /home/ubuntu/raydium-cp-swap/programs/cp-swap/Cargo.toml
+workspace: /home/ubuntu/raydium-cp-swap/Cargo.toml
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.03s
+     Running unittests src/lib.rs (/home/ubuntu/raydium-cp-swap/target/debug/deps/kedolik_cp_swap-55025cf3164d5ed1)
+
+Found a 'test' script in the Anchor.toml. Running it as a test suite!
+
+Running test suite: "/home/ubuntu/raydium-cp-swap/Anchor.toml"
+
+yarn run v1.22.22
+$ /home/ubuntu/raydium-cp-swap/node_modules/.bin/ts-mocha -p ./tsconfig.json -t 1000000 tests/deposit.test.ts tests/dust_reserve_fix.test.ts tests/initialize.test.ts tests/protocol_token.test.ts tests/swap.test.ts tests/withdraw.test.ts tests/dust_reserve_fix.test.ts
+bigint: Failed to load bindings, pure JS will be used (try npm run rebuild?)
+owner:  JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa
+admin:  JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa
+
+
+  deposit test
+    ✔ deposit test, add the same liquidity and check the correctness of the values with and without transfer fees (7262ms)
+    ✔ deposit test with 100% transferFeeConfig, reache maximum fee limit (3684ms)
+
+  Dust Reserve Fix - LP Supply = 0 Bug
+Setting up test environment...
+✓ AMM Config already exists
+Creating token mints...
+Token0 Mint: 6BKHkY2T8HLvbLirTV7vrb6htkNAf1QQYEFQ8Fz6qswF
+Token1 Mint: 7SAVRTtvj5RyzUVzZwDLuck4D7vxaTWi9Kg2CBPQYFKZ
+✓ Tokens minted to user
+
+=== Step 1: Create Pool ===
+    1) Creates a pool and adds initial liquidity
+
+=== Step 2: Remove ALL Liquidity ===
+    2) Removes ALL liquidity, leaving dust in reserves
+
+=== Step 3: Test Deposit to Empty Pool (BUG FIX) ===
+    3) 🐛 BUG FIX TEST: Can deposit to pool with dust reserves and LP supply = 0
+
+=== Step 4: Verify Normal Operations ===
+Attempting second deposit...
+    4) Can continue normal operations after recovery
+
+  initialize test
+    ✔ create pool without fee (3147ms)
+    ✔ create pool with fee (3282ms)
+    ✔ create pool with token2022 mint has transfer fee (3290ms)
+
+  Protocol Token Fee Payment Tests
+    Create Protocol Token Config
+Protocol token config created: 4QHYKa4w1CsqEgJr4ggMrFPrQi5FCbkdQjGLuuWYRUCMvMcjVa3Lkwu4MZX8CYeQwLKgrwtNPGEa3EQQSrsKGXFs
+      ✔ Creates protocol token config successfully (1226ms)
+Protocol token config updated: AkB2d7mE3eux3tjsqDqo8XwWZgGRYp1DNriPazHoGCpPnXcHewS4dPyCXKCwYgN4cRbgLquacbfvaaXPaaQi7sb
+      ✔ Updates protocol token config successfully (813ms)
+    Swap with Protocol Token Payment
+Initial user token0: 4294967285999999999
+Initial user token1: 4294967285999999999
+Initial user KEDOLOG: 10000000000
+Initial treasury KEDOLOG: 0
+Swap with protocol token completed: 2iWzWJ6vmar3oHTJkpdZtyznXsBi5hBB5LwQjgCqwHirbipeX6Riun4VjEdQSuYipM1HjpBU3UpyoNvav9umBPaf
+Final user token0: 4294967285899999999
+Final user token1: 4294967286098764819
+Final user KEDOLOG: 9999760000
+Final treasury KEDOLOG: 240000
+
+=== Swap Summary ===
+Input: 100000000 token0
+Output: 98764820 token1
+Fee paid in KEDOLOG: 240000
+Expected fee calculation:
+  - Trade fee rate: 1% of input
+  - Protocol fee: 100% of trade fee
+  - Original fee: ~1 token0
+  - With 20% discount: ~0.8 token0 equivalent
+  - In KEDOLOG (10 per USD): ~8 KEDOLOG
+===================
+
+      ✔ Performs swap with protocol token payment and applies discount (425ms)
+    Integration Tests
+Total KEDOLOG collected from 3 swaps: 72000
+      ✔ Multiple swaps with protocol token payment work correctly (1220ms)
+
+  swap test
+    ✔ swap base input without transfer fee (4909ms)
+    ✔ swap base output without transfer fee (4913ms)
+    ✔ swap base output with transfer fee (5218ms)
+
+  withdraw test
+    ✔ withdraw half of lp  (5454ms)
+    ✔ withdraw all lp  (4166ms)
+
+
+  14 passing (56s)
+  4 failing
+
+  1) Dust Reserve Fix - LP Supply = 0 Bug
+       Creates a pool and adds initial liquidity:
+     Error: Simulation failed. 
+Message: Transaction simulation failed: Error processing Instruction 0: incorrect program id for instruction. 
+Logs: 
+[
+  "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL invoke [1]",
+  "Program log: Create",
+  "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA invoke [2]",
+  "Program log: Instruction: GetAccountDataSize",
+  "Program log: Error: IncorrectProgramId",
+  "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA consumed 884 of 193133 compute units",
+  "Program TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA failed: incorrect program id for instruction",
+  "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL consumed 7751 of 200000 compute units",
+  "Program ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL failed: incorrect program id for instruction"
+]. 
+Catch the `SendTransactionError` and call `getLogs()` on it for full details.
+      at Connection.sendEncodedTransaction (node_modules/@solana/web3.js/src/connection.ts:6053:13)
+      at processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at Connection.sendRawTransaction (node_modules/@solana/web3.js/src/connection.ts:6009:20)
+      at Connection.sendTransaction (node_modules/@solana/web3.js/src/connection.ts:5997:12)
+      at sendAndConfirmTransaction (node_modules/@solana/web3.js/src/utils/send-and-confirm-transaction.ts:36:21)
+
+  2) Dust Reserve Fix - LP Supply = 0 Bug
+       Removes ALL liquidity, leaving dust in reserves:
+     TypeError: Cannot read properties of undefined (reading 'toBase58')
+      at Connection.getAccountInfo (node_modules/@solana/web3.js/src/connection.ts:3623:57)
+      at processTicksAndRejections (node:internal/process/task_queues:95:5)
+
+  3) Dust Reserve Fix - LP Supply = 0 Bug
+       🐛 BUG FIX TEST: Can deposit to pool with dust reserves and LP supply = 0:
+     Error: Account does not exist or has no data EStkUqk6T63Zfs96bViWiNGj8LHQFLvkbUsX53vVeR2a
+      at AccountClient.fetch (node_modules/@coral-xyz/anchor/src/program/namespace/account.ts:168:13)
+      at processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at Context.<anonymous> (tests/dust_reserve_fix.test.ts:294:29)
+
+  4) Dust Reserve Fix - LP Supply = 0 Bug
+       Can continue normal operations after recovery:
+     Error: Account `ownerLpToken` not provided.
+      at /home/ubuntu/raydium-cp-swap/node_modules/@coral-xyz/anchor/src/program/common.ts:51:15
+      at Array.forEach (<anonymous>)
+      at validateAccounts (node_modules/@coral-xyz/anchor/src/program/common.ts:46:14)
+      at ix (node_modules/@coral-xyz/anchor/src/program/namespace/instruction.ts:44:23)
+      at txFn (node_modules/@coral-xyz/anchor/src/program/namespace/transaction.ts:24:14)
+      at MethodsBuilder.rpc [as _rpcFn] (node_modules/@coral-xyz/anchor/src/program/namespace/rpc.ts:21:18)
+      at MethodsBuilder.rpc (node_modules/@coral-xyz/anchor/src/program/namespace/methods.ts:434:17)
+      at processTicksAndRejections (node:internal/process/task_queues:95:5)
+      at Context.<anonymous> (tests/dust_reserve_fix.test.ts:387:23)
+
+
+
+error Command failed with exit code 4.
+info Visit https://yarnpkg.com/en/docs/cli/run for documentation about this command.

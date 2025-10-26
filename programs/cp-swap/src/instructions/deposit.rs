@@ -1,4 +1,4 @@
-use crate::curve::CurveCalculator;
+use crate::curve::{CurveCalculator, TradingTokenResult};
 use crate::curve::RoundDirection;
 use crate::error::ErrorCode;
 use crate::states::*;
@@ -100,14 +100,70 @@ pub fn deposit(
         ctx.accounts.token_0_vault.amount,
         ctx.accounts.token_1_vault.amount,
     )?;
-    let results = CurveCalculator::lp_tokens_to_trading_tokens(
-        u128::from(lp_token_amount),
-        u128::from(pool_state.lp_supply),
-        u128::from(total_token_0_amount),
-        u128::from(total_token_1_amount),
-        RoundDirection::Ceiling,
-    )
-    .ok_or(ErrorCode::ZeroTradingTokens)?;
+    
+    // Handle the case where LP supply is 0 or very small (pool was fully withdrawn but has dust)
+    // In this case, we need to re-initialize the pool like the first deposit
+    // We use a threshold of 1000 (0.000001% of typical initial supply) to catch edge cases
+    const MINIMUM_LIQUIDITY_THRESHOLD: u64 = 1000;
+    
+    let results = if pool_state.lp_supply < MINIMUM_LIQUIDITY_THRESHOLD {
+        // Pool is empty or nearly empty (LP supply < threshold) but may have dust in reserves
+        // We need to calculate how many tokens are required for the desired LP amount
+        // while maintaining the current reserve ratio
+        
+        if total_token_0_amount == 0 || total_token_1_amount == 0 {
+            return err!(ErrorCode::ZeroTradingTokens);
+        }
+        
+        // Calculate LP tokens using the same formula as initialization: sqrt(x * y)
+        // But we need to figure out x and y that:
+        // 1. Maintain the ratio: x/y = total_token_0_amount/total_token_1_amount
+        // 2. Produce the desired LP amount: sqrt(x * y) = lp_token_amount
+        //
+        // From (1): x = y * (total_token_0_amount / total_token_1_amount)
+        // Substitute into (2): sqrt(y * total_token_0_amount / total_token_1_amount * y) = lp_token_amount
+        // Simplify: y * sqrt(total_token_0_amount / total_token_1_amount) = lp_token_amount
+        // Solve for y: y = lp_token_amount / sqrt(total_token_0_amount / total_token_1_amount)
+        //            y = lp_token_amount * sqrt(total_token_1_amount / total_token_0_amount)
+        
+        // To avoid floating point, we use integer square root
+        // y^2 = lp_token_amount^2 * total_token_1_amount / total_token_0_amount
+        let lp_squared = u128::from(lp_token_amount)
+            .checked_mul(u128::from(lp_token_amount))
+            .ok_or(ErrorCode::MathOverflow)?;
+        
+        let token_1_squared = lp_squared
+            .checked_mul(u128::from(total_token_1_amount))
+            .ok_or(ErrorCode::MathOverflow)?
+            .checked_div(u128::from(total_token_0_amount))
+            .ok_or(ErrorCode::MathOverflow)?;
+        
+        // Integer square root using Newton's method
+        let token_1_amount = integer_sqrt(token_1_squared);
+        
+        // Calculate token_0_amount maintaining the ratio
+        let token_0_amount = u128::from(token_1_amount)
+            .checked_mul(u128::from(total_token_0_amount))
+            .ok_or(ErrorCode::MathOverflow)?
+            .checked_div(u128::from(total_token_1_amount))
+            .ok_or(ErrorCode::MathOverflow)?;
+        
+        TradingTokenResult {
+            token_0_amount,
+            token_1_amount,
+        }
+    } else {
+        // Normal deposit - LP supply > 0
+        CurveCalculator::lp_tokens_to_trading_tokens(
+            u128::from(lp_token_amount),
+            u128::from(pool_state.lp_supply),
+            u128::from(total_token_0_amount),
+            u128::from(total_token_1_amount),
+            RoundDirection::Ceiling,
+        )
+        .ok_or(ErrorCode::ZeroTradingTokens)?
+    };
+    
     if results.token_0_amount == 0 || results.token_1_amount == 0 {
         return err!(ErrorCode::ZeroTradingTokens);
     }
@@ -202,4 +258,24 @@ pub fn deposit(
     pool_state.recent_epoch = Clock::get()?.epoch;
 
     Ok(())
+}
+
+/// Integer square root using Newton's method
+/// Returns the largest integer x such that x^2 <= n
+fn integer_sqrt(n: u128) -> u128 {
+    if n == 0 {
+        return 0;
+    }
+    
+    // Initial guess: start with n/2
+    let mut x = n;
+    let mut y = (x + 1) / 2;
+    
+    // Newton's method: x_new = (x + n/x) / 2
+    while y < x {
+        x = y;
+        y = (x + n / x) / 2;
+    }
+    
+    x
 }
