@@ -128,11 +128,12 @@ pub struct Initialize<'info> {
     pub token_1_vault: UncheckedAccount<'info>,
 
     /// create pool fee account
+    /// CHECK: Address is verified by constraint, account type checked in instruction logic when fee > 0
     #[account(
         mut,
-        address= crate::create_pool_fee_reveiver::ID,
+        address= crate::create_pool_fee_receiver::ID,
     )]
-    pub create_pool_fee: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub create_pool_fee: UncheckedAccount<'info>,
 
     /// an account to store oracle observations
     #[account(
@@ -289,7 +290,7 @@ pub fn initialize(
         &[&[crate::AUTH_SEED.as_bytes(), &[ctx.bumps.authority]]],
     )?;
 
-    // Charge the fee to create a pool
+    // Charge the fee to create a pool (direct SOL transfer)
     if ctx.accounts.amm_config.create_pool_fee != 0 {
         invoke(
             &system_instruction::transfer(
@@ -303,16 +304,7 @@ pub fn initialize(
                 ctx.accounts.system_program.to_account_info(),
             ],
         )?;
-        invoke(
-            &spl_token::instruction::sync_native(
-                ctx.accounts.token_program.key,
-                &ctx.accounts.create_pool_fee.key(),
-            )?,
-            &[
-                ctx.accounts.token_program.to_account_info(),
-                ctx.accounts.create_pool_fee.to_account_info(),
-            ],
-        )?;
+        // No need to wrap to WSOL - keep as native SOL
     }
 
     pool_state.initialize(

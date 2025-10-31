@@ -76,7 +76,8 @@ describe("Protocol Token Fee Payment Tests", () => {
 
       // Create protocol token config
       // 20% discount (2000 basis points)
-      // 10 KEDOLOG per 1 USD (scaled by 10^6)
+      // KEDOLOG price: 1 KEDOLOG = 0.1 USD, so 1 USD = 10 KEDOLOG
+      // protocol_token_per_usd = 10 * 10^6 = 10,000,000
       const discountRate = new BN(2000);
       const protocolTokenPerUsd = new BN(10_000_000);
 
@@ -170,9 +171,9 @@ describe("Protocol Token Fee Payment Tests", () => {
         connection,
         admin,
         {
-          config_index: 0,
-          tradeFeeRate: new BN(10000000), // 1% fee
-          protocolFeeRate: new BN(10000000000), // 100% of trade fee goes to protocol
+          config_index: 1, // Use index 1 to avoid conflict with other tests
+          tradeFeeRate: new BN(2500), // 0.25% fee (2500 / 1,000,000)
+          protocolFeeRate: new BN(200000), // 20% of trade fee goes to protocol (200000 / 1,000,000)
           fundFeeRate: new BN(0),
           create_fee: new BN(0),
         },
@@ -185,7 +186,7 @@ describe("Protocol Token Fee Payment Tests", () => {
       );
 
       // Get tokens and config from pool state
-      const [ammConfig] = await getAmmConfigAddress(0, program.programId);
+      const [ammConfig] = await getAmmConfigAddress(1, program.programId);
       configAddress = ammConfig;
       token0 = depositResult.poolState.token0Mint;
       token1 = depositResult.poolState.token1Mint;
@@ -219,6 +220,12 @@ describe("Protocol Token Fee Payment Tests", () => {
     });
 
     it("Performs swap with protocol token payment and applies discount", async () => {
+      console.log("\n=== SWAP WITH KEDOLOG DISCOUNT TEST ===");
+      console.log("KEDOLOG Price: 1 KEDOLOG = 0.1 USD (10 KEDOLOG per 1 USD)");
+      console.log("Discount Rate: 20%");
+      console.log("Trade Fee: 0.25% (LP: 0.20%, Protocol: 0.05%)");
+      console.log("With discount: Protocol fee becomes 0.04% paid in KEDOLOG\n");
+
       // Get initial balances
       const initialUserToken0 = await getAccount(
         connection,
@@ -255,14 +262,18 @@ describe("Protocol Token Fee Payment Tests", () => {
         TOKEN_PROGRAM_ID
       );
 
-      console.log("Initial user token0:", initialUserToken0.amount.toString());
-      console.log("Initial user token1:", initialUserToken1.amount.toString());
-      console.log("Initial user KEDOLOG:", initialUserKedolog.amount.toString());
-      console.log("Initial treasury KEDOLOG:", initialTreasuryKedolog.amount.toString());
+      console.log("📊 Initial Balances:");
+      console.log(`  User Token0: ${(Number(initialUserToken0.amount) / 1e9).toFixed(4)} tokens`);
+      console.log(`  User Token1: ${(Number(initialUserToken1.amount) / 1e9).toFixed(4)} tokens`);
+      console.log(`  User KEDOLOG: ${(Number(initialUserKedolog.amount) / 1e9).toFixed(4)} KEDOLOG`);
+      console.log(`  Treasury KEDOLOG: ${(Number(initialTreasuryKedolog.amount) / 1e9).toFixed(4)} KEDOLOG\n`);
 
       // Perform swap: 100 token0 -> token1
-      const amountIn = new BN(100000000); // 100 tokens (6 decimals)
+      const amountIn = new BN(100000000000); // 100 tokens (9 decimals)
       const minAmountOut = new BN(1); // Allow any output for test
+
+      console.log(`💱 Swapping: ${(Number(amountIn) / 1e9).toFixed(4)} Token0 → Token1`);
+      console.log("   Using KEDOLOG for protocol fee payment\n");
 
       let tx;
       try {
@@ -281,11 +292,14 @@ describe("Protocol Token Fee Payment Tests", () => {
           TOKEN_PROGRAM_ID,
           confirmOptions
         );
-        console.log("Swap with protocol token completed:", tx);
-      } catch (error) {
-        console.log("Swap error:", error);
-        console.log("Error message:", error.message);
-        console.log("Error logs:", error.logs);
+      } catch (error: any) {
+        console.error("\n❌ Swap failed with error:");
+        console.error("  Error code:", error.code);
+        console.error("  Error message:", error.message);
+        if (error.logs) {
+          console.error("  Program logs:");
+          error.logs.forEach((log: string) => console.error("    ", log));
+        }
         throw error;
       }
 
@@ -325,14 +339,27 @@ describe("Protocol Token Fee Payment Tests", () => {
         TOKEN_PROGRAM_ID
       );
 
-      console.log("Final user token0:", finalUserToken0.amount.toString());
-      console.log("Final user token1:", finalUserToken1.amount.toString());
-      console.log("Final user KEDOLOG:", finalUserKedolog.amount.toString());
-      console.log("Final treasury KEDOLOG:", finalTreasuryKedolog.amount.toString());
+      // Calculate changes
+      const token0Spent = initialUserToken0.amount - finalUserToken0.amount;
+      const token1Received = finalUserToken1.amount - initialUserToken1.amount;
+      const kedologSpent = initialUserKedolog.amount - finalUserKedolog.amount;
+      const kedologReceived = finalTreasuryKedolog.amount - initialTreasuryKedolog.amount;
+
+      console.log("📊 Final Balances:");
+      console.log(`  User Token0: ${(Number(finalUserToken0.amount) / 1e9).toFixed(4)} tokens`);
+      console.log(`  User Token1: ${(Number(finalUserToken1.amount) / 1e9).toFixed(4)} tokens`);
+      console.log(`  User KEDOLOG: ${(Number(finalUserKedolog.amount) / 1e9).toFixed(4)} KEDOLOG`);
+      console.log(`  Treasury KEDOLOG: ${(Number(finalTreasuryKedolog.amount) / 1e9).toFixed(4)} KEDOLOG\n`);
+
+      console.log("✅ Swap Summary:");
+      console.log(`  Token0 Spent: ${(Number(token0Spent) / 1e9).toFixed(4)} tokens`);
+      console.log(`  Token1 Received: ${(Number(token1Received) / 1e9).toFixed(4)} tokens`);
+      console.log(`  KEDOLOG Fee Paid: ${(Number(kedologSpent) / 1e9).toFixed(6)} KEDOLOG`);
+      console.log(`  Protocol Fee (0.05% of 1 token): ${(1 * 0.0005).toFixed(6)} tokens`);
+      console.log(`  Discounted Fee (0.04%): ${(1 * 0.0004).toFixed(6)} tokens`);
+      console.log(`  Expected KEDOLOG (0.0004 tokens * 10 KEDOLOG/token): ${(0.0004 * 10).toFixed(6)} KEDOLOG\n`);
 
       // Verify token0 was deducted
-      const token0Spent =
-        initialUserToken0.amount - finalUserToken0.amount;
       assert.equal(
         token0Spent.toString(),
         amountIn.toString(),
@@ -340,34 +367,25 @@ describe("Protocol Token Fee Payment Tests", () => {
       );
 
       // Verify token1 was received
-      const token1Received =
-        finalUserToken1.amount - initialUserToken1.amount;
       assert.isTrue(
         token1Received > 0n,
         "Should receive token1"
       );
 
       // Verify KEDOLOG was deducted from user
-      const kedologSpent =
-        initialUserKedolog.amount - finalUserKedolog.amount;
       assert.isTrue(
         kedologSpent > 0n,
         "User should pay KEDOLOG tokens"
       );
 
       // Verify KEDOLOG was received by treasury
-      const kedologReceived =
-        finalTreasuryKedolog.amount - initialTreasuryKedolog.amount;
       assert.equal(
         kedologReceived.toString(),
         kedologSpent.toString(),
         "Treasury should receive the same amount user paid"
       );
 
-      console.log("\n=== Swap Summary ===");
-      console.log("Input:", token0Spent.toString(), "token0");
-      console.log("Output:", token1Received.toString(), "token1");
-      console.log("Fee paid in KEDOLOG:", kedologSpent.toString());
+      console.log("✅ All verifications passed!");
       console.log("Expected fee calculation:");
       console.log("  - Trade fee rate: 1% of input");
       console.log("  - Protocol fee: 100% of trade fee");

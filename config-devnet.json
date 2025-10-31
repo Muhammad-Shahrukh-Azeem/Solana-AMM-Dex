@@ -1,0 +1,16 @@
+{
+  "network": "devnet",
+  "cluster": "devnet",
+  "ammConfig": "6cYBQxes3T5CRStVgKNV4GiURNu2nCcUwmHwEWCcP4Zt",
+  "programId": "2LdLPZbRokzmcJyFE7fLyTgMKNxuR9PE6PKfunn6fkUi",
+  "owner": "JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa",
+  "fees": {
+    "tradeFeeRate": 2500,
+    "protocolFeeRate": 500,
+    "lpFeeRate": 2000,
+    "fundFeeRate": 0,
+    "creatorFeeRate": 0,
+    "createPoolFee": 0
+  },
+  "createdAt": "2025-10-30T21:57:11.036Z"
+}

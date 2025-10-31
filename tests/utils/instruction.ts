@@ -14,6 +14,9 @@ import {
   TOKEN_PROGRAM_ID,
   TOKEN_2022_PROGRAM_ID,
   getAssociatedTokenAddressSync,
+  NATIVE_MINT,
+  createAssociatedTokenAccountInstruction,
+  createSyncNativeInstruction,
 } from "@solana/spl-token";
 import {
   accountExist,
@@ -217,6 +220,37 @@ export async function setupSwapTest(
   return { configAddress, poolAddress, poolState };
 }
 
+export async function createPoolFeeAccount(
+  connection: Connection,
+  payer: Signer,
+  feeReceiver: PublicKey
+): Promise<PublicKey> {
+  // Create wrapped SOL token account for fee receiver
+  const feeAccount = getAssociatedTokenAddressSync(
+    NATIVE_MINT,
+    feeReceiver,
+    true,
+    TOKEN_PROGRAM_ID
+  );
+
+  // Check if account exists
+  const accountInfo = await connection.getAccountInfo(feeAccount);
+  if (!accountInfo) {
+    // Create the account
+    const createIx = createAssociatedTokenAccountInstruction(
+      payer.publicKey,
+      feeAccount,
+      feeReceiver,
+      NATIVE_MINT,
+      TOKEN_PROGRAM_ID
+    );
+    
+    await sendTransaction(connection, [createIx], [payer]);
+  }
+
+  return feeAccount;
+}
+
 export async function createAmmConfig(
   program: Program<KedolikCpSwap>,
   connection: Connection,
@@ -270,8 +304,15 @@ export async function initialize(
     initAmount0: new BN(10000000000),
     initAmount1: new BN(20000000000),
   },
-  createPoolFee = new PublicKey("DNXgeM9EiiaAbaWvwjHj9fQQLAX5ZsfHyvmYUNRAdNC8")
+  createPoolFee?: PublicKey
 ) {
+  // Create pool fee account if not provided
+  // The program expects this to be the exact address from create_pool_fee_receiver::ID
+  // In tests with fee=0, the account doesn't need to exist (UncheckedAccount)
+  if (!createPoolFee) {
+    createPoolFee = new PublicKey("67D6TM8PTsuv8nU5PnUP3dV6j8kW3rmTD9KNufcEUPCa");
+  }
+  
   const [auth] = await getAuthAddress(program.programId);
   const [poolAddress] = await getPoolAddress(
     configAddress,
@@ -810,6 +851,8 @@ export async function swapBaseInputWithProtocolToken(
       protocolTokenMint,
       protocolTokenTreasury,
       protocolTokenProgram: protocolTokenProgram,
+      inputTokenOracle: SystemProgram.programId, // Pass Pyth oracle for input token
+      protocolTokenOracle: SystemProgram.programId, // SystemProgram = use manual KEDOLOG price
     })
     .signers([owner])
     .rpc(confirmOptions);

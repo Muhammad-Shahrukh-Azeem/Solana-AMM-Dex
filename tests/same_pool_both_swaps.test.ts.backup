@@ -1,0 +1,414 @@
+import * as anchor from "@coral-xyz/anchor";
+import { Program, BN } from "@coral-xyz/anchor";
+import { KedolikCpSwap } from "../target/types/kedolik_cp_swap";
+import {
+  Keypair,
+  PublicKey,
+} from "@solana/web3.js";
+import {
+  TOKEN_PROGRAM_ID,
+  createMint,
+  createAssociatedTokenAccount,
+  mintTo,
+  getAccount,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
+import {
+  setupDepositTest,
+  createProtocolTokenConfig,
+  swapBaseInputWithProtocolToken,
+  swap_base_input,
+} from "./utils/instruction";
+import { getProtocolTokenConfigAddress } from "./utils/pda";
+import { assert } from "chai";
+
+describe("🔄 Same Pool - Both Swap Types Test", () => {
+  anchor.setProvider(anchor.AnchorProvider.env());
+  const admin = anchor.Wallet.local().payer;
+  const program = anchor.workspace.KedolikCpSwap as Program<KedolikCpSwap>;
+  const connection = anchor.getProvider().connection;
+
+  let protocolTokenMint: PublicKey;
+  let treasuryKeypair: Keypair;
+  let treasuryTokenAccount: PublicKey;
+  let userProtocolTokenAccount: PublicKey;
+  let configAddress: PublicKey;
+  let token0: PublicKey;
+  let token1: PublicKey;
+  let token0Program: PublicKey;
+  let token1Program: PublicKey;
+  let poolAddress: PublicKey;
+
+  const confirmOptions = {
+    skipPreflight: true,
+  };
+
+  before(async () => {
+    console.log("\n" + "=".repeat(80));
+    console.log("🔧 SETUP: Creating ONE pool for BOTH swap types");
+    console.log("=".repeat(80));
+
+    // Create KEDOLOG token
+    protocolTokenMint = await createMint(
+      connection,
+      admin,
+      admin.publicKey,
+      admin.publicKey,
+      9,
+      undefined,
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+
+    // Create treasury
+    treasuryKeypair = Keypair.generate();
+    treasuryTokenAccount = await createAssociatedTokenAccount(
+      connection,
+      admin,
+      protocolTokenMint,
+      treasuryKeypair.publicKey,
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+
+    // Check if protocol token config already exists
+    const [protocolTokenConfigAddr] = await getProtocolTokenConfigAddress(program.programId);
+    const configExists = await connection.getAccountInfo(protocolTokenConfigAddr);
+    
+    if (!configExists) {
+      // Create protocol token config only if it doesn't exist
+      const discountRate = new BN(2000); // 20% discount
+      const protocolTokenPerUsd = new BN(10_000_000); // 10 KEDOLOG per 1 USD
+
+      await createProtocolTokenConfig(
+        program,
+        connection,
+        admin,
+        protocolTokenMint,
+        discountRate,
+        admin.publicKey,
+        treasuryKeypair.publicKey,
+        protocolTokenPerUsd,
+        confirmOptions
+      );
+      console.log("✅ Protocol token config created");
+    } else {
+      console.log("ℹ️  Protocol token config already exists");
+      // Fetch existing config to see what mint it uses
+      const existingConfig = await program.account.protocolTokenConfig.fetch(protocolTokenConfigAddr);
+      console.log(`   Existing KEDOLOG Mint: ${existingConfig.protocolTokenMint.toString()}`);
+      console.log(`   Our KEDOLOG Mint: ${protocolTokenMint.toString()}`);
+      
+      if (!existingConfig.protocolTokenMint.equals(protocolTokenMint)) {
+        console.log("⚠️  WARNING: Mints don't match! This test will fail.");
+        console.log("   The protocol token config is a singleton and was created by another test.");
+        console.log("   Skipping this test...\n");
+        this.skip();
+      }
+    }
+
+    // Create ONE large pool - will be used for BOTH swap types
+    const depositResult = await setupDepositTest(
+      program,
+      connection,
+      admin,
+      {
+        config_index: 3, // Use index 3 to avoid conflicts
+        tradeFeeRate: new BN(2500), // 0.25% fee
+        protocolFeeRate: new BN(200000), // 20% of trade fee = 0.05%
+        fundFeeRate: new BN(0),
+        create_fee: new BN(0),
+      },
+      { transferFeeBasisPoints: 0, MaxFee: 0 },
+      confirmOptions,
+      {
+        initAmount0: new BN(1000000_000000000), // 1 million tokens
+        initAmount1: new BN(1000000_000000000), // 1 million tokens
+      }
+    );
+
+    configAddress = depositResult.poolState.ammConfig;
+    token0 = depositResult.poolState.token0Mint;
+    token1 = depositResult.poolState.token1Mint;
+    token0Program = depositResult.poolState.token0Program;
+    token1Program = depositResult.poolState.token1Program;
+    poolAddress = depositResult.poolAddress;
+
+    // Create KEDOLOG account for user
+    userProtocolTokenAccount = await createAssociatedTokenAccount(
+      connection,
+      admin,
+      protocolTokenMint,
+      admin.publicKey,
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+
+    await mintTo(
+      connection,
+      admin,
+      protocolTokenMint,
+      userProtocolTokenAccount,
+      admin.publicKey,
+      10000_000000000, // 10,000 KEDOLOG
+      [],
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log("✅ ONE Pool Created:");
+    console.log(`   Pool Address: ${poolAddress.toString()}`);
+    console.log(`   Config: ${configAddress.toString()}`);
+    console.log(`   Liquidity: 1,000,000 tokens each side`);
+    console.log(`   Fee: 0.25% (LP: 0.20%, Protocol: 0.05%)`);
+    console.log(`   KEDOLOG Mint: ${protocolTokenMint.toString()}`);
+    console.log("\n   This SAME pool will be used for BOTH swap types!\n");
+  });
+
+  it("🔄 Test: Same Pool - Normal Swap THEN Discount Swap", async () => {
+    console.log("\n" + "=".repeat(80));
+    console.log("🔄 TESTING: SAME POOL - BOTH SWAP TYPES");
+    console.log("=".repeat(80));
+    console.log(`Pool: ${poolAddress.toString()}\n`);
+
+    // ============================================================================
+    // SWAP 1: NORMAL SWAP (No Discount)
+    // ============================================================================
+    console.log("─".repeat(80));
+    console.log("📊 SWAP 1: NORMAL SWAP (Without KEDOLOG Discount)");
+    console.log("─".repeat(80));
+
+    const initialToken0_swap1 = await getAccount(
+      connection,
+      getAssociatedTokenAddressSync(token0, admin.publicKey, false, token0Program),
+      undefined,
+      token0Program
+    );
+    const initialToken1_swap1 = await getAccount(
+      connection,
+      getAssociatedTokenAddressSync(token1, admin.publicKey, false, token1Program),
+      undefined,
+      token1Program
+    );
+
+    console.log("📊 Before Swap 1:");
+    console.log(`   Token0: ${(Number(initialToken0_swap1.amount) / 1e9).toFixed(6)} tokens`);
+    console.log(`   Token1: ${(Number(initialToken1_swap1.amount) / 1e9).toFixed(6)} tokens\n`);
+
+    const amountIn1 = new BN(100_000000000); // 100 tokens
+    console.log(`💱 Swapping: 100 tokens (Normal swap - 0.25% total fee)\n`);
+
+    await swap_base_input(
+      program,
+      admin,
+      configAddress,
+      token0,
+      token0Program,
+      token1,
+      token1Program,
+      amountIn1,
+      new BN(1),
+      confirmOptions
+    );
+
+    const finalToken0_swap1 = await getAccount(
+      connection,
+      getAssociatedTokenAddressSync(token0, admin.publicKey, false, token0Program),
+      undefined,
+      token0Program
+    );
+    const finalToken1_swap1 = await getAccount(
+      connection,
+      getAssociatedTokenAddressSync(token1, admin.publicKey, false, token1Program),
+      undefined,
+      token1Program
+    );
+
+    const token0Spent_swap1 = Number(initialToken0_swap1.amount - finalToken0_swap1.amount) / 1e9;
+    const token1Received_swap1 = Number(finalToken1_swap1.amount - initialToken1_swap1.amount) / 1e9;
+
+    console.log("📊 After Swap 1:");
+    console.log(`   Token0: ${(Number(finalToken0_swap1.amount) / 1e9).toFixed(6)} tokens`);
+    console.log(`   Token1: ${(Number(finalToken1_swap1.amount) / 1e9).toFixed(6)} tokens\n`);
+
+    console.log("✅ Swap 1 Results:");
+    console.log(`   Input:  ${token0Spent_swap1.toFixed(6)} tokens`);
+    console.log(`   Output: ${token1Received_swap1.toFixed(6)} tokens`);
+    console.log(`   Fee:    ${(100 - token1Received_swap1).toFixed(6)} tokens (0.25%)`);
+    console.log(`   Expected: ~99.75 tokens\n`);
+
+    // ============================================================================
+    // SWAP 2: DISCOUNT SWAP (With KEDOLOG)
+    // ============================================================================
+    console.log("─".repeat(80));
+    console.log("🎯 SWAP 2: DISCOUNT SWAP (With KEDOLOG Discount)");
+    console.log("─".repeat(80));
+    console.log("⚠️  IMPORTANT: Using THE SAME POOL as Swap 1!\n");
+
+    const initialToken0_swap2 = await getAccount(
+      connection,
+      getAssociatedTokenAddressSync(token0, admin.publicKey, false, token0Program),
+      undefined,
+      token0Program
+    );
+    const initialToken1_swap2 = await getAccount(
+      connection,
+      getAssociatedTokenAddressSync(token1, admin.publicKey, false, token1Program),
+      undefined,
+      token1Program
+    );
+    const initialKedolog_swap2 = await getAccount(
+      connection,
+      userProtocolTokenAccount,
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+    const initialTreasury_swap2 = await getAccount(
+      connection,
+      treasuryTokenAccount,
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+
+    console.log("📊 Before Swap 2:");
+    console.log(`   Token0: ${(Number(initialToken0_swap2.amount) / 1e9).toFixed(6)} tokens`);
+    console.log(`   Token1: ${(Number(initialToken1_swap2.amount) / 1e9).toFixed(6)} tokens`);
+    console.log(`   User KEDOLOG: ${(Number(initialKedolog_swap2.amount) / 1e9).toFixed(6)} KEDOLOG`);
+    console.log(`   Treasury KEDOLOG: ${(Number(initialTreasury_swap2.amount) / 1e9).toFixed(6)} KEDOLOG\n`);
+
+    const amountIn2 = new BN(100_000000000); // 100 tokens
+    console.log(`💱 Swapping: 100 tokens (Discount swap - 0.20% in swap + 0.04% in KEDOLOG)\n`);
+
+    try {
+      await swapBaseInputWithProtocolToken(
+        program,
+        connection,
+        admin,
+        configAddress,
+        token0,
+        token1,
+        token0Program,
+        token1Program,
+        amountIn2,
+        new BN(1),
+        protocolTokenMint,
+        TOKEN_PROGRAM_ID,
+        confirmOptions
+      );
+    } catch (error: any) {
+      console.error("\n❌ DISCOUNT SWAP FAILED:");
+      console.error("Error:", error.message);
+      if (error.logs) {
+        console.error("\n📋 Program Logs:");
+        error.logs.forEach((log: string) => console.error("  ", log));
+      }
+      throw error;
+    }
+
+    const finalToken0_swap2 = await getAccount(
+      connection,
+      getAssociatedTokenAddressSync(token0, admin.publicKey, false, token0Program),
+      undefined,
+      token0Program
+    );
+    const finalToken1_swap2 = await getAccount(
+      connection,
+      getAssociatedTokenAddressSync(token1, admin.publicKey, false, token1Program),
+      undefined,
+      token1Program
+    );
+    const finalKedolog_swap2 = await getAccount(
+      connection,
+      userProtocolTokenAccount,
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+    const finalTreasury_swap2 = await getAccount(
+      connection,
+      treasuryTokenAccount,
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+
+    const token0Spent_swap2 = Number(initialToken0_swap2.amount - finalToken0_swap2.amount) / 1e9;
+    const token1Received_swap2 = Number(finalToken1_swap2.amount - initialToken1_swap2.amount) / 1e9;
+    const kedologSpent_swap2 = Number(initialKedolog_swap2.amount - finalKedolog_swap2.amount) / 1e9;
+    const kedologToTreasury_swap2 = Number(finalTreasury_swap2.amount - initialTreasury_swap2.amount) / 1e9;
+
+    console.log("📊 After Swap 2:");
+    console.log(`   Token0: ${(Number(finalToken0_swap2.amount) / 1e9).toFixed(6)} tokens`);
+    console.log(`   Token1: ${(Number(finalToken1_swap2.amount) / 1e9).toFixed(6)} tokens`);
+    console.log(`   User KEDOLOG: ${(Number(finalKedolog_swap2.amount) / 1e9).toFixed(6)} KEDOLOG`);
+    console.log(`   Treasury KEDOLOG: ${(Number(finalTreasury_swap2.amount) / 1e9).toFixed(6)} KEDOLOG\n`);
+
+    console.log("✅ Swap 2 Results:");
+    console.log(`   Input:  ${token0Spent_swap2.toFixed(6)} tokens`);
+    console.log(`   Output: ${token1Received_swap2.toFixed(6)} tokens`);
+    console.log(`   KEDOLOG Paid: ${kedologSpent_swap2.toFixed(6)} KEDOLOG`);
+    console.log(`   Expected: ~99.80 tokens + 0.40 KEDOLOG\n`);
+
+    // ============================================================================
+    // COMPARISON
+    // ============================================================================
+    console.log("=".repeat(80));
+    console.log("📊 COMPARISON: Same Pool, Different Swap Methods");
+    console.log("=".repeat(80));
+    console.log(`Pool Address: ${poolAddress.toString()}\n`);
+
+    console.log("┌─────────────────────────────────────────────────────────────────────┐");
+    console.log("│                        SWAP COMPARISON                              │");
+    console.log("├─────────────────────────────────────────────────────────────────────┤");
+    console.log("│ Metric              │ Normal Swap      │ Discount Swap             │");
+    console.log("├─────────────────────────────────────────────────────────────────────┤");
+    console.log(`│ Input               │ ${token0Spent_swap1.toFixed(6).padEnd(16)} │ ${token0Spent_swap2.toFixed(6).padEnd(25)} │`);
+    console.log(`│ Output (tokens)     │ ${token1Received_swap1.toFixed(6).padEnd(16)} │ ${token1Received_swap2.toFixed(6).padEnd(25)} │`);
+    console.log(`│ KEDOLOG Paid        │ ${"0.000000".padEnd(16)} │ ${kedologSpent_swap2.toFixed(6).padEnd(25)} │`);
+    console.log(`│ Extra Tokens        │ ${"0.000000".padEnd(16)} │ ${(token1Received_swap2 - token1Received_swap1).toFixed(6).padEnd(25)} │`);
+    console.log("└─────────────────────────────────────────────────────────────────────┘\n");
+
+    const extraTokens = token1Received_swap2 - token1Received_swap1;
+    console.log("💡 Key Findings:");
+    console.log(`   ✅ Same pool used for both swaps`);
+    console.log(`   ✅ Normal swap: ${token1Received_swap1.toFixed(6)} tokens received`);
+    console.log(`   ✅ Discount swap: ${token1Received_swap2.toFixed(6)} tokens received`);
+    console.log(`   ✅ Benefit: ${extraTokens.toFixed(6)} MORE tokens with discount!`);
+    console.log(`   ✅ KEDOLOG paid: ${kedologSpent_swap2.toFixed(6)} KEDOLOG`);
+    console.log(`   ✅ Treasury received: ${kedologToTreasury_swap2.toFixed(6)} KEDOLOG\n`);
+
+    console.log("🎯 CONCLUSION:");
+    console.log("   ONE pool successfully handles BOTH swap types!");
+    console.log("   Users can choose normal or discount swap on the SAME pool.\n");
+    console.log("=".repeat(80) + "\n");
+
+    // Assertions
+    assert.equal(token0Spent_swap1.toFixed(6), "100.000000", "Swap 1 should spend 100 tokens");
+    assert.equal(token0Spent_swap2.toFixed(6), "100.000000", "Swap 2 should spend 100 tokens");
+    
+    assert.isTrue(
+      token1Received_swap1 > 99.70 && token1Received_swap1 < 99.80,
+      `Normal swap should receive ~99.75 tokens, got ${token1Received_swap1.toFixed(6)}`
+    );
+    
+    assert.isTrue(
+      token1Received_swap2 > 99.75 && token1Received_swap2 < 99.85,
+      `Discount swap should receive ~99.80 tokens, got ${token1Received_swap2.toFixed(6)}`
+    );
+    
+    assert.isTrue(
+      token1Received_swap2 > token1Received_swap1,
+      "Discount swap should give MORE tokens than normal swap"
+    );
+    
+    assert.isTrue(
+      Math.abs(kedologSpent_swap2 - 0.40) < 0.01,
+      `Should pay ~0.40 KEDOLOG, paid ${kedologSpent_swap2.toFixed(6)}`
+    );
+    
+    assert.equal(
+      kedologSpent_swap2.toFixed(6),
+      kedologToTreasury_swap2.toFixed(6),
+      "Treasury should receive exactly what user paid"
+    );
+  });
+});
+

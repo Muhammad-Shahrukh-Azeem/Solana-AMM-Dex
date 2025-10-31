@@ -1,0 +1,307 @@
+import * as anchor from "@coral-xyz/anchor";
+import { Program, BN } from "@coral-xyz/anchor";
+import { KedolikCpSwap } from "../target/types/kedolik_cp_swap";
+import {
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  Connection,
+} from "@solana/web3.js";
+import {
+  TOKEN_PROGRAM_ID,
+  createMint,
+  createAssociatedTokenAccount,
+  mintTo,
+  getAccount,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
+import {
+  setupDepositTest,
+  createProtocolTokenConfig,
+  createAmmConfig,
+} from "./utils/instruction";
+import { getProtocolTokenConfigAddress, getAmmConfigAddress } from "./utils/pda";
+import { assert } from "chai";
+
+describe("🔮 Pyth Oracle Integration Test", () => {
+  anchor.setProvider(anchor.AnchorProvider.env());
+  const admin = anchor.Wallet.local().payer;
+  const program = anchor.workspace.KedolikCpSwap as Program<KedolikCpSwap>;
+  const connection = anchor.getProvider().connection;
+
+  // Pyth Price Feeds on Devnet
+  // Note: These are Pyth's pull-based oracle addresses
+  const PYTH_SOL_USD_DEVNET = new PublicKey("J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix");
+  const PYTH_BTC_USD_DEVNET = new PublicKey("HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
+  
+  let protocolTokenMint: PublicKey;
+  let treasuryKeypair: Keypair;
+  let configAddress: PublicKey;
+
+  const confirmOptions = {
+    skipPreflight: true,
+  };
+
+  before(async () => {
+    console.log("\n" + "=".repeat(80));
+    console.log("🔮 PYTH ORACLE TEST SETUP");
+    console.log("=".repeat(80));
+    console.log("Testing oracle integration with real Pyth price feeds\n");
+
+    // Create KEDOLOG token
+    protocolTokenMint = await createMint(
+      connection,
+      admin,
+      admin.publicKey,
+      admin.publicKey,
+      9,
+      undefined,
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+    console.log(`✅ KEDOLOG Mint: ${protocolTokenMint.toString()}`);
+
+    // Create treasury
+    treasuryKeypair = Keypair.generate();
+    const treasuryTokenAccount = await createAssociatedTokenAccount(
+      connection,
+      admin,
+      protocolTokenMint,
+      treasuryKeypair.publicKey,
+      undefined,
+      TOKEN_PROGRAM_ID
+    );
+    console.log(`✅ Treasury: ${treasuryKeypair.publicKey.toString()}`);
+
+    // Create protocol token config
+    await createProtocolTokenConfig(
+      program,
+      connection,
+      admin,
+      protocolTokenMint,
+      new BN(2000), // 20% discount
+      admin.publicKey,
+      treasuryKeypair.publicKey,
+      new BN(10_000_000), // 10 KEDOLOG per USD
+      confirmOptions
+    );
+    console.log("✅ Protocol Token Config created");
+
+    // Create AMM Config
+    configAddress = await createAmmConfig(
+      program,
+      connection,
+      admin,
+      200, // Unique index
+      new BN(2500), // 0.25% fee
+      new BN(200000), // 20% protocol fee
+      new BN(0),
+      new BN(0),
+      confirmOptions
+    );
+    console.log(`✅ AMM Config: ${configAddress.toString()}\n`);
+  });
+
+  it("📊 Explains how Pyth oracle works", async () => {
+    console.log("\n" + "=".repeat(80));
+    console.log("📚 PYTH ORACLE EXPLANATION");
+    console.log("=".repeat(80));
+    
+    console.log("\n🔮 How Pyth Works:");
+    console.log("   1. Pyth aggregates prices from 90+ data providers");
+    console.log("   2. Prices are published on-chain every 400ms");
+    console.log("   3. Your program reads the latest price from Pyth account");
+    console.log("   4. Price format: price × 10^exponent");
+    
+    console.log("\n📊 Example:");
+    console.log("   Pyth SOL/USD feed returns:");
+    console.log("   - price: 10000000000");
+    console.log("   - exponent: -8");
+    console.log("   - Real price: 10000000000 × 10^(-8) = $100.00");
+    
+    console.log("\n🔗 Pyth Price Feeds (Devnet):");
+    console.log(`   SOL/USD: ${PYTH_SOL_USD_DEVNET.toString()}`);
+    console.log(`   BTC/USD: ${PYTH_BTC_USD_DEVNET.toString()}`);
+    
+    console.log("\n💡 In Your Swap:");
+    console.log("   1. User passes Pyth feed account as 'inputTokenOracle'");
+    console.log("   2. Program fetches real-time price from Pyth");
+    console.log("   3. Calculates exact KEDOLOG amount needed");
+    console.log("   4. User pays precise fee based on current market price");
+    
+    console.log("\n" + "=".repeat(80) + "\n");
+  });
+
+  it("🧪 Shows how to use oracle in swap (simulation)", async () => {
+    console.log("\n" + "=".repeat(80));
+    console.log("🧪 ORACLE USAGE SIMULATION");
+    console.log("=".repeat(80));
+    
+    console.log("\n📝 Code Example:");
+    console.log("```typescript");
+    console.log("// Import Pyth feed address");
+    console.log("const SOL_USD_PYTH = new PublicKey('J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix');");
+    console.log("");
+    console.log("// Swap with oracle pricing");
+    console.log("await program.methods");
+    console.log("  .swapBaseInputWithProtocolToken(amountIn, minOut)");
+    console.log("  .accounts({");
+    console.log("    payer: user.publicKey,");
+    console.log("    // ... other accounts ...");
+    console.log("    inputTokenOracle: SOL_USD_PYTH,  // ← Real-time SOL price!");
+    console.log("    protocolTokenOracle: null,        // ← KEDOLOG uses manual");
+    console.log("  })");
+    console.log("  .rpc();");
+    console.log("```");
+    
+    console.log("\n📊 What Happens:");
+    console.log("   1. Program reads SOL price from Pyth: $100");
+    console.log("   2. Fee: 0.0004 SOL × $100 = $0.04");
+    console.log("   3. KEDOLOG needed: $0.04 / $0.10 = 0.4 KEDOLOG");
+    console.log("   4. User pays exactly 0.4 KEDOLOG");
+    
+    console.log("\n✅ Benefits:");
+    console.log("   • Accurate pricing for all tokens");
+    console.log("   • No manual price updates needed");
+    console.log("   • Works with any Pyth-supported token");
+    console.log("   • Real-time market prices");
+    
+    console.log("\n" + "=".repeat(80) + "\n");
+  });
+
+  it("📋 Lists available Pyth feeds", async () => {
+    console.log("\n" + "=".repeat(80));
+    console.log("📋 AVAILABLE PYTH PRICE FEEDS");
+    console.log("=".repeat(80));
+    
+    console.log("\n🌐 Mainnet Feeds:");
+    console.log("   SOL/USD:  H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG");
+    console.log("   BTC/USD:  GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU");
+    console.log("   ETH/USD:  JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB");
+    console.log("   USDC/USD: Gnt27xtC473ZT2Mw5u8wZ68Z3gULkSTb5DuxJy7eJotD");
+    console.log("   USDT/USD: 3vxLXJqLqF3JG5TCbYycbKWRBbCJQLxQmBGCkyqEEefL");
+    
+    console.log("\n🧪 Devnet Feeds:");
+    console.log("   SOL/USD:  J83w4HKfqxwcq3BEMMkPFSppX3gqekLyLJBexebFVkix");
+    console.log("   BTC/USD:  HovQMDrbAgAYPCmHVSrezcSmkMtXSSUsLDFANExrZh2J");
+    
+    console.log("\n🔗 Full List:");
+    console.log("   https://pyth.network/developers/price-feed-ids");
+    
+    console.log("\n💡 Usage:");
+    console.log("   1. Find your token's feed ID from Pyth");
+    console.log("   2. Pass it as inputTokenOracle or protocolTokenOracle");
+    console.log("   3. Program automatically uses real-time price");
+    
+    console.log("\n" + "=".repeat(80) + "\n");
+  });
+
+  it("🎯 Demonstrates manual vs oracle pricing", async () => {
+    console.log("\n" + "=".repeat(80));
+    console.log("🎯 MANUAL VS ORACLE PRICING");
+    console.log("=".repeat(80));
+    
+    console.log("\n📊 Scenario: Swap 1 SOL with KEDOLOG discount");
+    console.log("   Protocol Fee: 0.04% = 0.0004 SOL");
+    
+    console.log("\n🔧 Option 1: MANUAL PRICING (Current)");
+    console.log("   inputTokenOracle: null");
+    console.log("   protocolTokenOracle: null");
+    console.log("   ");
+    console.log("   Calculation:");
+    console.log("   - SOL price: $1 (assumed)");
+    console.log("   - KEDOLOG price: $0.10 (from config)");
+    console.log("   - Fee in USD: 0.0004 × $1 = $0.0004");
+    console.log("   - KEDOLOG needed: $0.0004 / $0.10 = 0.004 KEDOLOG");
+    console.log("   ");
+    console.log("   ⚠️  Problem: SOL is not $1, it's ~$100!");
+    console.log("   ⚠️  User pays 100x less than they should!");
+    
+    console.log("\n🔮 Option 2: ORACLE PRICING (With Pyth)");
+    console.log("   inputTokenOracle: SOL_USD_PYTH");
+    console.log("   protocolTokenOracle: null");
+    console.log("   ");
+    console.log("   Calculation:");
+    console.log("   - SOL price: $100 (from Pyth)");
+    console.log("   - KEDOLOG price: $0.10 (from config)");
+    console.log("   - Fee in USD: 0.0004 × $100 = $0.04");
+    console.log("   - KEDOLOG needed: $0.04 / $0.10 = 0.4 KEDOLOG");
+    console.log("   ");
+    console.log("   ✅ Correct: User pays accurate fee!");
+    
+    console.log("\n💡 Recommendation:");
+    console.log("   • Stablecoins (USDC, USDT): Use manual (oracle: null)");
+    console.log("   • Volatile tokens (SOL, BTC, ETH): Use oracle");
+    console.log("   • KEDOLOG: Use manual (set in config)");
+    
+    console.log("\n" + "=".repeat(80) + "\n");
+  });
+
+  it("📖 Provides integration guide", async () => {
+    console.log("\n" + "=".repeat(80));
+    console.log("📖 INTEGRATION GUIDE");
+    console.log("=".repeat(80));
+    
+    console.log("\n🚀 Step-by-Step Integration:");
+    
+    console.log("\n1️⃣  Update your swap helper function:");
+    console.log("```typescript");
+    console.log("export async function swapBaseInputWithProtocolToken(");
+    console.log("  // ... existing params ...");
+    console.log("  inputTokenOracle?: PublicKey,    // ← Add this");
+    console.log("  protocolTokenOracle?: PublicKey, // ← Add this");
+    console.log(") {");
+    console.log("  await program.methods");
+    console.log("    .swapBaseInputWithProtocolToken(amountIn, minOut)");
+    console.log("    .accounts({");
+    console.log("      // ... existing accounts ...");
+    console.log("      inputTokenOracle: inputTokenOracle || null,");
+    console.log("      protocolTokenOracle: protocolTokenOracle || null,");
+    console.log("    })");
+    console.log("    .rpc();");
+    console.log("}");
+    console.log("```");
+    
+    console.log("\n2️⃣  Define Pyth feeds in your frontend:");
+    console.log("```typescript");
+    console.log("const PYTH_FEEDS = {");
+    console.log("  SOL_USD: new PublicKey('H6ARHf6YXhGYeQfUzQNGk6rDNnLBQKrenN712K4AQJEG'),");
+    console.log("  BTC_USD: new PublicKey('GVXRSBjFk6e6J3NbVPXohDJetcTjaeeuykUpbQF8UoMU'),");
+    console.log("  ETH_USD: new PublicKey('JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB'),");
+    console.log("};");
+    console.log("```");
+    
+    console.log("\n3️⃣  Use oracle based on token type:");
+    console.log("```typescript");
+    console.log("// Determine if we need oracle");
+    console.log("const inputOracle = isStablecoin(inputToken) ");
+    console.log("  ? null ");
+    console.log("  : PYTH_FEEDS[inputToken.symbol];");
+    console.log("");
+    console.log("// Swap with oracle");
+    console.log("await swapBaseInputWithProtocolToken(");
+    console.log("  // ... params ...");
+    console.log("  inputOracle,  // Pyth feed or null");
+    console.log("  null,         // KEDOLOG uses manual");
+    console.log(");");
+    console.log("```");
+    
+    console.log("\n4️⃣  Handle errors:");
+    console.log("```typescript");
+    console.log("try {");
+    console.log("  await swap(...);");
+    console.log("} catch (err) {");
+    console.log("  if (err.code === 6043) { // InvalidOracle");
+    console.log("    console.error('Oracle account invalid');");
+    console.log("  } else if (err.code === 6044) { // OracleNotConfigured");
+    console.log("    console.error('Oracle not set up');");
+    console.log("  } else if (err.code === 6045) { // StaleOraclePrice");
+    console.log("    console.error('Oracle price too old');");
+    console.log("  }");
+    console.log("}");
+    console.log("```");
+    
+    console.log("\n" + "=".repeat(80) + "\n");
+  });
+});
+

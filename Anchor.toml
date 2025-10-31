@@ -10,10 +10,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-kedolik_cp_swap = "CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C"
+kedolik_cp_swap = "GCm8bqvSuJ4nwj3SN3pk2eSJWTwcRjkU6KhXE96AnBod"
 
 [programs.devnet]
-kedolik_cp_swap = "F3mHkHDh3A61A3mp9dd35DzhypacRRKeEKYDNh4dQqRc"
+kedolik_cp_swap = "GCm8bqvSuJ4nwj3SN3pk2eSJWTwcRjkU6KhXE96AnBod"
 
 
 [registry]
@@ -31,9 +31,3 @@ startup_wait = 10000
 
 [test.validator]
 url = "https://api.mainnet-beta.solana.com"
-
-[[test.validator.clone]]
-address = "DNXgeM9EiiaAbaWvwjHj9fQQLAX5ZsfHyvmYUNRAdNC8" # pool fee receiver
-
-[[test.validator.clone]]
-address = "D4FPEruKEHrG5TenZ2mpDGEfu1iUvTiqBxvpU8HLBvC2" # index 0 AMM Config account

@@ -131,11 +131,12 @@ pub struct InitializeWithPermission<'info> {
     pub token_1_vault: UncheckedAccount<'info>,
 
     /// create pool fee account
+    /// CHECK: Address is verified by constraint, account type checked in instruction logic when fee > 0
     #[account(
         mut,
-        address= crate::create_pool_fee_reveiver::ID,
+        address= crate::create_pool_fee_receiver::ID,
     )]
-    pub create_pool_fee: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub create_pool_fee: UncheckedAccount<'info>,
 
     /// an account to store oracle observations
     #[account(

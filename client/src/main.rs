@@ -194,7 +194,7 @@ fn main() -> Result<()> {
                     &mint1,
                     &token_1_program,
                 ),
-                kedolik_cp_swap::create_pool_fee_reveiver::ID,
+                kedolik_cp_swap::create_pool_fee_receiver::ID,
                 random_pool_id,
                 init_amount_0,
                 init_amount_1,

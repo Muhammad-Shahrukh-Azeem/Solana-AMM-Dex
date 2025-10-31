@@ -101,6 +101,17 @@ pub struct SwapWithProtocolToken<'info> {
     /// The program account for the most recent oracle observation
     #[account(mut, address = pool_state.load()?.observation_key)]
     pub observation_state: AccountLoader<'info, ObservationState>,
+    
+    /// REQUIRED: Price oracle for input token (e.g., Pyth SOL/USD feed)
+    /// This ensures accurate pricing for the swap token
+    /// CHECK: Oracle account validated in price_oracle module
+    pub input_token_oracle: AccountInfo<'info>,
+    
+    /// OPTIONAL: Price oracle for protocol token (e.g., Pyth KEDOLOG/USD feed)
+    /// If not provided (SystemProgram), uses manual price from protocol_token_config
+    /// This allows launching before KEDOLOG is listed on Pyth
+    /// CHECK: Oracle account validated in price_oracle module  
+    pub protocol_token_oracle: AccountInfo<'info>,
 }
 
 pub fn swap_base_input_with_protocol_token(
@@ -145,36 +156,70 @@ pub fn swap_base_input_with_protocol_token(
     let creator_fee_rate =
         pool_state.adjust_creator_fee_rate(ctx.accounts.amm_config.creator_fee_rate);
     
-    // Calculate the original swap result
+    // Calculate reduced trade fee rate when paying with protocol token
+    // Only the FULL protocol fee portion is removed from swap
+    // LPs still get their FULL share (0.20%)
+    let trade_fee_rate = ctx.accounts.amm_config.trade_fee_rate;
+    let protocol_fee_rate = ctx.accounts.amm_config.protocol_fee_rate;
+    
+    // Calculate what portion of trade fee is protocol fee
+    // Example: trade_fee = 2500 (0.25%), protocol_fee_rate = 200000 (20% of trade fee)
+    // protocol_portion = 2500 * 200000 / 1000000 = 500 (0.05%)
+    let protocol_fee_portion = (trade_fee_rate as u128)
+        .checked_mul(protocol_fee_rate as u128)
+        .unwrap()
+        .checked_div(1_000_000)
+        .unwrap() as u64;
+    
+    // Calculate reduced trade fee (remove FULL protocol portion)
+    // Example: 2500 - 500 = 2000 (0.20%)
+    // LPs get their full 0.20%, protocol fee paid separately in KEDOLOG
+    let reduced_trade_fee_rate = trade_fee_rate
+        .checked_sub(protocol_fee_portion)
+        .unwrap();
+    
+    // Calculate the swap result with REDUCED fee (only LP portion)
+    // User pays 0.20% in swap, gets 99.80 SOL worth
+    // Then pays 0.04% separately in KEDOLOG
     let result = CurveCalculator::swap_base_input(
         u128::from(actual_amount_in),
         u128::from(total_input_token_amount),
         u128::from(total_output_token_amount),
-        ctx.accounts.amm_config.trade_fee_rate,
+        reduced_trade_fee_rate,  // Only LP fee (0.20%)
         creator_fee_rate,
-        ctx.accounts.amm_config.protocol_fee_rate,
+        0,  // Protocol fee is 0 in swap calculation (paid separately in KEDOLOG)
         ctx.accounts.amm_config.fund_fee_rate,
         is_creator_fee_on_input,
     )
     .ok_or(ErrorCode::ZeroTradingTokens)?;
 
-    // Calculate the protocol fee amount
-    let original_protocol_fee = u64::try_from(result.protocol_fee).unwrap();
+    // Calculate the discounted protocol fee that will be paid in KEDOLOG
+    // Apply 20% discount to the 0.05% protocol fee = 0.04%
+    let original_protocol_fee_amount = (u128::from(actual_amount_in))
+        .checked_mul(protocol_fee_portion as u128)
+        .unwrap()
+        .checked_div(1_000_000)
+        .unwrap();
     
-    // Apply discount when paying with protocol token
-    let discounted_protocol_fee = original_protocol_fee
-        .checked_mul(10000 - ctx.accounts.protocol_token_config.discount_rate)
+    let discounted_protocol_fee = (original_protocol_fee_amount
+        .checked_mul((10000 - ctx.accounts.protocol_token_config.discount_rate) as u128)
         .unwrap()
         .checked_div(10000)
-        .unwrap();
+        .unwrap()) as u64;
 
+    // Ensure discounted fee is greater than 0
+    require_gt!(discounted_protocol_fee, 0, ErrorCode::InvalidInput);
+    
     // Calculate equivalent protocol token amount using price ratio from config
     // This converts the discounted fee amount to protocol tokens
+    // Now supports oracle pricing if oracle accounts are provided!
     let protocol_token_amount = calculate_protocol_token_equivalent(
         discounted_protocol_fee,
         &ctx.accounts.input_token_mint,
         &ctx.accounts.protocol_token_mint,
         &ctx.accounts.protocol_token_config,
+        &ctx.accounts.input_token_oracle,
+        &ctx.accounts.protocol_token_oracle,
     )?;
 
     // Verify user has enough protocol tokens
@@ -297,63 +342,40 @@ pub fn swap_base_input_with_protocol_token(
 /// Calculate the equivalent amount of protocol tokens needed to pay the fee
 /// 
 /// This function converts the fee amount (in the swap token) to the equivalent
-/// amount in protocol tokens based on a USD price ratio.
+/// amount in protocol tokens based on real-time oracle prices or manual config.
 /// 
-/// Example: If fee is 10 USDC and 1 USD = 10 KEDOLOG tokens:
-/// - protocol_token_amount = 10 * 10 = 100 KEDOLOG tokens
-///
-/// For non-USD stablecoins, you'll need to implement price oracle integration
-fn calculate_protocol_token_equivalent(
+/// Example: If fee is 0.05 SOL, SOL = $100, KEDOLOG = $0.10:
+/// - Fee value = 0.05 * $100 = $5
+/// - Protocol tokens needed = $5 / $0.10 = 50 KEDOLOG
+fn calculate_protocol_token_equivalent<'info>(
     fee_amount: u64,
     input_token_mint: &InterfaceAccount<Mint>,
     protocol_token_mint: &InterfaceAccount<Mint>,
     protocol_token_config: &ProtocolTokenConfig,
+    input_token_oracle: &AccountInfo<'info>,
+    protocol_token_oracle: &AccountInfo<'info>,
 ) -> Result<u64> {
-    // Get the manual price ratio from config
-    // protocol_token_per_usd is scaled by 10^6
-    // Example: if 1 USD = 10 KEDOLOG, protocol_token_per_usd = 10_000_000
+    // Use the price oracle module for accurate pricing
+    // 
+    // HYBRID ORACLE APPROACH:
+    // 1. input_token_oracle: REQUIRED - Gets real-time price from Pyth (SOL, BTC, etc.)
+    // 2. protocol_token_oracle: OPTIONAL - If SystemProgram, uses manual price from config
+    // 
+    // This allows you to:
+    // - Launch immediately with manual KEDOLOG pricing
+    // - Get accurate pricing for input tokens via Pyth
+    // - Add KEDOLOG oracle later when listed on Pyth/Switchboard
     
-    let protocol_tokens_per_usd = protocol_token_config.protocol_token_per_usd;
-    require_gt!(protocol_tokens_per_usd, 0);
-    
-    // Adjust for token decimals
-    // fee_amount is in input token's decimals
-    // We need to convert to protocol token's decimals
-    
-    let input_decimals = input_token_mint.decimals;
-    let protocol_decimals = protocol_token_mint.decimals;
-    
-    // Calculate protocol token amount
-    // Formula: fee_amount * (protocol_tokens_per_usd / 10^6) * (10^protocol_decimals / 10^input_decimals)
-    
-    // First, convert fee to base units
-    let fee_in_base_units = fee_amount as u128;
-    
-    // Apply the price ratio (scaled by 10^6)
-    let protocol_amount_scaled = fee_in_base_units
-        .checked_mul(protocol_tokens_per_usd as u128)
-        .ok_or(ErrorCode::MathOverflow)?
-        .checked_div(1_000_000) // Remove the 10^6 scaling
-        .ok_or(ErrorCode::MathOverflow)?;
-    
-    // Adjust for decimal differences
-    let protocol_token_amount = if protocol_decimals >= input_decimals {
-        // Protocol token has more or equal decimals - multiply
-        let decimal_diff = protocol_decimals - input_decimals;
-        protocol_amount_scaled
-            .checked_mul(10u128.pow(decimal_diff as u32))
-            .ok_or(ErrorCode::MathOverflow)?
-    } else {
-        // Protocol token has fewer decimals - divide
-        let decimal_diff = input_decimals - protocol_decimals;
-        protocol_amount_scaled
-            .checked_div(10u128.pow(decimal_diff as u32))
-            .ok_or(ErrorCode::MathOverflow)?
-    };
-    
-    // Convert back to u64
-    let result = u64::try_from(protocol_token_amount)
-        .map_err(|_| ErrorCode::MathOverflow)?;
+    let result = crate::price_oracle::calculate_protocol_token_amount_with_oracle(
+        fee_amount,
+        &input_token_mint.key(),
+        input_token_mint.decimals,
+        &protocol_token_mint.key(),
+        protocol_token_mint.decimals,
+        protocol_token_config,
+        Some(input_token_oracle),
+        Some(protocol_token_oracle),
+    )?;
     
     Ok(result)
 }

@@ -1,6 +1,7 @@
 pub mod curve;
 pub mod error;
 pub mod instructions;
+pub mod price_oracle;
 pub mod states;
 pub mod utils;
 use crate::curve::fees::FEE_RATE_DENOMINATOR_VALUE;
@@ -19,25 +20,16 @@ solana_security_txt::security_txt! {
     auditors: "https://github.com/kedolik-io/kedolik-docs/blob/master/audit/MadShield%20Q1%202024/kedolik-cp-swap-v-1.0.0.pdf"
 }
 
-#[cfg(feature = "devnet")]
-declare_id!("F3mHkHDh3A61A3mp9dd35DzhypacRRKeEKYDNh4dQqRc");
-#[cfg(not(feature = "devnet"))]
-declare_id!("CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C");
+declare_id!("2LdLPZbRokzmcJyFE7fLyTgMKNxuR9PE6PKfunn6fkUi");
 
 pub mod admin {
     use super::{pubkey, Pubkey};
-    #[cfg(feature = "devnet")]
     pub const ID: Pubkey = pubkey!("JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa");
-    #[cfg(not(feature = "devnet"))]
-    pub const ID: Pubkey = pubkey!("GThUX1Atko4tqhN2NaiTazWSeFWMuiUvfFnyJyUghFMJ");
 }
 
-pub mod create_pool_fee_reveiver {
+pub mod create_pool_fee_receiver {
     use super::{pubkey, Pubkey};
-    #[cfg(feature = "devnet")]
-    pub const ID: Pubkey = pubkey!("3oE58BKVt8KuYkGxx8zBojugnymWmBiyafWgMrnb6eYy");
-    #[cfg(not(feature = "devnet"))]
-    pub const ID: Pubkey = pubkey!("DNXgeM9EiiaAbaWvwjHj9fQQLAX5ZsfHyvmYUNRAdNC8");
+    pub const ID: Pubkey = pubkey!("67D6TM8PTsuv8nU5PnUP3dV6j8kW3rmTD9KNufcEUPCa");
 }
 
 pub const AUTH_SEED: &str = "vault_and_lp_mint_auth_seed";

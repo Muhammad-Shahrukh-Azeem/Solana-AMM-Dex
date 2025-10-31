@@ -40,4 +40,10 @@ pub enum ErrorCode {
     InvalidFeeModel,
     #[msg("Fee is zero")]
     NoFeeCollect,
+    #[msg("Invalid oracle account")]
+    InvalidOracle,
+    #[msg("Oracle not configured")]
+    OracleNotConfigured,
+    #[msg("Stale oracle price")]
+    StaleOraclePrice,
 }
