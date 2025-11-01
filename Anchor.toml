@@ -10,10 +10,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-kedolik_cp_swap = "GCm8bqvSuJ4nwj3SN3pk2eSJWTwcRjkU6KhXE96AnBod"
+kedolik_cp_swap = "HmrfmeAq6w52AESpFhxMP1dwYDn8DHawmGmtYMhbrkcq"
 
 [programs.devnet]
-kedolik_cp_swap = "GCm8bqvSuJ4nwj3SN3pk2eSJWTwcRjkU6KhXE96AnBod"
+kedolik_cp_swap = "HmrfmeAq6w52AESpFhxMP1dwYDn8DHawmGmtYMhbrkcq"
 
 
 [registry]

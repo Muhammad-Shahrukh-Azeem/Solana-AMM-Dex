@@ -1,14 +1,20 @@
 use crate::states::*;
+use crate::error::ErrorCode;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct UpdatePoolStatus<'info> {
-    #[account(
-        address = crate::admin::ID
-    )]
+    /// Must be the protocol owner from the AMM config
     pub authority: Signer<'info>,
 
-    #[account(mut)]
+    /// The AMM config that owns this pool
+    #[account(address = pool_state.load()?.amm_config)]
+    pub amm_config: Account<'info, AmmConfig>,
+
+    #[account(
+        mut,
+        constraint = authority.key() == amm_config.protocol_owner @ ErrorCode::InvalidOwner
+    )]
     pub pool_state: AccountLoader<'info, PoolState>,
 }
 

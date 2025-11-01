@@ -5,10 +5,8 @@ use std::ops::DerefMut;
 
 #[derive(Accounts)]
 pub struct CreatePermissionPda<'info> {
-    #[account(
-        mut,
-        address = crate::admin::ID @ ErrorCode::InvalidOwner
-    )]
+    /// Can be any address for creating permissions
+    #[account(mut)]
     pub owner: Signer<'info>,
 
     /// CHECK: permission account authority

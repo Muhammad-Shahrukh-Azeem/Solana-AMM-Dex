@@ -5,8 +5,10 @@ use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct UpdateAmmConfig<'info> {
-    /// The amm config owner or admin
-    #[account(address = crate::admin::ID @ ErrorCode::InvalidOwner)]
+    /// The amm config owner or admin - must match stored protocol_owner
+    #[account(
+        constraint = owner.key() == amm_config.protocol_owner @ ErrorCode::InvalidOwner
+    )]
     pub owner: Signer<'info>,
 
     /// Amm config account to be changed
@@ -32,6 +34,10 @@ pub fn update_amm_config(ctx: Context<UpdateAmmConfig>, param: u8, value: u64) -
         Some(5) => amm_config.create_pool_fee = value,
         Some(6) => amm_config.disable_create_pool = if value == 0 { false } else { true },
         Some(7) => update_creator_fee_rate(amm_config, value),
+        Some(8) => {
+            let new_fee_receiver = *ctx.remaining_accounts.iter().next().unwrap().key;
+            set_new_fee_receiver(amm_config, new_fee_receiver)?;
+        }
         _ => return err!(ErrorCode::InvalidInput),
     }
 
@@ -81,5 +87,17 @@ fn set_new_fund_owner(amm_config: &mut Account<AmmConfig>, new_fund_owner: Pubke
         new_fund_owner.key().to_string()
     );
     amm_config.fund_owner = new_fund_owner;
+    Ok(())
+}
+
+fn set_new_fee_receiver(amm_config: &mut Account<AmmConfig>, new_fee_receiver: Pubkey) -> Result<()> {
+    require_keys_neq!(new_fee_receiver, Pubkey::default());
+    #[cfg(feature = "enable-log")]
+    msg!(
+        "amm_config, old_fee_receiver:{}, new_fee_receiver:{}",
+        amm_config.create_pool_fee_receiver.to_string(),
+        new_fee_receiver.to_string()
+    );
+    amm_config.create_pool_fee_receiver = new_fee_receiver;
     Ok(())
 }

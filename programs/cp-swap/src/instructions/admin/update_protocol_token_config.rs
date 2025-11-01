@@ -25,7 +25,7 @@ pub fn update_protocol_token_config(
     ctx: Context<UpdateProtocolTokenConfig>,
     discount_rate: Option<u64>,
     treasury: Option<Pubkey>,
-    protocol_token_per_usd: Option<u64>,
+    price_pool: Option<Pubkey>,
     new_authority: Option<Pubkey>,
 ) -> Result<()> {
     let protocol_config = ctx.accounts.protocol_token_config.deref_mut();
@@ -40,9 +40,8 @@ pub fn update_protocol_token_config(
         protocol_config.treasury = new_treasury;
     }
     
-    if let Some(price) = protocol_token_per_usd {
-        require_gt!(price, 0, ErrorCode::InvalidInput);
-        protocol_config.protocol_token_per_usd = price;
+    if let Some(pool) = price_pool {
+        protocol_config.price_pool = pool;
     }
     
     if let Some(new_auth) = new_authority {

@@ -19,7 +19,13 @@
     "protocolFeeRate": 500,
     "lpFeeRate": 2000,
     "createPoolFee": 150000000,
-    "kedologDiscountRate": 2000,
+    "kedologDiscountRate": 2500,
     "kedologPerUsd": 10000000
+  },
+  "discountUpdate": {
+    "transaction": "2Gptg8hbSYvmtTy7vZd8hfum7nxYepcwhMuerqZhvbujhbuf4GRdXvNBLRBeRzBPSPxMpXuDFWA69wUyFBFg3Cin",
+    "updatedAt": "2025-10-31",
+    "newDiscountRate": 2500,
+    "note": "Updated from 20% to 25%"
   }
 }

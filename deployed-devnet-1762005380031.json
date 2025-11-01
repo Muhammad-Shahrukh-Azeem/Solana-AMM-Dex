@@ -1,0 +1,28 @@
+{
+  "network": "devnet",
+  "programId": "47TgfB8vwsKkN6BVHk25ZyMjrovqW9wCQBG1u7SGqqXc",
+  "ammConfig": {
+    "index": 24210,
+    "address": "8rJe3zZR3Tf8NvxFMEGE39W5iN11Bi2zxNFBwJpKs619",
+    "protocolOwner": "JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa",
+    "fundOwner": "JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa",
+    "createPoolFeeReceiver": "JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa"
+  },
+  "kedologConfig": {
+    "address": "8uSFyQa9gMYUqDz8iuRG8s1eFCk2eBuR7ipwyhdQe1Z",
+    "mint": "22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx",
+    "discountRate": 2500,
+    "treasury": "67D6TM8PTsuv8nU5PnUP3dV6j8kW3rmTD9KNufcEUPCa",
+    "note": "using existing"
+  },
+  "fees": {
+    "tradeFeeRate": 2500,
+    "protocolFeeRate": 500,
+    "lpFeeRate": 2000,
+    "fundFeeRate": 0,
+    "creatorFeeRate": 0,
+    "createPoolFee": 1000000000
+  },
+  "deployedAt": "2025-11-01T13:56:20.031Z",
+  "deployedBy": "JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa"
+}

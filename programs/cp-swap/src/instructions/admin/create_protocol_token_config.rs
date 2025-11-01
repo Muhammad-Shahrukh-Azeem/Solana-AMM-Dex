@@ -30,12 +30,11 @@ pub fn create_protocol_token_config(
     discount_rate: u64,
     authority: Pubkey,
     treasury: Pubkey,
-    protocol_token_per_usd: u64,
+    price_pool: Pubkey,
 ) -> Result<()> {
     // Validate parameters
     require_gt!(discount_rate, 0, ErrorCode::InvalidInput);
     require_gt!(10000, discount_rate, ErrorCode::InvalidInput); // Max 100% discount
-    require_gt!(protocol_token_per_usd, 0, ErrorCode::InvalidInput);
     
     let protocol_config = ctx.accounts.protocol_token_config.deref_mut();
     protocol_config.bump = ctx.bumps.protocol_token_config;
@@ -44,7 +43,8 @@ pub fn create_protocol_token_config(
     protocol_config.authority = authority;
     protocol_config.treasury = treasury;
     protocol_config.price_oracle = Pubkey::default(); // No oracle by default
-    protocol_config.protocol_token_per_usd = protocol_token_per_usd;
+    protocol_config.price_pool = price_pool; // Pool for price fetching
+    protocol_config.protocol_token_per_usd = 0; // Deprecated, using pool price
     
     Ok(())
 }

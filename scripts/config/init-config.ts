@@ -76,6 +76,7 @@ async function main() {
   console.log(`   Fund Fee: ${FUND_FEE_RATE}`);
   console.log(`   Creator Fee: ${CREATOR_FEE_RATE}`);
   console.log(`   Create Pool Fee: ${CREATE_POOL_FEE} SOL`);
+  console.log(`   Fee Receiver: ${admin.publicKey.toString()}`);
   
   try {
     const tx = await program.methods
@@ -84,12 +85,12 @@ async function main() {
         new BN(TRADE_FEE_RATE),
         new BN(PROTOCOL_FEE_RATE),
         new BN(FUND_FEE_RATE),
+        new BN(CREATE_POOL_FEE),
         new BN(CREATOR_FEE_RATE),
-        new BN(CREATE_POOL_FEE)
+        admin.publicKey // create_pool_fee_receiver
       )
-      .accounts({
+      .accountsPartial({
         owner: admin.publicKey,
-        ammConfig,
       })
       .rpc();
     

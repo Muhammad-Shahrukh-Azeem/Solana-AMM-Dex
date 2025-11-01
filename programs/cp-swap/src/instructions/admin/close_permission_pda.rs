@@ -4,10 +4,8 @@ use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 pub struct ClosePermissionPda<'info> {
-    #[account(
-        mut,
-        address = crate::admin::ID @ ErrorCode::InvalidOwner
-    )]
+    /// Can be any address for closing permissions
+    #[account(mut)]
     pub owner: Signer<'info>,
 
     /// CHECK: permission account authority

@@ -212,15 +212,39 @@ pub fn swap_base_input_with_protocol_token(
     
     // Calculate equivalent protocol token amount using price ratio from config
     // This converts the discounted fee amount to protocol tokens
-    // Now supports oracle pricing if oracle accounts are provided!
-    let protocol_token_amount = calculate_protocol_token_equivalent(
-        discounted_protocol_fee,
-        &ctx.accounts.input_token_mint,
-        &ctx.accounts.protocol_token_mint,
-        &ctx.accounts.protocol_token_config,
-        &ctx.accounts.input_token_oracle,
-        &ctx.accounts.protocol_token_oracle,
-    )?;
+    // Now supports oracle pricing AND pool-based pricing!
+    // 
+    // Remaining accounts (optional, for pool-based pricing):
+    // [0] = price_pool_token_0_vault (KEDOLOG vault)
+    // [1] = price_pool_token_1_vault (USDC vault)
+    let protocol_token_amount = if ctx.remaining_accounts.len() >= 2 {
+        // SAFETY: We're extending the lifetime of remaining_accounts references
+        // to match the context lifetime. This is safe because both are valid
+        // for the duration of the instruction execution.
+        let vault_0: &AccountInfo = unsafe { std::mem::transmute(&ctx.remaining_accounts[0]) };
+        let vault_1: &AccountInfo = unsafe { std::mem::transmute(&ctx.remaining_accounts[1]) };
+        calculate_protocol_token_equivalent(
+            discounted_protocol_fee,
+            &ctx.accounts.input_token_mint,
+            &ctx.accounts.protocol_token_mint,
+            &ctx.accounts.protocol_token_config,
+            &ctx.accounts.input_token_oracle,
+            &ctx.accounts.protocol_token_oracle,
+            Some(vault_0),
+            Some(vault_1),
+        )?
+    } else {
+        calculate_protocol_token_equivalent(
+            discounted_protocol_fee,
+            &ctx.accounts.input_token_mint,
+            &ctx.accounts.protocol_token_mint,
+            &ctx.accounts.protocol_token_config,
+            &ctx.accounts.input_token_oracle,
+            &ctx.accounts.protocol_token_oracle,
+            None,
+            None,
+        )?
+    };
 
     // Verify user has enough protocol tokens
     require_gte!(
@@ -354,17 +378,20 @@ fn calculate_protocol_token_equivalent<'info>(
     protocol_token_config: &ProtocolTokenConfig,
     input_token_oracle: &AccountInfo<'info>,
     protocol_token_oracle: &AccountInfo<'info>,
+    price_pool_token_0_vault: Option<&AccountInfo<'info>>,
+    price_pool_token_1_vault: Option<&AccountInfo<'info>>,
 ) -> Result<u64> {
     // Use the price oracle module for accurate pricing
     // 
-    // HYBRID ORACLE APPROACH:
-    // 1. input_token_oracle: REQUIRED - Gets real-time price from Pyth (SOL, BTC, etc.)
-    // 2. protocol_token_oracle: OPTIONAL - If SystemProgram, uses manual price from config
+    // PRICING PRIORITY:
+    // 1. Pool-based pricing (if vaults provided) - Most accurate, real-time
+    // 2. Pyth oracle (if available) - Accurate for listed tokens
+    // 3. Manual config (deprecated) - Fallback only
     // 
     // This allows you to:
-    // - Launch immediately with manual KEDOLOG pricing
+    // - Use real-time pool pricing for KEDOLOG/USDC
     // - Get accurate pricing for input tokens via Pyth
-    // - Add KEDOLOG oracle later when listed on Pyth/Switchboard
+    // - Fallback to manual pricing if needed
     
     let result = crate::price_oracle::calculate_protocol_token_amount_with_oracle(
         fee_amount,
@@ -375,6 +402,8 @@ fn calculate_protocol_token_equivalent<'info>(
         protocol_token_config,
         Some(input_token_oracle),
         Some(protocol_token_oracle),
+        price_pool_token_0_vault,
+        price_pool_token_1_vault,
     )?;
     
     Ok(result)

@@ -20,7 +20,7 @@ solana_security_txt::security_txt! {
     auditors: "https://github.com/kedolik-io/kedolik-docs/blob/master/audit/MadShield%20Q1%202024/kedolik-cp-swap-v-1.0.0.pdf"
 }
 
-declare_id!("2LdLPZbRokzmcJyFE7fLyTgMKNxuR9PE6PKfunn6fkUi");
+declare_id!("HmrfmeAq6w52AESpFhxMP1dwYDn8DHawmGmtYMhbrkcq");
 
 pub mod admin {
     use super::{pubkey, Pubkey};
@@ -55,6 +55,7 @@ pub mod kedolik_cp_swap {
         fund_fee_rate: u64,
         create_pool_fee: u64,
         creator_fee_rate: u64,
+        create_pool_fee_receiver: Pubkey,
     ) -> Result<()> {
         assert!(trade_fee_rate + creator_fee_rate < FEE_RATE_DENOMINATOR_VALUE);
         assert!(protocol_fee_rate <= FEE_RATE_DENOMINATOR_VALUE);
@@ -68,6 +69,7 @@ pub mod kedolik_cp_swap {
             fund_fee_rate,
             create_pool_fee,
             creator_fee_rate,
+            create_pool_fee_receiver,
         )
     }
 
@@ -178,7 +180,7 @@ pub mod kedolik_cp_swap {
         discount_rate: u64,
         authority: Pubkey,
         treasury: Pubkey,
-        protocol_token_per_usd: u64,
+        price_pool: Pubkey,
     ) -> Result<()> {
         instructions::create_protocol_token_config(
             ctx,
@@ -186,7 +188,7 @@ pub mod kedolik_cp_swap {
             discount_rate,
             authority,
             treasury,
-            protocol_token_per_usd,
+            price_pool,
         )
     }
 
@@ -204,14 +206,14 @@ pub mod kedolik_cp_swap {
         ctx: Context<UpdateProtocolTokenConfig>,
         discount_rate: Option<u64>,
         treasury: Option<Pubkey>,
-        protocol_token_per_usd: Option<u64>,
+        price_pool: Option<Pubkey>,
         new_authority: Option<Pubkey>,
     ) -> Result<()> {
         instructions::update_protocol_token_config(
             ctx,
             discount_rate,
             treasury,
-            protocol_token_per_usd,
+            price_pool,
             new_authority,
         )
     }

@@ -126,9 +126,57 @@ fn get_switchboard_price(oracle_account: &AccountInfo, _decimals: u8) -> Result<
     Err(ErrorCode::OracleNotConfigured.into())
 }
 
+/// Get KEDOLOG/USD price from a pool
+/// 
+/// Fetches the price from a KEDOLOG/USDC pool by reading the pool's vault balances
+/// Returns price scaled by 10^9 (e.g., $0.10 = 100_000_000)
+fn get_pool_price(
+    token_0_vault: &AccountInfo,
+    token_1_vault: &AccountInfo,
+    kedolog_decimals: u8,
+) -> Result<u128> {
+    use anchor_spl::token_interface::TokenAccount;
+    
+    msg!("Fetching KEDOLOG price from pool vaults");
+    
+    // Read vault balances
+    let kedolog_vault_data = token_0_vault.try_borrow_data()?;
+    let usdc_vault_data = token_1_vault.try_borrow_data()?;
+    
+    // Parse as token accounts
+    let kedolog_account = TokenAccount::try_deserialize(&mut &kedolog_vault_data[..])?;
+    let usdc_account = TokenAccount::try_deserialize(&mut &usdc_vault_data[..])?;
+    
+    let kedolog_reserve = kedolog_account.amount;
+    let usdc_reserve = usdc_account.amount;
+    
+    msg!("Pool reserves - KEDOLOG: {}, USDC: {}", kedolog_reserve, usdc_reserve);
+    
+    require_gt!(kedolog_reserve, 0, ErrorCode::InvalidInput);
+    require_gt!(usdc_reserve, 0, ErrorCode::InvalidInput);
+    
+    // Calculate price: price_usd = (usdc_reserve / kedolog_reserve) * (10^kedolog_decimals / 10^usdc_decimals)
+    // Since USDC has 6 decimals and we scale by 10^9:
+    // price = (usdc_reserve * 10^9 * 10^kedolog_decimals) / (kedolog_reserve * 10^6)
+    
+    let usdc_decimals = 6u32;
+    let price = (usdc_reserve as u128)
+        .checked_mul(PRICE_SCALE)
+        .ok_or(ErrorCode::MathOverflow)?
+        .checked_mul(10u128.pow(kedolog_decimals as u32))
+        .ok_or(ErrorCode::MathOverflow)?
+        .checked_div((kedolog_reserve as u128).checked_mul(10u128.pow(usdc_decimals)).ok_or(ErrorCode::MathOverflow)?)
+        .ok_or(ErrorCode::MathOverflow)?;
+    
+    msg!("Calculated KEDOLOG price from pool: {}", price);
+    
+    Ok(price)
+}
+
 /// Calculate protocol token equivalent with oracle pricing
 /// 
 /// This replaces the mock pricing with real oracle data
+/// Now supports pool-based pricing for KEDOLOG
 pub fn calculate_protocol_token_amount_with_oracle(
     fee_amount_in_input_token: u64,
     input_token_mint: &Pubkey,
@@ -138,6 +186,8 @@ pub fn calculate_protocol_token_amount_with_oracle(
     _protocol_token_config: &ProtocolTokenConfig,
     input_token_oracle: Option<&AccountInfo>,
     protocol_token_oracle: Option<&AccountInfo>,
+    price_pool_token_0_vault: Option<&AccountInfo>,
+    price_pool_token_1_vault: Option<&AccountInfo>,
 ) -> Result<u64> {
     // Get USD price of input token
     // Check if oracle is SystemProgram (indicates no oracle provided)
@@ -158,29 +208,28 @@ pub fn calculate_protocol_token_amount_with_oracle(
     };
     
     // Get USD price of protocol token (KEDOLOG)
-    // Try oracle first, fall back to manual config if oracle is SystemProgram
-    let protocol_token_usd_price = if let Some(oracle) = protocol_token_oracle {
+    // Priority: 1. Pool price, 2. Pyth oracle, 3. Manual config (deprecated)
+    let protocol_token_usd_price = if let (Some(vault0), Some(vault1)) = (price_pool_token_0_vault, price_pool_token_1_vault) {
+        // Use pool-based pricing
+        msg!("Using pool-based pricing for KEDOLOG");
+        get_pool_price(vault0, vault1, protocol_token_decimals)?
+    } else if let Some(oracle) = protocol_token_oracle {
         // Check if oracle is SystemProgram (indicates no oracle provided)
         if oracle.key() == anchor_lang::solana_program::system_program::ID {
-            msg!("No KEDOLOG oracle provided, using manual price from config");
-            // Use manual pricing from config
-            // protocol_token_per_usd is "how many protocol tokens per 1 USD" scaled by 10^6
-            // Example: 10 KEDOLOG per USD = 10_000_000
-            // So 1 KEDOLOG = 0.1 USD
+            msg!("No KEDOLOG oracle or pool provided, using manual price from config (DEPRECATED)");
+            // Use manual pricing from config (deprecated)
             let tokens_per_usd = _protocol_token_config.protocol_token_per_usd as u128;
             require_gt!(tokens_per_usd, 0);
             
             // Price in USD scaled by PRICE_SCALE
-            // If 10 tokens = 1 USD, then 1 token = 0.1 USD
-            // price = (PRICE_SCALE * 10^6) / tokens_per_usd
             PRICE_SCALE
                 .checked_mul(1_000_000)
                 .ok_or(ErrorCode::MathOverflow)?
                 .checked_div(tokens_per_usd)
                 .ok_or(ErrorCode::MathOverflow)?
         } else {
-            // Use oracle
-            msg!("Using KEDOLOG oracle for pricing");
+            // Use Pyth oracle
+            msg!("Using KEDOLOG Pyth oracle for pricing");
             get_token_usd_price(
                 protocol_token_mint,
                 Some(oracle),
@@ -188,8 +237,8 @@ pub fn calculate_protocol_token_amount_with_oracle(
             )?
         }
     } else {
-        // No oracle provided, use manual config
-        msg!("No KEDOLOG oracle provided, using manual price from config");
+        // No oracle or pool provided, use manual config (deprecated)
+        msg!("No KEDOLOG oracle or pool provided, using manual price from config (DEPRECATED)");
         let tokens_per_usd = _protocol_token_config.protocol_token_per_usd as u128;
         require_gt!(tokens_per_usd, 0);
         

@@ -6,11 +6,8 @@ use std::ops::DerefMut;
 #[derive(Accounts)]
 #[instruction(index: u16)]
 pub struct CreateAmmConfig<'info> {
-    /// Address to be set as protocol owner.
-    #[account(
-        mut,
-        address = crate::admin::ID @ ErrorCode::InvalidOwner
-    )]
+    /// Address to be set as protocol owner. Can be any address for initial setup.
+    #[account(mut)]
     pub owner: Signer<'info>,
 
     /// Initialize config state account to store protocol owner address and fee rates.
@@ -18,7 +15,7 @@ pub struct CreateAmmConfig<'info> {
         init,
         seeds = [
             AMM_CONFIG_SEED.as_bytes(),
-            &index.to_be_bytes()
+            &index.to_le_bytes()
         ],
         bump,
         payer = owner,
@@ -37,6 +34,7 @@ pub fn create_amm_config(
     fund_fee_rate: u64,
     create_pool_fee: u64,
     creator_fee_rate: u64,
+    create_pool_fee_receiver: Pubkey,
 ) -> Result<()> {
     let amm_config = ctx.accounts.amm_config.deref_mut();
     amm_config.protocol_owner = ctx.accounts.owner.key();
@@ -49,5 +47,6 @@ pub fn create_amm_config(
     amm_config.create_pool_fee = create_pool_fee;
     amm_config.fund_owner = ctx.accounts.owner.key();
     amm_config.creator_fee_rate = creator_fee_rate;
+    amm_config.create_pool_fee_receiver = create_pool_fee_receiver;
     Ok(())
 }
