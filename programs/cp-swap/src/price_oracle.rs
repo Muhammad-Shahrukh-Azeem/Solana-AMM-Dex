@@ -72,16 +72,37 @@ fn get_token_price_in_quote<'info>(
     base_decimals: u8,
     quote_decimals: u8,
 ) -> Result<u128> {
-    // SAFETY: We need to read account data that may already be borrowed by the swap instruction.
-    // This is safe because:
-    // 1. We only READ the data (no mutation)
-    // 2. The data won't change during our read (atomic operation)
-    // 3. We're reading token account balances which are stable during the instruction
-    let vault_0_data = unsafe { &*vault_0.data.as_ptr() };
-    let vault_1_data = unsafe { &*vault_1.data.as_ptr() };
+    msg!("get_token_price_in_quote: Reading vault 0: {}", vault_0.key());
+    msg!("get_token_price_in_quote: Reading vault 1: {}", vault_1.key());
     
-    let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])?;
-    let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])?;
+    // Read vault data - these should be reference pool vaults, not the current swap pool vaults
+    let vault_0_data = vault_0.try_borrow_data()
+        .map_err(|e| {
+            msg!("Failed to borrow vault 0 data: {:?}", e);
+            ErrorCode::InvalidInput
+        })?;
+    msg!("Successfully borrowed vault 0 data, size: {}", vault_0_data.len());
+    
+    let vault_1_data = vault_1.try_borrow_data()
+        .map_err(|e| {
+            msg!("Failed to borrow vault 1 data: {:?}", e);
+            ErrorCode::InvalidInput
+        })?;
+    msg!("Successfully borrowed vault 1 data, size: {}", vault_1_data.len());
+    
+    let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])
+        .map_err(|e| {
+            msg!("Failed to deserialize vault 0: {:?}", e);
+            ErrorCode::InvalidInput
+        })?;
+    msg!("Successfully deserialized vault 0, amount: {}", vault_0_account.amount);
+    
+    let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])
+        .map_err(|e| {
+            msg!("Failed to deserialize vault 1: {:?}", e);
+            ErrorCode::InvalidInput
+        })?;
+    msg!("Successfully deserialized vault 1, amount: {}", vault_1_account.amount);
     
     // Determine which vault is base and which is quote
     let (base_reserve, quote_reserve) = if vault_0_account.mint == *base_mint && vault_1_account.mint == *quote_mint {
@@ -128,9 +149,11 @@ fn get_kedolog_usdc_price<'info>(
 ) -> Result<u128> {
     msg!("Fetching KEDOLOG/USDC price");
     
-    // SAFETY: Read account data without borrowing to avoid conflicts
-    let vault_0_data = unsafe { &*kedolog_vault.data.as_ptr() };
-    let vault_1_data = unsafe { &*usdc_vault.data.as_ptr() };
+    // Read vault data - these should be reference pool vaults
+    let vault_0_data = kedolog_vault.try_borrow_data()
+        .map_err(|_| ErrorCode::InvalidInput)?;
+    let vault_1_data = usdc_vault.try_borrow_data()
+        .map_err(|_| ErrorCode::InvalidInput)?;
     
     let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])?;
     let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])?;
@@ -273,6 +296,19 @@ pub fn calculate_protocol_token_amount<'info>(
     let kedolog_usdc_vault_1 = &remaining_accounts[1];
     
     // Determine the token pair type and calculate USD value
+    // Special case: If input token IS the protocol token (KEDOLOG), no conversion needed!
+    if *input_token_mint == protocol_token_config.protocol_token_mint {
+        // Case 0: Input is KEDOLOG - fee is already in KEDOLOG!
+        msg!("Case 0: Input token is KEDOLOG - fee already in protocol token, no conversion needed");
+        msg!("KEDOLOG fee amount (direct): {}", fee_amount_in_input_token);
+        
+        // The fee is already in KEDOLOG, just verify it's non-zero and return it
+        require_gt!(fee_amount_in_input_token, 0, ErrorCode::InvalidInput);
+        
+        msg!("=== End Calculation (direct return) ===");
+        return Ok(fee_amount_in_input_token);
+    }
+    
     let fee_value_in_usd = if *input_token_mint == usdc_mint {
         // Case 1: Input is USDC - direct USD value
         msg!("Case 1: Input token is USDC (direct USD value)");
@@ -285,6 +321,8 @@ pub fn calculate_protocol_token_amount<'info>(
     } else if *input_token_mint == sol_mint {
         // Case 2: Input is SOL - need SOL/USDC price
         msg!("Case 2: Input token is SOL");
+        msg!("remaining_accounts.len(): {}", remaining_accounts.len());
+        msg!("sol_usdc_pool.is_some(): {}", sol_usdc_pool.is_some());
         
         // Special case: If output is USDC, we're swapping in the SOL/USDC pool itself
         // Use the current pool's vault balances instead of trying to read the reference pool
@@ -322,7 +360,9 @@ pub fn calculate_protocol_token_amount<'info>(
         } else {
             // Normal case: Read SOL price from SOL/USDC pool
             require!(sol_usdc_pool.is_some(), ErrorCode::InvalidInput);
-            require!(remaining_accounts.len() >= 4, ErrorCode::InvalidInput);
+            // remaining_accounts is sliced from [1..], so we need 5 accounts (not 6)
+            // [0-1] = KEDOLOG/USDC vaults, [2] = SOL/USDC pool, [3-4] = SOL/USDC vaults
+            require!(remaining_accounts.len() >= 5, ErrorCode::InvalidInput);
             
             let sol_pool = sol_usdc_pool.unwrap();
             
@@ -330,8 +370,16 @@ pub fn calculate_protocol_token_amount<'info>(
             require!(sol_pool.key() == protocol_token_config.sol_usdc_pool, ErrorCode::InvalidInput);
             
             // Get vault accounts from remaining_accounts
-            let sol_usdc_vault_0 = &remaining_accounts[2];
-            let sol_usdc_vault_1 = &remaining_accounts[3];
+            // remaining_accounts is already sliced from [1..], so:
+            // [0-1] = KEDOLOG/USDC vaults
+            // [2] = SOL/USDC pool (we skip this)
+            // [3-4] = SOL/USDC vaults (we want these)
+            let sol_usdc_vault_0 = &remaining_accounts[3];
+            let sol_usdc_vault_1 = &remaining_accounts[4];
+            
+            msg!("SOL/USDC vault 0: {}", sol_usdc_vault_0.key());
+            msg!("SOL/USDC vault 1: {}", sol_usdc_vault_1.key());
+            msg!("Attempting to read SOL/USDC vault balances...");
             
             // Use get_token_price_in_quote which automatically detects token order
             let sol_price_usd = get_token_price_in_quote(
@@ -342,6 +390,8 @@ pub fn calculate_protocol_token_amount<'info>(
                 9,  // SOL decimals
                 6,  // USDC decimals
             )?;
+            
+            msg!("Successfully read SOL price");
             
             // Calculate USD value of fee
             msg!("SOL price (scaled): {}", sol_price_usd);
