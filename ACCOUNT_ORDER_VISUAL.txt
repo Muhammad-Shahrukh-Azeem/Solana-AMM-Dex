@@ -1,0 +1,74 @@
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 VISUAL GUIDE: remainingAccounts Order
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For USDC → SOL or SOL → USDC swaps:
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ remainingAccounts Array                                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ [0] ┌───────────────────────────────────────────────────────────┐          │
+│     │ KEDOLOG/USDC POOL ADDRESS                                 │          │
+│     │ BE1AdLaWKGPV61cmdV2W6aw7GY5fBRc59noUascPBje              │          │
+│     │ Type: PoolState account                                   │          │
+│     └───────────────────────────────────────────────────────────┘          │
+│                                                                             │
+│ [1] ┌───────────────────────────────────────────────────────────┐          │
+│     │ KEDOLOG/USDC Vault 0                                      │          │
+│     │ Gg2roHP4aRbNvjbQRj7cxB1XvLKdBw45UkrNn9eeC8DJ              │          │
+│     │ Type: TokenAccount                                        │          │
+│     └───────────────────────────────────────────────────────────┘          │
+│                                                                             │
+│ [2] ┌───────────────────────────────────────────────────────────┐          │
+│     │ KEDOLOG/USDC Vault 1                                      │          │
+│     │ 2yVnJLxM9Dw8YHxrEQQgvPJ12RXYXcqdYyLXftYzbJCt              │          │
+│     │ Type: TokenAccount                                        │          │
+│     └───────────────────────────────────────────────────────────┘          │
+│                                                                             │
+│ [3] ┌───────────────────────────────────────────────────────────┐          │
+│     │ SOL/USDC POOL ADDRESS                                     │          │
+│     │ 4pS9NNCmuSxCeE2KStwnVLujouoAPRuFJnmKd12fjs1U              │          │
+│     │ Type: PoolState account                                   │          │
+│     └───────────────────────────────────────────────────────────┘          │
+│                                                                             │
+│ [4] ┌───────────────────────────────────────────────────────────┐          │
+│     │ SOL/USDC Vault 0                                          │          │
+│     │ E2TxGdGJyk1yWG3oYMcRtcw8hcQiLGugjwCxWYTFE3S8              │          │
+│     │ Type: TokenAccount                                        │          │
+│     └───────────────────────────────────────────────────────────┘          │
+│                                                                             │
+│ [5] ┌───────────────────────────────────────────────────────────┐          │
+│     │ SOL/USDC Vault 1                                          │          │
+│     │ J2219iKwxifoweHJW5beAmT7KYWzUpqjscQviMKew4Qa              │          │
+│     │ Type: TokenAccount                                        │          │
+│     └───────────────────────────────────────────────────────────┘          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 Pattern
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+For each reference pool:
+  1. Pool address (PoolState account)
+  2. Vault 0 address (TokenAccount)
+  3. Vault 1 address (TokenAccount)
+
+KEDOLOG/USDC must ALWAYS come first [0-2]
+SOL/USDC (if needed) comes second [3-5]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+❌ Common Error
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If you get: "AccountDiscriminatorMismatch"
+
+It means the contract tried to read a PoolState at index [0] but found a 
+TokenAccount (vault) instead!
+
+Fix: Make sure the POOL address is at [0], not a vault address!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+

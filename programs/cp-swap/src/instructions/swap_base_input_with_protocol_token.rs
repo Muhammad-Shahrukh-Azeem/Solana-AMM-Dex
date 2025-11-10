@@ -49,11 +49,13 @@ pub struct SwapWithProtocolToken<'info> {
     #[account(mut)]
     pub protocol_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    /// The treasury account to receive protocol token fees
+    /// The fee receiver account to receive protocol token (KEDOLOG) discount fees
+    /// This uses the unified fee_receiver from AmmConfig
+    /// CRITICAL: Must be owned by the fee_receiver wallet from amm_config
     #[account(
         mut,
-        constraint = protocol_token_treasury.owner == protocol_token_config.treasury @ ErrorCode::InvalidOwner,
-        constraint = protocol_token_treasury.mint == protocol_token_config.protocol_token_mint @ ErrorCode::InvalidInput
+        constraint = protocol_token_treasury.mint == protocol_token_config.protocol_token_mint @ ErrorCode::InvalidInput,
+        constraint = protocol_token_treasury.owner == amm_config.fee_receiver @ ErrorCode::InvalidOwner
     )]
     pub protocol_token_treasury: Box<InterfaceAccount<'info, TokenAccount>>,
 
@@ -101,18 +103,18 @@ pub struct SwapWithProtocolToken<'info> {
     /// The program account for the most recent oracle observation
     #[account(mut, address = pool_state.load()?.observation_key)]
     pub observation_state: AccountLoader<'info, ObservationState>,
-    
-    /// REQUIRED: Price oracle for input token (e.g., Pyth SOL/USD feed)
-    /// This ensures accurate pricing for the swap token
-    /// CHECK: Oracle account validated in price_oracle module
-    pub input_token_oracle: AccountInfo<'info>,
-    
-    /// OPTIONAL: Price oracle for protocol token (e.g., Pyth KEDOLOG/USD feed)
-    /// If not provided (SystemProgram), uses manual price from protocol_token_config
-    /// This allows launching before KEDOLOG is listed on Pyth
-    /// CHECK: Oracle account validated in price_oracle module  
-    pub protocol_token_oracle: AccountInfo<'info>,
 }
+
+// Remaining accounts (in order):
+// [0]: KEDOLOG/USDC pool account
+// [1]: KEDOLOG/USDC token_0_vault
+// [2]: KEDOLOG/USDC token_1_vault
+// [3]: SOL/USDC pool account (optional, only if SOL pair)
+// [4]: SOL/USDC token_0_vault (optional, only if SOL pair)
+// [5]: SOL/USDC token_1_vault (optional, only if SOL pair)
+//
+// Contract verifies pool addresses match those stored in ProtocolTokenConfig
+// Contract verifies vault addresses match those in the pool accounts
 
 pub fn swap_base_input_with_protocol_token(
     ctx: Context<SwapWithProtocolToken>, 
@@ -194,7 +196,7 @@ pub fn swap_base_input_with_protocol_token(
     .ok_or(ErrorCode::ZeroTradingTokens)?;
 
     // Calculate the discounted protocol fee that will be paid in KEDOLOG
-    // Apply 20% discount to the 0.05% protocol fee = 0.04%
+    // Apply discount (e.g., 25%) to the protocol fee
     let original_protocol_fee_amount = (u128::from(actual_amount_in))
         .checked_mul(protocol_fee_portion as u128)
         .unwrap()
@@ -210,41 +212,41 @@ pub fn swap_base_input_with_protocol_token(
     // Ensure discounted fee is greater than 0
     require_gt!(discounted_protocol_fee, 0, ErrorCode::InvalidInput);
     
-    // Calculate equivalent protocol token amount using price ratio from config
-    // This converts the discounted fee amount to protocol tokens
-    // Now supports oracle pricing AND pool-based pricing!
+    // Calculate equivalent protocol token amount using universal pricing
     // 
-    // Remaining accounts (optional, for pool-based pricing):
-    // [0] = price_pool_token_0_vault (KEDOLOG vault)
-    // [1] = price_pool_token_1_vault (USDC vault)
-    let protocol_token_amount = if ctx.remaining_accounts.len() >= 2 {
-        // SAFETY: We're extending the lifetime of remaining_accounts references
-        // to match the context lifetime. This is safe because both are valid
-        // for the duration of the instruction execution.
-        let vault_0: &AccountInfo = unsafe { std::mem::transmute(&ctx.remaining_accounts[0]) };
-        let vault_1: &AccountInfo = unsafe { std::mem::transmute(&ctx.remaining_accounts[1]) };
-        calculate_protocol_token_equivalent(
-            discounted_protocol_fee,
-            &ctx.accounts.input_token_mint,
-            &ctx.accounts.protocol_token_mint,
-            &ctx.accounts.protocol_token_config,
-            &ctx.accounts.input_token_oracle,
-            &ctx.accounts.protocol_token_oracle,
-            Some(vault_0),
-            Some(vault_1),
-        )?
+    // Remaining accounts format:
+    // [0]: KEDOLOG/USDC pool
+    // [1-2]: KEDOLOG/USDC vaults
+    // [3]: SOL/USDC pool (optional)
+    // [4-5]: SOL/USDC vaults (optional)
+    
+    require!(ctx.remaining_accounts.len() >= 3, ErrorCode::InvalidInput);
+    
+    let kedolog_usdc_pool = &ctx.remaining_accounts[0];
+    let sol_usdc_pool = if ctx.remaining_accounts.len() >= 6 {
+        Some(&ctx.remaining_accounts[3])
     } else {
-        calculate_protocol_token_equivalent(
-            discounted_protocol_fee,
-            &ctx.accounts.input_token_mint,
-            &ctx.accounts.protocol_token_mint,
-            &ctx.accounts.protocol_token_config,
-            &ctx.accounts.input_token_oracle,
-            &ctx.accounts.protocol_token_oracle,
-            None,
-            None,
-        )?
+        None
     };
+    
+    // Pass current pool vault amounts to avoid reading borrowed accounts
+    let current_pool_input_amount = Some(ctx.accounts.input_vault.amount);
+    let current_pool_output_amount = Some(ctx.accounts.output_vault.amount);
+    
+    let protocol_token_amount = crate::price_oracle::calculate_protocol_token_amount(
+        discounted_protocol_fee,
+        &ctx.accounts.input_token_mint.key(),
+        ctx.accounts.input_token_mint.decimals,
+        &ctx.accounts.output_token_mint.key(),
+        ctx.accounts.output_token_mint.decimals,
+        &ctx.accounts.protocol_token_config,
+        ctx.accounts.protocol_token_mint.decimals,
+        kedolog_usdc_pool,
+        sol_usdc_pool,
+        &ctx.remaining_accounts[1..], // Pass remaining vaults
+        current_pool_input_amount,
+        current_pool_output_amount,
+    )?;
 
     // Verify user has enough protocol tokens
     require_gte!(
@@ -363,51 +365,6 @@ pub fn swap_base_input_with_protocol_token(
     Ok(())
 }
 
-/// Calculate the equivalent amount of protocol tokens needed to pay the fee
-/// 
-/// This function converts the fee amount (in the swap token) to the equivalent
-/// amount in protocol tokens based on real-time oracle prices or manual config.
-/// 
-/// Example: If fee is 0.05 SOL, SOL = $100, KEDOLOG = $0.10:
-/// - Fee value = 0.05 * $100 = $5
-/// - Protocol tokens needed = $5 / $0.10 = 50 KEDOLOG
-fn calculate_protocol_token_equivalent<'info>(
-    fee_amount: u64,
-    input_token_mint: &InterfaceAccount<Mint>,
-    protocol_token_mint: &InterfaceAccount<Mint>,
-    protocol_token_config: &ProtocolTokenConfig,
-    input_token_oracle: &AccountInfo<'info>,
-    protocol_token_oracle: &AccountInfo<'info>,
-    price_pool_token_0_vault: Option<&AccountInfo<'info>>,
-    price_pool_token_1_vault: Option<&AccountInfo<'info>>,
-) -> Result<u64> {
-    // Use the price oracle module for accurate pricing
-    // 
-    // PRICING PRIORITY:
-    // 1. Pool-based pricing (if vaults provided) - Most accurate, real-time
-    // 2. Pyth oracle (if available) - Accurate for listed tokens
-    // 3. Manual config (deprecated) - Fallback only
-    // 
-    // This allows you to:
-    // - Use real-time pool pricing for KEDOLOG/USDC
-    // - Get accurate pricing for input tokens via Pyth
-    // - Fallback to manual pricing if needed
-    
-    let result = crate::price_oracle::calculate_protocol_token_amount_with_oracle(
-        fee_amount,
-        &input_token_mint.key(),
-        input_token_mint.decimals,
-        &protocol_token_mint.key(),
-        protocol_token_mint.decimals,
-        protocol_token_config,
-        Some(input_token_oracle),
-        Some(protocol_token_oracle),
-        price_pool_token_0_vault,
-        price_pool_token_1_vault,
-    )?;
-    
-    Ok(result)
-}
 
 /// Transfer protocol tokens from user to treasury
 fn transfer_from_user_to_treasury<'info>(

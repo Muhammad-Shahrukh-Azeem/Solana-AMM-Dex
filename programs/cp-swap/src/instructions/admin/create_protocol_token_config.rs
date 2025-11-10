@@ -30,7 +30,10 @@ pub fn create_protocol_token_config(
     discount_rate: u64,
     authority: Pubkey,
     treasury: Pubkey,
-    price_pool: Pubkey,
+    kedolog_usdc_pool: Pubkey,
+    sol_usdc_pool: Pubkey,
+    kedolog_sol_pool: Pubkey,
+    usdc_mint: Pubkey,
 ) -> Result<()> {
     // Validate parameters
     require_gt!(discount_rate, 0, ErrorCode::InvalidInput);
@@ -42,9 +45,10 @@ pub fn create_protocol_token_config(
     protocol_config.discount_rate = discount_rate;
     protocol_config.authority = authority;
     protocol_config.treasury = treasury;
-    protocol_config.price_oracle = Pubkey::default(); // No oracle by default
-    protocol_config.price_pool = price_pool; // Pool for price fetching
-    protocol_config.protocol_token_per_usd = 0; // Deprecated, using pool price
+    protocol_config.kedolog_usdc_pool = kedolog_usdc_pool;
+    protocol_config.sol_usdc_pool = sol_usdc_pool;
+    protocol_config.kedolog_sol_pool = kedolog_sol_pool;
+    protocol_config.usdc_mint = usdc_mint;
     
     Ok(())
 }

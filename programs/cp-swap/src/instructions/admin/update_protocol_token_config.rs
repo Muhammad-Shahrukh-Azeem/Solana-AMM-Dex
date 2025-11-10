@@ -25,7 +25,9 @@ pub fn update_protocol_token_config(
     ctx: Context<UpdateProtocolTokenConfig>,
     discount_rate: Option<u64>,
     treasury: Option<Pubkey>,
-    price_pool: Option<Pubkey>,
+    kedolog_usdc_pool: Option<Pubkey>,
+    sol_usdc_pool: Option<Pubkey>,
+    kedolog_sol_pool: Option<Pubkey>,
     new_authority: Option<Pubkey>,
 ) -> Result<()> {
     let protocol_config = ctx.accounts.protocol_token_config.deref_mut();
@@ -40,8 +42,16 @@ pub fn update_protocol_token_config(
         protocol_config.treasury = new_treasury;
     }
     
-    if let Some(pool) = price_pool {
-        protocol_config.price_pool = pool;
+    if let Some(pool) = kedolog_usdc_pool {
+        protocol_config.kedolog_usdc_pool = pool;
+    }
+    
+    if let Some(pool) = sol_usdc_pool {
+        protocol_config.sol_usdc_pool = pool;
+    }
+    
+    if let Some(pool) = kedolog_sol_pool {
+        protocol_config.kedolog_sol_pool = pool;
     }
     
     if let Some(new_auth) = new_authority {

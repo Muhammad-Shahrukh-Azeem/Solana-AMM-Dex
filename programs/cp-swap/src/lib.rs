@@ -20,7 +20,7 @@ solana_security_txt::security_txt! {
     auditors: "https://github.com/kedolik-io/kedolik-docs/blob/master/audit/MadShield%20Q1%202024/kedolik-cp-swap-v-1.0.0.pdf"
 }
 
-declare_id!("HmrfmeAq6w52AESpFhxMP1dwYDn8DHawmGmtYMhbrkcq");
+declare_id!("4LyaQt2uNYX7zJABAVa56th8U68brWHWLioAYZSbCeEf");
 
 pub mod admin {
     use super::{pubkey, Pubkey};
@@ -55,7 +55,7 @@ pub mod kedolik_cp_swap {
         fund_fee_rate: u64,
         create_pool_fee: u64,
         creator_fee_rate: u64,
-        create_pool_fee_receiver: Pubkey,
+        fee_receiver: Pubkey,
     ) -> Result<()> {
         assert!(trade_fee_rate + creator_fee_rate < FEE_RATE_DENOMINATOR_VALUE);
         assert!(protocol_fee_rate <= FEE_RATE_DENOMINATOR_VALUE);
@@ -69,7 +69,7 @@ pub mod kedolik_cp_swap {
             fund_fee_rate,
             create_pool_fee,
             creator_fee_rate,
-            create_pool_fee_receiver,
+            fee_receiver,
         )
     }
 
@@ -180,7 +180,10 @@ pub mod kedolik_cp_swap {
         discount_rate: u64,
         authority: Pubkey,
         treasury: Pubkey,
-        price_pool: Pubkey,
+        kedolog_usdc_pool: Pubkey,
+        sol_usdc_pool: Pubkey,
+        kedolog_sol_pool: Pubkey,
+        usdc_mint: Pubkey,
     ) -> Result<()> {
         instructions::create_protocol_token_config(
             ctx,
@@ -188,7 +191,10 @@ pub mod kedolik_cp_swap {
             discount_rate,
             authority,
             treasury,
-            price_pool,
+            kedolog_usdc_pool,
+            sol_usdc_pool,
+            kedolog_sol_pool,
+            usdc_mint,
         )
     }
 
@@ -206,14 +212,18 @@ pub mod kedolik_cp_swap {
         ctx: Context<UpdateProtocolTokenConfig>,
         discount_rate: Option<u64>,
         treasury: Option<Pubkey>,
-        price_pool: Option<Pubkey>,
+        kedolog_usdc_pool: Option<Pubkey>,
+        sol_usdc_pool: Option<Pubkey>,
+        kedolog_sol_pool: Option<Pubkey>,
         new_authority: Option<Pubkey>,
     ) -> Result<()> {
         instructions::update_protocol_token_config(
             ctx,
             discount_rate,
             treasury,
-            price_pool,
+            kedolog_usdc_pool,
+            sol_usdc_pool,
+            kedolog_sol_pool,
             new_authority,
         )
     }

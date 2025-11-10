@@ -266,8 +266,34 @@ export async function createAmmConfig(
     config_index,
     program.programId
   );
-  if (await accountExist(connection, address)) {
-    return address;
+  
+  // Check if account exists and has correct size
+  const accountInfo = await connection.getAccountInfo(address);
+  const EXPECTED_SIZE = 8 + 1 + 1 + 2 + 4 * 8 + 32 * 2 + 8 + 8 * 12; // Updated size with unified fee_receiver
+  
+  if (accountInfo) {
+    if (accountInfo.data.length === EXPECTED_SIZE) {
+      // Account exists with correct size - reuse it
+      console.log(`ℹ️  AMM Config already exists at index ${config_index}, reusing...`);
+      return address;
+    } else {
+      // Account exists but has wrong size - try a different index
+      console.log(`⚠️  AMM Config at index ${config_index} has wrong size (${accountInfo.data.length} vs ${EXPECTED_SIZE})`);
+      console.log(`   Trying a different index...`);
+      // Recursively try with a new random index
+      const newIndex = Math.floor(Math.random() * 10000) + 15000;
+      return await createAmmConfig(
+        program,
+        connection,
+        owner,
+        newIndex,
+        tradeFeeRate,
+        protocolFeeRate,
+        fundFeeRate,
+        create_fee,
+        confirmOptions
+      );
+    }
   }
 
   const ix = await program.methods
@@ -277,7 +303,8 @@ export async function createAmmConfig(
       protocolFeeRate,
       fundFeeRate,
       create_fee,
-      new BN(0) // creator_fee_rate
+      new BN(0), // creator_fee_rate
+      owner.publicKey  // fee_receiver (unified for all fees)
     )
     .accounts({
       owner: owner.publicKey,
@@ -306,11 +333,10 @@ export async function initialize(
   },
   createPoolFee?: PublicKey
 ) {
-  // Create pool fee account if not provided
-  // The program expects this to be the exact address from create_pool_fee_receiver::ID
-  // In tests with fee=0, the account doesn't need to exist (UncheckedAccount)
+  // Fetch the AMM config to get the unified fee_receiver
   if (!createPoolFee) {
-    createPoolFee = new PublicKey("67D6TM8PTsuv8nU5PnUP3dV6j8kW3rmTD9KNufcEUPCa");
+    const ammConfig: any = await program.account.ammConfig.fetch(configAddress);
+    createPoolFee = ammConfig.feeReceiver;
   }
   
   const [auth] = await getAuthAddress(program.programId);
@@ -698,7 +724,7 @@ export async function createProtocolTokenConfig(
   discountRate: BN,
   authority: PublicKey,
   treasury: PublicKey,
-  protocolTokenPerUsd: BN,
+  pricePool: PublicKey = PublicKey.default, // Optional, defaults to PublicKey.default
   confirmOptions?: ConfirmOptions
 ) {
   const [protocolTokenConfig] = await getProtocolTokenConfigAddress(
@@ -711,7 +737,7 @@ export async function createProtocolTokenConfig(
       discountRate,
       authority,
       treasury,
-      protocolTokenPerUsd
+      pricePool // price_pool
     )
     .accounts({
       payer: payer.publicKey,

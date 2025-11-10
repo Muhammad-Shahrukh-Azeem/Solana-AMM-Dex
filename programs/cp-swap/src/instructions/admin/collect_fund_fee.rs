@@ -8,8 +8,8 @@ use anchor_spl::token_interface::Token2022;
 use anchor_spl::token_interface::TokenAccount;
 #[derive(Accounts)]
 pub struct CollectFundFee<'info> {
-    /// Only admin or fund_owner can collect fee now
-    #[account(constraint = (owner.key() == amm_config.fund_owner || owner.key() == crate::admin::ID) @ ErrorCode::InvalidOwner)]
+    /// Only fee_receiver can collect fund fees
+    #[account(constraint = owner.key() == amm_config.fee_receiver @ ErrorCode::InvalidOwner)]
     pub owner: Signer<'info>,
 
     /// CHECK: pool vault and lp mint authority
@@ -21,11 +21,11 @@ pub struct CollectFundFee<'info> {
     )]
     pub authority: UncheckedAccount<'info>,
 
-    /// Pool state stores accumulated protocol fee amount
+    /// Pool state stores accumulated fund fee amount
     #[account(mut)]
     pub pool_state: AccountLoader<'info, PoolState>,
 
-    /// Amm config account stores fund_owner
+    /// Amm config account stores fee_receiver
     #[account(address = pool_state.load()?.amm_config)]
     pub amm_config: Account<'info, AmmConfig>,
 

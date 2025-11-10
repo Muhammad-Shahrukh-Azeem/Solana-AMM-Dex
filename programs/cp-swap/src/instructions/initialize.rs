@@ -127,11 +127,11 @@ pub struct Initialize<'info> {
     )]
     pub token_1_vault: UncheckedAccount<'info>,
 
-    /// create pool fee account - uses the fee receiver from AMM config
+    /// create pool fee account - uses the unified fee receiver from AMM config
     /// CHECK: Address is verified by constraint, account type checked in instruction logic when fee > 0
     #[account(
         mut,
-        address = amm_config.create_pool_fee_receiver,
+        address = amm_config.fee_receiver,
     )]
     pub create_pool_fee: UncheckedAccount<'info>,
 

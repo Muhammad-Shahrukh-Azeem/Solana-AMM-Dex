@@ -34,7 +34,7 @@ pub fn create_amm_config(
     fund_fee_rate: u64,
     create_pool_fee: u64,
     creator_fee_rate: u64,
-    create_pool_fee_receiver: Pubkey,
+    fee_receiver: Pubkey,
 ) -> Result<()> {
     let amm_config = ctx.accounts.amm_config.deref_mut();
     amm_config.protocol_owner = ctx.accounts.owner.key();
@@ -45,8 +45,7 @@ pub fn create_amm_config(
     amm_config.protocol_fee_rate = protocol_fee_rate;
     amm_config.fund_fee_rate = fund_fee_rate;
     amm_config.create_pool_fee = create_pool_fee;
-    amm_config.fund_owner = ctx.accounts.owner.key();
     amm_config.creator_fee_rate = creator_fee_rate;
-    amm_config.create_pool_fee_receiver = create_pool_fee_receiver;
+    amm_config.fee_receiver = fee_receiver;
     Ok(())
 }

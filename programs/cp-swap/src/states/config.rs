@@ -20,18 +20,16 @@ pub struct AmmConfig {
     pub fund_fee_rate: u64,
     /// Fee for create a new pool
     pub create_pool_fee: u64,
-    /// Address of the protocol fee owner
+    /// Address of the protocol fee owner (admin - can update config)
     pub protocol_owner: Pubkey,
-    /// Address of the fund fee owner
-    pub fund_owner: Pubkey,
+    /// UNIFIED FEE RECEIVER - receives ALL fees (pool creation, protocol, fund, KEDOLOG discount)
+    pub fee_receiver: Pubkey,
     /// The pool creator fee, denominated in hundredths of a bip (10^-6)
     pub creator_fee_rate: u64,
-    /// Address to receive pool creation fees
-    pub create_pool_fee_receiver: Pubkey,
     /// padding
-    pub padding: [u64; 11],
+    pub padding: [u64; 12],
 }
 
 impl AmmConfig {
-    pub const LEN: usize = 8 + 1 + 1 + 2 + 4 * 8 + 32 * 3 + 8 + 8 * 11;
+    pub const LEN: usize = 8 + 1 + 1 + 2 + 4 * 8 + 32 * 2 + 8 + 8 * 12;
 }

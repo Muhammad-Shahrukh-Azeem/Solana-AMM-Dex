@@ -16,18 +16,19 @@ pub struct ProtocolTokenConfig {
     pub authority: Pubkey,
     /// Protocol token treasury to receive fee payments
     pub treasury: Pubkey,
-    /// Price oracle account (optional - if zero address, uses pool-based pricing)
-    pub price_oracle: Pubkey,
-    /// Price pool for KEDOLOG/USDC (if set, uses pool price instead of manual price)
-    pub price_pool: Pubkey,
-    /// Manual price ratio: protocol_token_per_usd (scaled by 10^6) - DEPRECATED, use price_pool instead
-    /// Example: if 1 USD = 10 KEDOLOG, this would be 10_000_000
-    pub protocol_token_per_usd: u64,
+    /// KEDOLOG/USDC pool - primary price reference for KEDOLOG
+    pub kedolog_usdc_pool: Pubkey,
+    /// SOL/USDC pool - price reference for SOL
+    pub sol_usdc_pool: Pubkey,
+    /// KEDOLOG/SOL pool - alternative price path for KEDOLOG
+    pub kedolog_sol_pool: Pubkey,
+    /// USDC mint address (for validation)
+    pub usdc_mint: Pubkey,
     /// padding
-    pub padding: [u64; 4],
+    pub padding: [u64; 3],
 }
 
 impl ProtocolTokenConfig {
-    pub const LEN: usize = 8 + 1 + 32 + 8 + 32 + 32 + 32 + 32 + 8 + 8 * 4;
+    pub const LEN: usize = 8 + 1 + 32 + 8 + 32 + 32 + 32 + 32 + 32 + 32 + 8 * 3;
 }
 

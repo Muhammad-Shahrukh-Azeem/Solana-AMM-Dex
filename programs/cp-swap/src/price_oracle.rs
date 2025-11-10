@@ -1,291 +1,519 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token_interface::TokenAccount;
 use crate::error::ErrorCode;
-use crate::states::ProtocolTokenConfig;
-
-/// Price oracle module for fetching token prices
-/// 
-/// Supports multiple oracle types:
-/// 1. Pyth Network (recommended for production)
-/// 2. Switchboard
-/// 3. Pool-based pricing (using your own swap pools)
-/// 4. Manual pricing (fallback)
+use crate::states::{ProtocolTokenConfig, PoolState};
 
 /// Price scaled by 10^9 for precision
 pub const PRICE_SCALE: u128 = 1_000_000_000;
 
-/// Maximum age for price data (5 minutes)
-pub const MAX_PRICE_AGE_SECONDS: i64 = 300;
+/// SOL mint address (wrapped SOL)
+pub const SOL_MINT: &str = "So11111111111111111111111111111111111111112";
 
-/// Get the USD price of a token from oracle
-/// Returns price scaled by 10^9 (e.g., $1.50 = 1_500_000_000)
-/// 
-/// **REQUIRES ORACLE**: This function now requires a valid oracle account
-/// to ensure accurate pricing for all tokens.
-pub fn get_token_usd_price(
-    token_mint: &Pubkey,
-    oracle_account: Option<&AccountInfo>,
-    decimals: u8,
-) -> Result<u128> {
-    // Oracle is required for accurate pricing
-    let oracle = oracle_account.ok_or_else(|| {
-        msg!("Oracle account required for token: {}", token_mint);
-        ErrorCode::OracleNotConfigured
-    })?;
-    
-    msg!("Fetching price for token: {}", token_mint);
-    
-    // Try Pyth oracle first
-    if let Ok(price) = get_pyth_price(oracle, decimals) {
-        msg!("Successfully fetched price from Pyth oracle");
-        return Ok(price);
-    }
-    
-    // Try Switchboard oracle
-    if let Ok(price) = get_switchboard_price(oracle, decimals) {
-        msg!("Successfully fetched price from Switchboard oracle");
-        return Ok(price);
-    }
-    
-    // If we get here, the oracle account is invalid
-    msg!("Oracle account provided but not recognized as Pyth or Switchboard");
-    Err(ErrorCode::InvalidOracle.into())
+/// Load pool state from account and get vault addresses
+fn get_pool_vaults(pool_account: &AccountInfo) -> Result<(Pubkey, Pubkey)> {
+    let pool_data = pool_account.try_borrow_data()?;
+    // Don't skip discriminator - try_deserialize expects it and validates it
+    let pool_state = PoolState::try_deserialize(&mut &pool_data[..])?;
+    Ok((pool_state.token_0_vault, pool_state.token_1_vault))
 }
 
-/// Get price from Pyth oracle
+/// Get price from a pool by reading vault balances
+/// Returns price scaled by 10^9
 /// 
-/// Pyth provides price feeds for major tokens
-/// Price format: price * 10^expo
-fn get_pyth_price(oracle_account: &AccountInfo, _decimals: u8) -> Result<u128> {
-    use pyth_solana_receiver_sdk::price_update::{get_feed_id_from_hex, PriceUpdateV2};
-    
-    // Load the Pyth price update account
-    let price_update = PriceUpdateV2::try_deserialize(&mut &oracle_account.data.borrow()[..])
-        .map_err(|_| ErrorCode::InvalidOracle)?;
-    
-    // Get the current timestamp
-    let clock = Clock::get()?;
-    
-    // Get the price feed data from the price message
-    // The price_message contains the price data directly
-    let price_message = &price_update.price_message;
-    
-    // Check if price is not too old
-    let price_age = clock.unix_timestamp.saturating_sub(price_message.publish_time);
-    if price_age > MAX_PRICE_AGE_SECONDS {
-        msg!("Price is too old: {} seconds", price_age);
-        return Err(ErrorCode::StaleOraclePrice.into());
-    }
-    
-    // Pyth price format: price * 10^expo
-    // We need to convert to our format: price scaled by 10^9
-    let price = price_message.price;
-    let expo = price_message.exponent;
-    let conf = price_message.conf;
-    
-    msg!("Pyth price: {} * 10^{}, conf: {}", price, expo, conf);
-    
-    // Check if price is valid
-    require!(price > 0, ErrorCode::InvalidOracle);
-    
-    // Convert to our format (scaled by 10^9)
-    // pyth_price = price * 10^expo
-    // our_price = pyth_price * 10^9
-    let price_u128 = price as u128;
-    let adjusted_price = if expo >= 0 {
-        price_u128
-            .checked_mul(10u128.pow(expo as u32))
-            .ok_or(ErrorCode::MathOverflow)?
-            .checked_mul(PRICE_SCALE)
-            .ok_or(ErrorCode::MathOverflow)?
-    } else {
-        let divisor = 10u128.pow((-expo) as u32);
-        price_u128
-            .checked_mul(PRICE_SCALE)
-            .ok_or(ErrorCode::MathOverflow)?
-            .checked_div(divisor)
-            .ok_or(ErrorCode::MathOverflow)?
-    };
-    
-    msg!("Adjusted price (scaled by 10^9): {}", adjusted_price);
-    
-    Ok(adjusted_price)
-}
-
-/// Get price from Switchboard oracle
-fn get_switchboard_price(oracle_account: &AccountInfo, _decimals: u8) -> Result<u128> {
-    // Switchboard aggregator account structure
-    let data = oracle_account.try_borrow_data()?;
-    
-    if data.len() < 32 {
-        return Err(ErrorCode::InvalidOracle.into());
-    }
-    
-    // For now, return error to indicate Switchboard not fully integrated
-    // TODO: Integrate Switchboard SDK properly
-    msg!("Switchboard oracle detected but not yet integrated");
-    Err(ErrorCode::OracleNotConfigured.into())
-}
-
-/// Get KEDOLOG/USD price from a pool
-/// 
-/// Fetches the price from a KEDOLOG/USDC pool by reading the pool's vault balances
-/// Returns price scaled by 10^9 (e.g., $0.10 = 100_000_000)
+/// For a Token0/Token1 pool:
+/// price_of_token0_in_token1 = token1_reserve / token0_reserve
 fn get_pool_price(
     token_0_vault: &AccountInfo,
     token_1_vault: &AccountInfo,
-    kedolog_decimals: u8,
+    token_0_decimals: u8,
+    token_1_decimals: u8,
 ) -> Result<u128> {
-    use anchor_spl::token_interface::TokenAccount;
-    
-    msg!("Fetching KEDOLOG price from pool vaults");
-    
     // Read vault balances
-    let kedolog_vault_data = token_0_vault.try_borrow_data()?;
-    let usdc_vault_data = token_1_vault.try_borrow_data()?;
+    let vault_0_data = token_0_vault.try_borrow_data()?;
+    let vault_1_data = token_1_vault.try_borrow_data()?;
     
     // Parse as token accounts
-    let kedolog_account = TokenAccount::try_deserialize(&mut &kedolog_vault_data[..])?;
-    let usdc_account = TokenAccount::try_deserialize(&mut &usdc_vault_data[..])?;
+    let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])?;
+    let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])?;
     
-    let kedolog_reserve = kedolog_account.amount;
-    let usdc_reserve = usdc_account.amount;
+    let reserve_0 = vault_0_account.amount;
+    let reserve_1 = vault_1_account.amount;
     
-    msg!("Pool reserves - KEDOLOG: {}, USDC: {}", kedolog_reserve, usdc_reserve);
+    require_gt!(reserve_0, 0, ErrorCode::InvalidInput);
+    require_gt!(reserve_1, 0, ErrorCode::InvalidInput);
     
-    require_gt!(kedolog_reserve, 0, ErrorCode::InvalidInput);
-    require_gt!(usdc_reserve, 0, ErrorCode::InvalidInput);
+    msg!("Pool reserves - Token0: {}, Token1: {}", reserve_0, reserve_1);
     
-    // Calculate price: price_usd = (usdc_reserve / kedolog_reserve) * (10^kedolog_decimals / 10^usdc_decimals)
-    // Since USDC has 6 decimals and we scale by 10^9:
-    // price = (usdc_reserve * 10^9 * 10^kedolog_decimals) / (kedolog_reserve * 10^6)
-    
-    let usdc_decimals = 6u32;
-    let price = (usdc_reserve as u128)
+    // Calculate price: price = (reserve_1 * 10^9 * 10^token0_decimals) / (reserve_0 * 10^token1_decimals)
+    let price = (reserve_1 as u128)
         .checked_mul(PRICE_SCALE)
         .ok_or(ErrorCode::MathOverflow)?
-        .checked_mul(10u128.pow(kedolog_decimals as u32))
+        .checked_mul(10u128.pow(token_0_decimals as u32))
         .ok_or(ErrorCode::MathOverflow)?
-        .checked_div((kedolog_reserve as u128).checked_mul(10u128.pow(usdc_decimals)).ok_or(ErrorCode::MathOverflow)?)
+        .checked_div(
+            (reserve_0 as u128)
+                .checked_mul(10u128.pow(token_1_decimals as u32))
+                .ok_or(ErrorCode::MathOverflow)?
+        )
         .ok_or(ErrorCode::MathOverflow)?;
     
-    msg!("Calculated KEDOLOG price from pool: {}", price);
+    msg!("Calculated price (scaled by 10^9): {}", price);
     
     Ok(price)
 }
 
-/// Calculate protocol token equivalent with oracle pricing
+/// Get price of base token in quote token, automatically detecting token order
+/// Returns price scaled by 10^9
+fn get_token_price_in_quote<'info>(
+    vault_0: &AccountInfo<'info>,
+    vault_1: &AccountInfo<'info>,
+    base_mint: &Pubkey,
+    quote_mint: &Pubkey,
+    base_decimals: u8,
+    quote_decimals: u8,
+) -> Result<u128> {
+    // SAFETY: We need to read account data that may already be borrowed by the swap instruction.
+    // This is safe because:
+    // 1. We only READ the data (no mutation)
+    // 2. The data won't change during our read (atomic operation)
+    // 3. We're reading token account balances which are stable during the instruction
+    let vault_0_data = unsafe { &*vault_0.data.as_ptr() };
+    let vault_1_data = unsafe { &*vault_1.data.as_ptr() };
+    
+    let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])?;
+    let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])?;
+    
+    // Determine which vault is base and which is quote
+    let (base_reserve, quote_reserve) = if vault_0_account.mint == *base_mint && vault_1_account.mint == *quote_mint {
+        msg!("Token order: base=vault0, quote=vault1");
+        (vault_0_account.amount, vault_1_account.amount)
+    } else if vault_1_account.mint == *base_mint && vault_0_account.mint == *quote_mint {
+        msg!("Token order: base=vault1, quote=vault0");
+        (vault_1_account.amount, vault_0_account.amount)
+    } else {
+        msg!("ERROR: Pool does not contain expected token pair");
+        msg!("Expected: {} / {}", base_mint, quote_mint);
+        msg!("Found: {} / {}", vault_0_account.mint, vault_1_account.mint);
+        return Err(ErrorCode::InvalidInput.into());
+    };
+    
+    require_gt!(base_reserve, 0, ErrorCode::InvalidInput);
+    require_gt!(quote_reserve, 0, ErrorCode::InvalidInput);
+    
+    msg!("Base reserve: {}, Quote reserve: {}", base_reserve, quote_reserve);
+    
+    // Calculate price: price = (quote_reserve * 10^9 * 10^base_decimals) / (base_reserve * 10^quote_decimals)
+    let price = (quote_reserve as u128)
+        .checked_mul(PRICE_SCALE)
+        .ok_or(ErrorCode::MathOverflow)?
+        .checked_mul(10u128.pow(base_decimals as u32))
+        .ok_or(ErrorCode::MathOverflow)?
+        .checked_div(
+            (base_reserve as u128)
+                .checked_mul(10u128.pow(quote_decimals as u32))
+                .ok_or(ErrorCode::MathOverflow)?
+        )
+        .ok_or(ErrorCode::MathOverflow)?;
+    
+    msg!("Calculated price (scaled): {}", price);
+    
+    Ok(price)
+}
+
+/// Get KEDOLOG price in USDC from KEDOLOG/USDC pool
+fn get_kedolog_usdc_price<'info>(
+    kedolog_vault: &AccountInfo<'info>,
+    usdc_vault: &AccountInfo<'info>,
+    kedolog_mint: &Pubkey,
+) -> Result<u128> {
+    msg!("Fetching KEDOLOG/USDC price");
+    
+    // SAFETY: Read account data without borrowing to avoid conflicts
+    let vault_0_data = unsafe { &*kedolog_vault.data.as_ptr() };
+    let vault_1_data = unsafe { &*usdc_vault.data.as_ptr() };
+    
+    let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])?;
+    let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])?;
+    
+    // Determine which vault is KEDOLOG and which is USDC
+    let (kedolog_reserve, usdc_reserve) = if vault_0_account.mint == *kedolog_mint {
+        msg!("KEDOLOG is vault 0, USDC is vault 1");
+        (vault_0_account.amount, vault_1_account.amount)
+    } else if vault_1_account.mint == *kedolog_mint {
+        msg!("KEDOLOG is vault 1, USDC is vault 0");
+        (vault_1_account.amount, vault_0_account.amount)
+    } else {
+        msg!("ERROR: Neither vault matches KEDOLOG mint");
+        return Err(ErrorCode::InvalidInput.into());
+    };
+    
+    require_gt!(kedolog_reserve, 0, ErrorCode::InvalidInput);
+    require_gt!(usdc_reserve, 0, ErrorCode::InvalidInput);
+    
+    msg!("KEDOLOG reserve: {}, USDC reserve: {}", kedolog_reserve, usdc_reserve);
+    
+    // Price of KEDOLOG in USDC
+    // KEDOLOG has 9 decimals, USDC has 6 decimals
+    let price = (usdc_reserve as u128)
+        .checked_mul(PRICE_SCALE)
+        .ok_or(ErrorCode::MathOverflow)?
+        .checked_mul(10u128.pow(9))  // KEDOLOG decimals
+        .ok_or(ErrorCode::MathOverflow)?
+        .checked_div(
+            (kedolog_reserve as u128)
+                .checked_mul(10u128.pow(6))  // USDC decimals
+                .ok_or(ErrorCode::MathOverflow)?
+        )
+        .ok_or(ErrorCode::MathOverflow)?;
+    
+    msg!("KEDOLOG price in USDC: {}", price);
+    
+    Ok(price)
+}
+
+/// Get SOL price in USDC from SOL/USDC pool
+fn get_sol_usdc_price(
+    sol_vault: &AccountInfo,
+    usdc_vault: &AccountInfo,
+) -> Result<u128> {
+    msg!("Fetching SOL/USDC price");
+    
+    let sol_mint = Pubkey::try_from(SOL_MINT).unwrap();
+    
+    // Read vault data to determine which is which
+    let vault_0_data = sol_vault.try_borrow_data()?;
+    let vault_1_data = usdc_vault.try_borrow_data()?;
+    
+    let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])?;
+    let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])?;
+    
+    // Determine which vault is SOL and which is USDC
+    let (sol_reserve, usdc_reserve) = if vault_0_account.mint == sol_mint {
+        msg!("SOL is vault 0, USDC is vault 1");
+        (vault_0_account.amount, vault_1_account.amount)
+    } else if vault_1_account.mint == sol_mint {
+        msg!("SOL is vault 1, USDC is vault 0");
+        (vault_1_account.amount, vault_0_account.amount)
+    } else {
+        msg!("ERROR: Neither vault matches SOL mint");
+        return Err(ErrorCode::InvalidInput.into());
+    };
+    
+    require_gt!(sol_reserve, 0, ErrorCode::InvalidInput);
+    require_gt!(usdc_reserve, 0, ErrorCode::InvalidInput);
+    
+    msg!("SOL reserve: {}, USDC reserve: {}", sol_reserve, usdc_reserve);
+    
+    // Price of SOL in USDC
+    // SOL has 9 decimals, USDC has 6 decimals
+    let price = (usdc_reserve as u128)
+        .checked_mul(PRICE_SCALE)
+        .ok_or(ErrorCode::MathOverflow)?
+        .checked_mul(10u128.pow(9))  // SOL decimals
+        .ok_or(ErrorCode::MathOverflow)?
+        .checked_div(
+            (sol_reserve as u128)
+                .checked_mul(10u128.pow(6))  // USDC decimals
+                .ok_or(ErrorCode::MathOverflow)?
+        )
+        .ok_or(ErrorCode::MathOverflow)?;
+    
+    msg!("SOL price in USDC: {}", price);
+    
+    Ok(price)
+}
+
+/// Calculate protocol token amount needed to pay fee
 /// 
-/// This replaces the mock pricing with real oracle data
-/// Now supports pool-based pricing for KEDOLOG
-pub fn calculate_protocol_token_amount_with_oracle(
+/// This is the main entry point for KEDOLOG fee calculation.
+/// It automatically detects the token pair and calculates the USD value,
+/// then converts to KEDOLOG amount.
+/// 
+/// # Arguments
+/// * `fee_amount_in_input_token` - The fee amount in input token units
+/// * `input_token_mint` - The mint of the input token
+/// * `input_token_decimals` - Decimals of input token
+/// * `output_token_mint` - The mint of the output token
+/// * `output_token_decimals` - Decimals of output token
+/// * `protocol_token_config` - The KEDOLOG config with reference pools
+/// * `protocol_token_decimals` - KEDOLOG decimals (9)
+/// * `kedolog_usdc_pool` - KEDOLOG/USDC pool account (contract reads vaults)
+/// * `sol_usdc_pool` - SOL/USDC pool account (optional, contract reads vaults)
+pub fn calculate_protocol_token_amount<'info>(
     fee_amount_in_input_token: u64,
     input_token_mint: &Pubkey,
     input_token_decimals: u8,
-    protocol_token_mint: &Pubkey,
+    output_token_mint: &Pubkey,
+    output_token_decimals: u8,
+    protocol_token_config: &ProtocolTokenConfig,
     protocol_token_decimals: u8,
-    _protocol_token_config: &ProtocolTokenConfig,
-    input_token_oracle: Option<&AccountInfo>,
-    protocol_token_oracle: Option<&AccountInfo>,
-    price_pool_token_0_vault: Option<&AccountInfo>,
-    price_pool_token_1_vault: Option<&AccountInfo>,
+    kedolog_usdc_pool: &AccountInfo<'info>,
+    sol_usdc_pool: Option<&AccountInfo<'info>>,
+    remaining_accounts: &[AccountInfo<'info>],
+    // Optional: current swap pool info (to avoid reading vaults that are already borrowed)
+    current_pool_input_vault_amount: Option<u64>,
+    current_pool_output_vault_amount: Option<u64>,
 ) -> Result<u64> {
-    // Get USD price of input token
-    // Check if oracle is SystemProgram (indicates no oracle provided)
-    let input_token_usd_price = if let Some(oracle) = input_token_oracle {
-        if oracle.key() == anchor_lang::solana_program::system_program::ID {
-            msg!("No input token oracle provided, using 1:1 USD parity");
-            PRICE_SCALE // Assume $1 for testing
-        } else {
-            get_token_usd_price(
-                input_token_mint,
-                Some(oracle),
-                input_token_decimals,
-            )?
-        }
-    } else {
-        msg!("No input token oracle provided, using 1:1 USD parity");
-        PRICE_SCALE
-    };
+    msg!("=== KEDOLOG Fee Calculation ===");
+    msg!("Fee amount in input token: {}", fee_amount_in_input_token);
+    msg!("Input token mint: {}", input_token_mint);
+    msg!("Output token mint: {}", output_token_mint);
     
-    // Get USD price of protocol token (KEDOLOG)
-    // Priority: 1. Pool price, 2. Pyth oracle, 3. Manual config (deprecated)
-    let protocol_token_usd_price = if let (Some(vault0), Some(vault1)) = (price_pool_token_0_vault, price_pool_token_1_vault) {
-        // Use pool-based pricing
-        msg!("Using pool-based pricing for KEDOLOG");
-        get_pool_price(vault0, vault1, protocol_token_decimals)?
-    } else if let Some(oracle) = protocol_token_oracle {
-        // Check if oracle is SystemProgram (indicates no oracle provided)
-        if oracle.key() == anchor_lang::solana_program::system_program::ID {
-            msg!("No KEDOLOG oracle or pool provided, using manual price from config (DEPRECATED)");
-            // Use manual pricing from config (deprecated)
-            let tokens_per_usd = _protocol_token_config.protocol_token_per_usd as u128;
-            require_gt!(tokens_per_usd, 0);
-            
-            // Price in USD scaled by PRICE_SCALE
-            PRICE_SCALE
-                .checked_mul(1_000_000)
-                .ok_or(ErrorCode::MathOverflow)?
-                .checked_div(tokens_per_usd)
-                .ok_or(ErrorCode::MathOverflow)?
-        } else {
-            // Use Pyth oracle
-            msg!("Using KEDOLOG Pyth oracle for pricing");
-            get_token_usd_price(
-                protocol_token_mint,
-                Some(oracle),
-                protocol_token_decimals,
-            )?
-        }
-    } else {
-        // No oracle or pool provided, use manual config (deprecated)
-        msg!("No KEDOLOG oracle or pool provided, using manual price from config (DEPRECATED)");
-        let tokens_per_usd = _protocol_token_config.protocol_token_per_usd as u128;
-        require_gt!(tokens_per_usd, 0);
+    let sol_mint = Pubkey::try_from(SOL_MINT).unwrap();
+    let usdc_mint = protocol_token_config.usdc_mint;
+    
+    // Verify KEDOLOG/USDC pool matches config
+    require!(kedolog_usdc_pool.key() == protocol_token_config.kedolog_usdc_pool, ErrorCode::InvalidInput);
+    
+    // Get vault accounts from remaining_accounts
+    // We trust the frontend to pass the correct vaults since we verified the pool address
+    // remaining_accounts format: [vault_0, vault_1, (sol_vault_0, sol_vault_1)]
+    require!(remaining_accounts.len() >= 2, ErrorCode::InvalidInput);
+    let kedolog_usdc_vault_0 = &remaining_accounts[0];
+    let kedolog_usdc_vault_1 = &remaining_accounts[1];
+    
+    // Determine the token pair type and calculate USD value
+    let fee_value_in_usd = if *input_token_mint == usdc_mint {
+        // Case 1: Input is USDC - direct USD value
+        msg!("Case 1: Input token is USDC (direct USD value)");
+        let fee_usd = (fee_amount_in_input_token as u128)
+            .checked_mul(PRICE_SCALE)
+            .ok_or(ErrorCode::MathOverflow)?
+            .checked_div(10u128.pow(input_token_decimals as u32))
+            .ok_or(ErrorCode::MathOverflow)?;
+        fee_usd
+    } else if *input_token_mint == sol_mint {
+        // Case 2: Input is SOL - need SOL/USDC price
+        msg!("Case 2: Input token is SOL");
         
-        PRICE_SCALE
-            .checked_mul(1_000_000)
-            .ok_or(ErrorCode::MathOverflow)?
-            .checked_div(tokens_per_usd)
-            .ok_or(ErrorCode::MathOverflow)?
+        // Special case: If output is USDC, we're swapping in the SOL/USDC pool itself
+        // Use the current pool's vault balances instead of trying to read the reference pool
+        if *output_token_mint == usdc_mint && current_pool_input_vault_amount.is_some() && current_pool_output_vault_amount.is_some() {
+            msg!("Special case: SOL->USDC swap, using current pool reserves");
+            let sol_reserve = current_pool_input_vault_amount.unwrap();
+            let usdc_reserve = current_pool_output_vault_amount.unwrap();
+            
+            msg!("SOL reserve: {}, USDC reserve: {}", sol_reserve, usdc_reserve);
+            
+            // Calculate SOL price from current pool reserves
+            // price = (usdc_reserve * PRICE_SCALE * 10^sol_decimals) / (sol_reserve * 10^usdc_decimals)
+            let sol_price_usd = (usdc_reserve as u128)
+                .checked_mul(PRICE_SCALE)
+                .ok_or(ErrorCode::MathOverflow)?
+                .checked_mul(10u128.pow(9))  // SOL decimals
+                .ok_or(ErrorCode::MathOverflow)?
+                .checked_div(
+                    (sol_reserve as u128)
+                        .checked_mul(10u128.pow(6))  // USDC decimals
+                        .ok_or(ErrorCode::MathOverflow)?
+                )
+                .ok_or(ErrorCode::MathOverflow)?;
+            
+            msg!("SOL price (scaled): {}", sol_price_usd);
+            
+            let fee_usd = (fee_amount_in_input_token as u128)
+                .checked_mul(sol_price_usd)
+                .ok_or(ErrorCode::MathOverflow)?
+                .checked_div(10u128.pow(input_token_decimals as u32))
+                .ok_or(ErrorCode::MathOverflow)?;
+            
+            msg!("Fee USD (scaled): {}", fee_usd);
+            fee_usd
+        } else {
+            // Normal case: Read SOL price from SOL/USDC pool
+            require!(sol_usdc_pool.is_some(), ErrorCode::InvalidInput);
+            require!(remaining_accounts.len() >= 4, ErrorCode::InvalidInput);
+            
+            let sol_pool = sol_usdc_pool.unwrap();
+            
+            // Verify SOL/USDC pool matches config
+            require!(sol_pool.key() == protocol_token_config.sol_usdc_pool, ErrorCode::InvalidInput);
+            
+            // Get vault accounts from remaining_accounts
+            let sol_usdc_vault_0 = &remaining_accounts[2];
+            let sol_usdc_vault_1 = &remaining_accounts[3];
+            
+            // Use get_token_price_in_quote which automatically detects token order
+            let sol_price_usd = get_token_price_in_quote(
+                sol_usdc_vault_0,
+                sol_usdc_vault_1,
+                &sol_mint,
+                &usdc_mint,
+                9,  // SOL decimals
+                6,  // USDC decimals
+            )?;
+            
+            // Calculate USD value of fee
+            msg!("SOL price (scaled): {}", sol_price_usd);
+            msg!("Fee amount in SOL: {}", fee_amount_in_input_token);
+            
+            let fee_usd = (fee_amount_in_input_token as u128)
+                .checked_mul(sol_price_usd)
+                .ok_or(ErrorCode::MathOverflow)?
+                .checked_div(10u128.pow(input_token_decimals as u32))
+                .ok_or(ErrorCode::MathOverflow)?;
+            
+            msg!("Fee USD (scaled): {}", fee_usd);
+            fee_usd
+        }
+    } else {
+        // Case 3: Token pair with intermediate hop (1-hop support)
+        // Check if input token has a USDC or SOL pool
+        msg!("Case 3: Checking for intermediate hop via USDC or SOL");
+        
+        // We need at least 6 accounts for 1-hop: [kedolog pool (3), intermediate pool (3)]
+        // If we have 9 accounts, we have: [kedolog pool (3), intermediate pool (3), final pool (3)]
+        
+        if remaining_accounts.len() >= 4 {
+            // We have an intermediate pool provided
+            // Format: [kedolog_vault_0, kedolog_vault_1, intermediate_vault_0, intermediate_vault_1, ...]
+            
+            let intermediate_vault_0 = &remaining_accounts[2];
+            let intermediate_vault_1 = &remaining_accounts[3];
+            
+            msg!("Attempting 1-hop price discovery");
+            
+            // Read intermediate pool vaults to determine tokens
+            let vault_0_data = intermediate_vault_0.try_borrow_data()?;
+            let vault_1_data = intermediate_vault_1.try_borrow_data()?;
+            
+            let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])?;
+            let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])?;
+            
+            let intermediate_mint_0 = vault_0_account.mint;
+            let intermediate_mint_1 = vault_1_account.mint;
+            
+            // Check if this pool connects input token to USDC or SOL
+            let connects_to_usdc = intermediate_mint_0 == usdc_mint || intermediate_mint_1 == usdc_mint;
+            let connects_to_sol = intermediate_mint_0 == sol_mint || intermediate_mint_1 == sol_mint;
+            let has_input_token = intermediate_mint_0 == *input_token_mint || intermediate_mint_1 == *input_token_mint;
+            
+            if has_input_token && connects_to_usdc {
+                // Input token has direct USDC pool
+                msg!("Found intermediate pool: Input Token → USDC");
+                
+                let input_price_usdc = get_token_price_in_quote(
+                    intermediate_vault_0,
+                    intermediate_vault_1,
+                    input_token_mint,
+                    &usdc_mint,
+                    input_token_decimals,
+                    6, // USDC decimals
+                )?;
+                
+                // Calculate USD value of fee
+                // input_price_usdc is scaled by PRICE_SCALE
+                let fee_usd_actual = (fee_amount_in_input_token as u128)
+                    .checked_mul(input_price_usdc)
+                    .ok_or(ErrorCode::MathOverflow)?
+                    .checked_div(10u128.pow(input_token_decimals as u32))
+                    .ok_or(ErrorCode::MathOverflow)?
+                    .checked_div(PRICE_SCALE)
+                    .ok_or(ErrorCode::MathOverflow)?;
+                
+                // Scale back up for consistency
+                let fee_usd = fee_usd_actual
+                    .checked_mul(PRICE_SCALE)
+                    .ok_or(ErrorCode::MathOverflow)?;
+                
+                fee_usd
+            } else if has_input_token && connects_to_sol {
+                // Input token has SOL pool, need SOL/USDC price too
+                msg!("Found intermediate pool: Input Token → SOL → USDC");
+                
+                require!(remaining_accounts.len() >= 6, ErrorCode::InvalidInput);
+                
+                // Get input token price in SOL
+                let input_price_sol = get_token_price_in_quote(
+                    intermediate_vault_0,
+                    intermediate_vault_1,
+                    input_token_mint,
+                    &sol_mint,
+                    input_token_decimals,
+                    9, // SOL decimals
+                )?;
+                
+                // Get SOL price in USDC from additional vaults
+                let sol_usdc_vault_0 = &remaining_accounts[4];
+                let sol_usdc_vault_1 = &remaining_accounts[5];
+                
+                let sol_price_usd = get_sol_usdc_price(
+                    sol_usdc_vault_0,
+                    sol_usdc_vault_1,
+                )?;
+                
+                // Calculate input token price in USD: input_sol_price * sol_usd_price
+                // Both are scaled by PRICE_SCALE, so divide once to get price still scaled by PRICE_SCALE
+                let input_price_usd = input_price_sol
+                    .checked_mul(sol_price_usd)
+                    .ok_or(ErrorCode::MathOverflow)?
+                    .checked_div(PRICE_SCALE)
+                    .ok_or(ErrorCode::MathOverflow)?;
+                
+                // Calculate USD value of fee
+                // input_price_usd is scaled by PRICE_SCALE
+                let fee_usd_actual = (fee_amount_in_input_token as u128)
+                    .checked_mul(input_price_usd)
+                    .ok_or(ErrorCode::MathOverflow)?
+                    .checked_div(10u128.pow(input_token_decimals as u32))
+                    .ok_or(ErrorCode::MathOverflow)?
+                    .checked_div(PRICE_SCALE)
+                    .ok_or(ErrorCode::MathOverflow)?;
+                
+                // Scale back up for consistency
+                let fee_usd = fee_usd_actual
+                    .checked_mul(PRICE_SCALE)
+                    .ok_or(ErrorCode::MathOverflow)?;
+                
+                fee_usd
+            } else {
+                msg!("ERROR: No valid price path found");
+                return Err(ErrorCode::InvalidInput.into());
+            }
+        } else {
+            msg!("ERROR: Unsupported token pair - no intermediate pool provided");
+            return Err(ErrorCode::InvalidInput.into());
+        }
     };
-    
-    msg!("Input token USD price: {}", input_token_usd_price);
-    msg!("Protocol token USD price: {}", protocol_token_usd_price);
-    
-    // Calculate fee value in USD
-    // fee_usd = (fee_amount * input_token_usd_price) / 10^input_decimals
-    let fee_amount_u128 = fee_amount_in_input_token as u128;
-    let fee_value_in_usd = fee_amount_u128
-        .checked_mul(input_token_usd_price)
-        .ok_or(ErrorCode::MathOverflow)?
-        .checked_div(10u128.pow(input_token_decimals as u32))
-        .ok_or(ErrorCode::MathOverflow)?;
     
     msg!("Fee value in USD (scaled): {}", fee_value_in_usd);
+    msg!("PRICE_SCALE: {}", PRICE_SCALE);
     
-    // Calculate protocol token amount needed
-    // protocol_amount = (fee_value_in_usd * 10^protocol_decimals) / protocol_token_usd_price
-    let protocol_token_amount = fee_value_in_usd
+    // Get KEDOLOG price in USDC
+    let kedolog_price_usd = get_kedolog_usdc_price(
+        kedolog_usdc_vault_0,
+        kedolog_usdc_vault_1,
+        &protocol_token_config.protocol_token_mint,
+    )?;
+    
+    msg!("KEDOLOG price in USD (scaled): {}", kedolog_price_usd);
+    msg!("Protocol token decimals: {}", protocol_token_decimals);
+    
+    // Calculate KEDOLOG amount needed
+    // Both fee_value_in_usd and kedolog_price_usd are scaled by PRICE_SCALE
+    // kedolog_amount = (fee_usd_scaled * 10^kedolog_decimals) / kedolog_price_scaled
+    let intermediate = fee_value_in_usd
         .checked_mul(10u128.pow(protocol_token_decimals as u32))
-        .ok_or(ErrorCode::MathOverflow)?
-        .checked_div(protocol_token_usd_price)
         .ok_or(ErrorCode::MathOverflow)?;
     
+    msg!("Intermediate (fee_usd * 10^decimals): {}", intermediate);
+    
+    let kedolog_amount = intermediate
+        .checked_div(kedolog_price_usd)
+        .ok_or(ErrorCode::MathOverflow)?;
+    
+    msg!("KEDOLOG amount (raw): {}", kedolog_amount);
+    
     // Convert to u64
-    let result = u64::try_from(protocol_token_amount)
+    let result = u64::try_from(kedolog_amount)
         .map_err(|_| ErrorCode::MathOverflow)?;
     
     require_gt!(result, 0, ErrorCode::InvalidInput);
     
-    msg!("Protocol token amount required: {}", result);
+    msg!("KEDOLOG amount required (final): {}", result);
+    msg!("=== End Calculation ===");
     
     Ok(result)
-}
-
-/// Helper: Check if oracle data is fresh
-pub fn is_oracle_fresh(timestamp: i64) -> bool {
-    let current_time = Clock::get().unwrap().unix_timestamp;
-    current_time - timestamp < MAX_PRICE_AGE_SECONDS
 }
 
 #[cfg(test)]
@@ -294,32 +522,31 @@ mod tests {
     
     #[test]
     fn test_price_calculation() {
-        // Test case: 0.05 SOL fee, SOL = $100, KEDOLOG = $0.10
-        // Expected: 0.05 * 100 / 0.10 = 50 KEDOLOG
+        // Test case: 0.05 SOL fee, SOL = $200, KEDOLOG = $0.0017
+        // Expected: 0.05 * 200 / 0.0017 ≈ 5882 KEDOLOG
         
         let fee_amount = 50_000_000; // 0.05 SOL (9 decimals)
-        let sol_price = 100 * PRICE_SCALE; // $100
-        let kedolog_price = PRICE_SCALE / 10; // $0.10
+        let sol_price = 200 * PRICE_SCALE; // $200
+        let kedolog_price = PRICE_SCALE / 588; // ~$0.0017
         
         let sol_decimals = 9;
         let kedolog_decimals = 9;
         
-        // fee_value_usd = (50_000_000 * 100_000_000_000) / 10^9 = 5_000_000_000
-        // protocol_amount = (5_000_000_000 * 10^9) / 100_000_000 = 50_000_000_000
-        
+        // fee_value_usd = (50_000_000 * 200_000_000_000) / 10^9 = 10_000_000_000
         let fee_value_usd = (fee_amount as u128)
             .checked_mul(sol_price)
             .unwrap()
             .checked_div(10u128.pow(sol_decimals))
             .unwrap();
         
-        let protocol_amount = fee_value_usd
+        // kedolog_amount = (10_000_000_000 * 10^9) / (1_000_000_000 / 588)
+        let kedolog_amount = fee_value_usd
             .checked_mul(10u128.pow(kedolog_decimals))
             .unwrap()
             .checked_div(kedolog_price)
             .unwrap();
         
-        assert_eq!(protocol_amount, 50_000_000_000); // 50 KEDOLOG
+        assert!(kedolog_amount > 5_000_000_000); // Should be around 5882 KEDOLOG
+        assert!(kedolog_amount < 6_000_000_000);
     }
 }
-

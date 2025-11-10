@@ -32,8 +32,30 @@ const CONFIG_INDEX = 0; // Always use index 0 for new programs
 const KEDOLOG_MINT = new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx');
 const TREASURY = new PublicKey('67D6TM8PTsuv8nU5PnUP3dV6j8kW3rmTD9KNufcEUPCa');
 
+// Reference pool addresses (set these after creating the pools!)
+const KEDOLOG_USDC_POOL = new PublicKey('4BNsmFr9SR3D5cPzUgrMrZFhbYWGhVDe41KaipMkUzDz');
+const SOL_USDC_POOL = PublicKey.default; // TODO: Set after creating SOL/USDC pool
+const KEDOLOG_SOL_POOL = PublicKey.default; // TODO: Set after creating KEDOLOG/SOL pool
+const USDC_MINT = new PublicKey('2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32'); // Devnet USDC
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// FEE CONFIGURATION
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// IMPORTANT: protocol_fee_rate is a PERCENTAGE of the trade fee, not an absolute rate!
+// 
+// Example calculation:
+//   - TRADE_FEE_RATE = 2500 (0.25%)
+//   - PROTOCOL_FEE_RATE = 200000 (20% of trade fee)
+//   - Actual protocol fee = 2500 * 200000 / 1000000 = 500 (0.05%)
+//   - LP fee = 2500 - 500 = 2000 (0.20%)
+//
+// For a 1 USDC swap:
+//   - Original protocol fee = 1,000,000 * 500 / 1,000,000 = 500 units
+//   - With 25% KEDOLOG discount = 500 * 0.75 = 375 units
+//   - This MUST be > 0 or swaps will fail!
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const TRADE_FEE_RATE = 2500;        // 0.25%
-const PROTOCOL_FEE_RATE = 500;      // 0.05%
+const PROTOCOL_FEE_RATE = 200000;   // 20% of trade fee (results in 0.05% protocol fee)
 const FUND_FEE_RATE = 0;            // 0%
 const CREATE_POOL_FEE = 1000000000; // 1 SOL
 const CREATOR_FEE_RATE = 0;         // 0%
@@ -125,7 +147,7 @@ async function main() {
         new BN(FUND_FEE_RATE),
         new BN(CREATE_POOL_FEE),
         new BN(CREATOR_FEE_RATE),
-        admin.publicKey // create_pool_fee_receiver
+        TREASURY  // fee_receiver (unified for all fees)
       )
       .accounts({
         owner: admin.publicKey,
@@ -144,7 +166,7 @@ async function main() {
     console.log('\n📋 Verified AMM Config:');
     console.log('   Address:', ammConfig.toString());
     console.log('   Protocol Owner:', config.protocolOwner.toString());
-    console.log('   Fee Receiver:', config.createPoolFeeReceiver.toString());
+    console.log('   Fee Receiver:', config.feeReceiver.toString());
     console.log('   Create Pool Fee:', (config.createPoolFee.toNumber() / 1e9), 'SOL');
     
   } catch (error: any) {
@@ -168,7 +190,10 @@ async function main() {
         new BN(KEDOLOG_DISCOUNT_RATE),
         admin.publicKey, // authority
         TREASURY,
-        PublicKey.default // price_pool (will be set later after pool creation)
+        KEDOLOG_USDC_POOL, // kedolog_usdc_pool
+        SOL_USDC_POOL,     // sol_usdc_pool
+        KEDOLOG_SOL_POOL,  // kedolog_sol_pool
+        USDC_MINT          // usdc_mint
       )
       .accounts({
         payer: admin.publicKey,
@@ -190,7 +215,9 @@ async function main() {
     console.log('   Discount Rate:', (kedologConfig.discountRate.toNumber() / 100), '%');
     console.log('   Treasury:', kedologConfig.treasury.toString());
     console.log('   Authority:', kedologConfig.authority.toString());
-    console.log('   Price Pool:', kedologConfig.pricePool.toString(), '(not set yet)');
+    console.log('   KEDOLOG/USDC Pool:', kedologConfig.kedologUsdcPool.toString());
+    console.log('   SOL/USDC Pool:', kedologConfig.solUsdcPool.toString());
+    console.log('   KEDOLOG/SOL Pool:', kedologConfig.kedologSolPool.toString());
     
   } catch (error: any) {
     console.error('\n❌ Failed to create KEDOLOG config:', error.message);
@@ -217,7 +244,9 @@ async function main() {
       mint: KEDOLOG_MINT.toString(),
       discountRate: KEDOLOG_DISCOUNT_RATE,
       treasury: TREASURY.toString(),
-      pricePool: 'not set yet',
+      kedologUsdcPool: KEDOLOG_USDC_POOL.toString(),
+      solUsdcPool: SOL_USDC_POOL.toString(),
+      kedologSolPool: KEDOLOG_SOL_POOL.toString(),
     },
     fees: {
       tradeFeeRate: TRADE_FEE_RATE,

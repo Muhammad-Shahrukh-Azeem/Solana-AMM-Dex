@@ -9,8 +9,8 @@ use anchor_spl::token_interface::TokenAccount;
 
 #[derive(Accounts)]
 pub struct CollectProtocolFee<'info> {
-    /// Only admin or owner can collect fee now
-    #[account(constraint = (owner.key() == amm_config.protocol_owner || owner.key() == crate::admin::ID) @ ErrorCode::InvalidOwner)]
+    /// Only the fee_receiver can collect protocol fees
+    #[account(constraint = owner.key() == amm_config.fee_receiver @ ErrorCode::InvalidOwner)]
     pub owner: Signer<'info>,
 
     /// CHECK: pool vault and lp mint authority

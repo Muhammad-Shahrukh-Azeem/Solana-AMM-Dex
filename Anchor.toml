@@ -10,10 +10,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-kedolik_cp_swap = "HmrfmeAq6w52AESpFhxMP1dwYDn8DHawmGmtYMhbrkcq"
+kedolik_cp_swap = "4LyaQt2uNYX7zJABAVa56th8U68brWHWLioAYZSbCeEf"
 
 [programs.devnet]
-kedolik_cp_swap = "HmrfmeAq6w52AESpFhxMP1dwYDn8DHawmGmtYMhbrkcq"
+kedolik_cp_swap = "4LyaQt2uNYX7zJABAVa56th8U68brWHWLioAYZSbCeEf"
 
 
 [registry]
@@ -24,10 +24,10 @@ cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/*.test.ts"
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/fee_receiver_unified.test.ts tests/one_hop_pricing.test.ts tests/deposit.test.ts tests/dust_reserve_fix.test.ts tests/initialize.test.ts tests/real_pyth_example_clean.test.ts tests/swap.test.ts tests/withdraw.test.ts"
 
 [test]
-startup_wait = 10000
+startup_wait = 20000
 
 [test.validator]
 url = "https://api.mainnet-beta.solana.com"

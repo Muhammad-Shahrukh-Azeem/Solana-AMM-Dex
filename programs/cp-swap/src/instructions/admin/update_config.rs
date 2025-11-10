@@ -28,16 +28,12 @@ pub fn update_amm_config(ctx: Context<UpdateAmmConfig>, param: u8, value: u64) -
             set_new_protocol_owner(amm_config, new_procotol_owner)?;
         }
         Some(4) => {
-            let new_fund_owner = *ctx.remaining_accounts.iter().next().unwrap().key;
-            set_new_fund_owner(amm_config, new_fund_owner)?;
+            let new_fee_receiver = *ctx.remaining_accounts.iter().next().unwrap().key;
+            set_new_fee_receiver(amm_config, new_fee_receiver)?;
         }
         Some(5) => amm_config.create_pool_fee = value,
         Some(6) => amm_config.disable_create_pool = if value == 0 { false } else { true },
         Some(7) => update_creator_fee_rate(amm_config, value),
-        Some(8) => {
-            let new_fee_receiver = *ctx.remaining_accounts.iter().next().unwrap().key;
-            set_new_fee_receiver(amm_config, new_fee_receiver)?;
-        }
         _ => return err!(ErrorCode::InvalidInput),
     }
 
@@ -78,26 +74,14 @@ fn set_new_protocol_owner(amm_config: &mut Account<AmmConfig>, new_owner: Pubkey
     Ok(())
 }
 
-fn set_new_fund_owner(amm_config: &mut Account<AmmConfig>, new_fund_owner: Pubkey) -> Result<()> {
-    require_keys_neq!(new_fund_owner, Pubkey::default());
-    #[cfg(feature = "enable-log")]
-    msg!(
-        "amm_config, old_fund_owner:{}, new_fund_owner:{}",
-        amm_config.fund_owner.to_string(),
-        new_fund_owner.key().to_string()
-    );
-    amm_config.fund_owner = new_fund_owner;
-    Ok(())
-}
-
 fn set_new_fee_receiver(amm_config: &mut Account<AmmConfig>, new_fee_receiver: Pubkey) -> Result<()> {
     require_keys_neq!(new_fee_receiver, Pubkey::default());
     #[cfg(feature = "enable-log")]
     msg!(
         "amm_config, old_fee_receiver:{}, new_fee_receiver:{}",
-        amm_config.create_pool_fee_receiver.to_string(),
+        amm_config.fee_receiver.to_string(),
         new_fee_receiver.to_string()
     );
-    amm_config.create_pool_fee_receiver = new_fee_receiver;
+    amm_config.fee_receiver = new_fee_receiver;
     Ok(())
 }

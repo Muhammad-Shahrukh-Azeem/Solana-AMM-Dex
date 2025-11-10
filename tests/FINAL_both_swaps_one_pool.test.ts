@@ -77,8 +77,7 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     console.log(`✅ Treasury: ${treasuryKeypair.publicKey.toString()}`);
 
     // Create protocol token config
-    const discountRate = new BN(2000); // 20% discount (2000 / 10000)
-    const protocolTokenPerUsd = new BN(10_000_000); // 10 KEDOLOG per 1 USD
+    const discountRate = new BN(2500); // 25% discount (2500 / 10000)
 
     try {
       await createProtocolTokenConfig(
@@ -89,12 +88,12 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
         discountRate,
         admin.publicKey,
         treasuryKeypair.publicKey,
-        protocolTokenPerUsd,
+        new PublicKey('11111111111111111111111111111111'), // price_pool (will be set later after pool creation)
         confirmOptions
       );
       console.log("✅ Protocol Token Config created");
-      console.log(`   Discount Rate: 20%`);
-      console.log(`   KEDOLOG Price: 1 KEDOLOG = 0.1 USD\n`);
+      console.log(`   Discount Rate: 25%`);
+      console.log(`   KEDOLOG Price: Will be fetched from pool\n`);
     } catch (error: any) {
       console.error("\n❌ Failed to create protocol token config:");
       console.error("Error:", error.message);
@@ -106,7 +105,7 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     }
 
     // Create AMM Config
-    const config_index = 100; // Unique index
+    const config_index = Math.floor(Math.random() * 10000) + 5000; // Random index to avoid old test accounts
     configAddress = await createAmmConfig(
       program,
       connection,
