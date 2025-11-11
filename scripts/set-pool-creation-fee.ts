@@ -40,11 +40,11 @@ async function main() {
   try {
     const config = await program.account.ammConfig.fetch(ammConfig);
     console.log(`\n📊 Current Configuration:`);
-    console.log(`   Trade Fee: ${config.tradeFeeRate} (${config.tradeFeeRate / 10000}%)`);
-    console.log(`   Protocol Fee: ${config.protocolFeeRate} (${config.protocolFeeRate / 10000}%)`);
+    console.log(`   Trade Fee: ${config.tradeFeeRate} (${Number(config.tradeFeeRate) / 10000}%)`);
+    console.log(`   Protocol Fee: ${config.protocolFeeRate} (${Number(config.protocolFeeRate) / 10000}%)`);
     console.log(`   Fund Fee: ${config.fundFeeRate}`);
     console.log(`   Creator Fee: ${config.creatorFeeRate}`);
-    console.log(`   Create Pool Fee: ${config.createPoolFee} lamports (${config.createPoolFee / 1e9} SOL)`);
+    console.log(`   Create Pool Fee: ${config.createPoolFee} lamports (${Number(config.createPoolFee) / 1e9} SOL)`);
   } catch (e) {
     console.error("\n❌ AMM Config not found!");
     console.error("   Run: npx ts-node scripts/init-devnet-config.ts first");
@@ -74,7 +74,7 @@ async function main() {
     // Fetch updated config
     const updatedConfig = await program.account.ammConfig.fetch(ammConfig);
     console.log(`\n📊 Updated Configuration:`);
-    console.log(`   Create Pool Fee: ${updatedConfig.createPoolFee} lamports (${updatedConfig.createPoolFee / 1e9} SOL)`);
+    console.log(`   Create Pool Fee: ${updatedConfig.createPoolFee} lamports (${Number(updatedConfig.createPoolFee) / 1e9} SOL)`);
     
     console.log(`\n💡 Important Notes:`);
     console.log(`   1. Users must pay ${POOL_CREATION_FEE_SOL} SOL to create a pool`);

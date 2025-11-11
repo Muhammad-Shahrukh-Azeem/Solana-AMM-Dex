@@ -1,5 +1,5 @@
-const { Connection, PublicKey, Keypair, Transaction, TransactionInstruction } = require("@solana/web3.js");
-const fs = require("fs");
+import { Connection, PublicKey, Keypair, Transaction, TransactionInstruction } from "@solana/web3.js";
+import * as fs from "fs";
 
 const PROGRAM_ID = new PublicKey("4LyaQt2uNYX7zJABAVa56th8U68brWHWLioAYZSbCeEf");
 const POOL_FEE_LAMPORTS = 150_000_000; // 0.15 SOL
@@ -11,8 +11,11 @@ async function main() {
   
   console.log("Admin:", admin.publicKey.toString());
   
-  // Use actual AMM config address
-  const ammConfig = new PublicKey("BvNxXvJbJLgEhSCuoVyHwsTWZeFMLfwdzqP1ynuimVRW");
+  // Derive AMM config PDA
+  const [ammConfig] = PublicKey.findProgramAddressSync(
+    [Buffer.from("amm_config"), Buffer.from([0])],
+    PROGRAM_ID
+  );
   
   console.log("AMM Config:", ammConfig.toString());
   
@@ -29,7 +32,7 @@ async function main() {
   
   // Build instruction data
   // Discriminator for update_amm_config (8 bytes) + param (1 byte) + value (8 bytes)
-  const discriminator = Buffer.from([0x31, 0x3c, 0xae, 0x88, 0x9a, 0x1c, 0x74, 0xc8]); // update_amm_config
+  const discriminator = Buffer.from([0x1d, 0x9a, 0xcb, 0x51, 0x2e, 0xa5, 0x45, 0x94]); // update_amm_config
   const param = Buffer.from([5]); // param 5 = create_pool_fee
   const value = Buffer.alloc(8);
   value.writeBigUInt64LE(BigInt(POOL_FEE_LAMPORTS));
@@ -56,3 +59,5 @@ async function main() {
 }
 
 main().catch(console.error);
+
+

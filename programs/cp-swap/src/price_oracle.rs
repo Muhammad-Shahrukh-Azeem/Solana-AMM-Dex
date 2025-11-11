@@ -322,7 +322,6 @@ pub fn calculate_protocol_token_amount<'info>(
         // Case 2: Input is SOL - need SOL/USDC price
         msg!("Case 2: Input token is SOL");
         msg!("remaining_accounts.len(): {}", remaining_accounts.len());
-        msg!("sol_usdc_pool.is_some(): {}", sol_usdc_pool.is_some());
         
         // Special case: If output is USDC, we're swapping in the SOL/USDC pool itself
         // Use the current pool's vault balances instead of trying to read the reference pool
@@ -358,24 +357,12 @@ pub fn calculate_protocol_token_amount<'info>(
             msg!("Fee USD (scaled): {}", fee_usd);
             fee_usd
         } else {
-            // Normal case: Read SOL price from SOL/USDC pool
-            require!(sol_usdc_pool.is_some(), ErrorCode::InvalidInput);
-            // remaining_accounts is sliced from [1..], so we need 5 accounts (not 6)
-            // [0-1] = KEDOLOG/USDC vaults, [2] = SOL/USDC pool, [3-4] = SOL/USDC vaults
-            require!(remaining_accounts.len() >= 5, ErrorCode::InvalidInput);
+            // Normal case: Read SOL price from SOL/USDC pool vaults
+            // remaining_accounts format: [0-1] = KEDOLOG/USDC vaults, [2-3] = SOL/USDC vaults
+            require!(remaining_accounts.len() >= 4, ErrorCode::InvalidInput);
             
-            let sol_pool = sol_usdc_pool.unwrap();
-            
-            // Verify SOL/USDC pool matches config
-            require!(sol_pool.key() == protocol_token_config.sol_usdc_pool, ErrorCode::InvalidInput);
-            
-            // Get vault accounts from remaining_accounts
-            // remaining_accounts is already sliced from [1..], so:
-            // [0-1] = KEDOLOG/USDC vaults
-            // [2] = SOL/USDC pool (we skip this)
-            // [3-4] = SOL/USDC vaults (we want these)
-            let sol_usdc_vault_0 = &remaining_accounts[3];
-            let sol_usdc_vault_1 = &remaining_accounts[4];
+            let sol_usdc_vault_0 = &remaining_accounts[2];
+            let sol_usdc_vault_1 = &remaining_accounts[3];
             
             msg!("SOL/USDC vault 0: {}", sol_usdc_vault_0.key());
             msg!("SOL/USDC vault 1: {}", sol_usdc_vault_1.key());
@@ -422,16 +409,57 @@ pub fn calculate_protocol_token_amount<'info>(
             let intermediate_vault_1 = &remaining_accounts[3];
             
             msg!("Attempting 1-hop price discovery");
+            msg!("Intermediate vault 0: {}", intermediate_vault_0.key());
+            msg!("Intermediate vault 1: {}", intermediate_vault_1.key());
             
-            // Read intermediate pool vaults to determine tokens
-            let vault_0_data = intermediate_vault_0.try_borrow_data()?;
-            let vault_1_data = intermediate_vault_1.try_borrow_data()?;
+            // Special case: If we have current pool vault amounts, check if intermediate pool IS the current swap pool
+            // This happens for swaps like BTC → SOL where the swap pool is also the pricing pool
+            let use_current_pool = current_pool_input_vault_amount.is_some() 
+                && current_pool_output_vault_amount.is_some()
+                && (*output_token_mint == sol_mint || *output_token_mint == usdc_mint);
             
-            let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])?;
-            let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])?;
+            let (intermediate_mint_0, intermediate_mint_1, reserve_0, reserve_1) = if use_current_pool {
+                msg!("Using current pool reserves (intermediate pool IS the swap pool)");
+                
+                // Determine mints from input/output
+                let mint_0 = *input_token_mint;
+                let mint_1 = *output_token_mint;
+                let res_0 = current_pool_input_vault_amount.unwrap();
+                let res_1 = current_pool_output_vault_amount.unwrap();
+                
+                msg!("Current pool: {} / {}", mint_0, mint_1);
+                msg!("Current reserves: {} / {}", res_0, res_1);
+                
+                (mint_0, mint_1, res_0, res_1)
+            } else {
+                // Read intermediate pool vaults to determine tokens
+                let vault_0_data = intermediate_vault_0.try_borrow_data()
+                    .map_err(|e| {
+                        msg!("Failed to borrow intermediate vault 0: {:?}", e);
+                        ErrorCode::InvalidInput
+                    })?;
+                let vault_1_data = intermediate_vault_1.try_borrow_data()
+                    .map_err(|e| {
+                        msg!("Failed to borrow intermediate vault 1: {:?}", e);
+                        ErrorCode::InvalidInput
+                    })?;
+                
+                let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])
+                    .map_err(|e| {
+                        msg!("Failed to deserialize intermediate vault 0: {:?}", e);
+                        ErrorCode::InvalidInput
+                    })?;
+                let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])
+                    .map_err(|e| {
+                        msg!("Failed to deserialize intermediate vault 1: {:?}", e);
+                        ErrorCode::InvalidInput
+                    })?;
+                
+                (vault_0_account.mint, vault_1_account.mint, vault_0_account.amount, vault_1_account.amount)
+            };
             
-            let intermediate_mint_0 = vault_0_account.mint;
-            let intermediate_mint_1 = vault_1_account.mint;
+            msg!("Intermediate pool mints: {} / {}", intermediate_mint_0, intermediate_mint_1);
+            msg!("Intermediate pool reserves: {} / {}", reserve_0, reserve_1);
             
             // Check if this pool connects input token to USDC or SOL
             let connects_to_usdc = intermediate_mint_0 == usdc_mint || intermediate_mint_1 == usdc_mint;
@@ -442,30 +470,44 @@ pub fn calculate_protocol_token_amount<'info>(
                 // Input token has direct USDC pool
                 msg!("Found intermediate pool: Input Token → USDC");
                 
-                let input_price_usdc = get_token_price_in_quote(
-                    intermediate_vault_0,
-                    intermediate_vault_1,
-                    input_token_mint,
-                    &usdc_mint,
-                    input_token_decimals,
-                    6, // USDC decimals
-                )?;
+                // Calculate price directly from reserves
+                // Determine which reserve is input token and which is USDC
+                let (input_reserve, usdc_reserve) = if intermediate_mint_0 == *input_token_mint {
+                    (reserve_0, reserve_1)
+                } else {
+                    (reserve_1, reserve_0)
+                };
+                
+                require_gt!(input_reserve, 0, ErrorCode::InvalidInput);
+                require_gt!(usdc_reserve, 0, ErrorCode::InvalidInput);
+                
+                // Price = (usdc_reserve * PRICE_SCALE * 10^input_decimals) / (input_reserve * 10^usdc_decimals)
+                let input_price_usdc = (usdc_reserve as u128)
+                    .checked_mul(PRICE_SCALE)
+                    .ok_or(ErrorCode::MathOverflow)?
+                    .checked_mul(10u128.pow(input_token_decimals as u32))
+                    .ok_or(ErrorCode::MathOverflow)?
+                    .checked_div(
+                        (input_reserve as u128)
+                            .checked_mul(10u128.pow(6))  // USDC decimals
+                            .ok_or(ErrorCode::MathOverflow)?
+                    )
+                    .ok_or(ErrorCode::MathOverflow)?;
+                
+                msg!("Input token price in USDC (scaled): {}", input_price_usdc);
                 
                 // Calculate USD value of fee
                 // input_price_usdc is scaled by PRICE_SCALE
-                let fee_usd_actual = (fee_amount_in_input_token as u128)
+                // Keep everything scaled to preserve precision for small amounts
+                // fee_usd = (fee_amount * input_price_usdc) / 10^input_decimals
+                // Result is still scaled by PRICE_SCALE
+                let fee_usd = (fee_amount_in_input_token as u128)
                     .checked_mul(input_price_usdc)
                     .ok_or(ErrorCode::MathOverflow)?
                     .checked_div(10u128.pow(input_token_decimals as u32))
-                    .ok_or(ErrorCode::MathOverflow)?
-                    .checked_div(PRICE_SCALE)
                     .ok_or(ErrorCode::MathOverflow)?;
                 
-                // Scale back up for consistency
-                let fee_usd = fee_usd_actual
-                    .checked_mul(PRICE_SCALE)
-                    .ok_or(ErrorCode::MathOverflow)?;
-                
+                msg!("Fee USD (scaled): {}", fee_usd);
                 fee_usd
             } else if has_input_token && connects_to_sol {
                 // Input token has SOL pool, need SOL/USDC price too
@@ -473,15 +515,30 @@ pub fn calculate_protocol_token_amount<'info>(
                 
                 require!(remaining_accounts.len() >= 6, ErrorCode::InvalidInput);
                 
-                // Get input token price in SOL
-                let input_price_sol = get_token_price_in_quote(
-                    intermediate_vault_0,
-                    intermediate_vault_1,
-                    input_token_mint,
-                    &sol_mint,
-                    input_token_decimals,
-                    9, // SOL decimals
-                )?;
+                // Calculate input token price in SOL from reserves
+                let (input_reserve, sol_reserve) = if intermediate_mint_0 == *input_token_mint {
+                    (reserve_0, reserve_1)
+                } else {
+                    (reserve_1, reserve_0)
+                };
+                
+                require_gt!(input_reserve, 0, ErrorCode::InvalidInput);
+                require_gt!(sol_reserve, 0, ErrorCode::InvalidInput);
+                
+                // Price = (sol_reserve * PRICE_SCALE * 10^input_decimals) / (input_reserve * 10^sol_decimals)
+                let input_price_sol = (sol_reserve as u128)
+                    .checked_mul(PRICE_SCALE)
+                    .ok_or(ErrorCode::MathOverflow)?
+                    .checked_mul(10u128.pow(input_token_decimals as u32))
+                    .ok_or(ErrorCode::MathOverflow)?
+                    .checked_div(
+                        (input_reserve as u128)
+                            .checked_mul(10u128.pow(9))  // SOL decimals
+                            .ok_or(ErrorCode::MathOverflow)?
+                    )
+                    .ok_or(ErrorCode::MathOverflow)?;
+                
+                msg!("Input token price in SOL (scaled): {}", input_price_sol);
                 
                 // Get SOL price in USDC from additional vaults
                 let sol_usdc_vault_0 = &remaining_accounts[4];
@@ -492,6 +549,8 @@ pub fn calculate_protocol_token_amount<'info>(
                     sol_usdc_vault_1,
                 )?;
                 
+                msg!("SOL price in USDC (scaled): {}", sol_price_usd);
+                
                 // Calculate input token price in USD: input_sol_price * sol_usd_price
                 // Both are scaled by PRICE_SCALE, so divide once to get price still scaled by PRICE_SCALE
                 let input_price_usd = input_price_sol
@@ -500,21 +559,20 @@ pub fn calculate_protocol_token_amount<'info>(
                     .checked_div(PRICE_SCALE)
                     .ok_or(ErrorCode::MathOverflow)?;
                 
+                msg!("Input token price in USD (scaled): {}", input_price_usd);
+                
                 // Calculate USD value of fee
                 // input_price_usd is scaled by PRICE_SCALE
-                let fee_usd_actual = (fee_amount_in_input_token as u128)
+                // Keep everything scaled to preserve precision for small amounts
+                // fee_usd = (fee_amount * input_price_usd) / 10^input_decimals
+                // Result is still scaled by PRICE_SCALE
+                let fee_usd = (fee_amount_in_input_token as u128)
                     .checked_mul(input_price_usd)
                     .ok_or(ErrorCode::MathOverflow)?
                     .checked_div(10u128.pow(input_token_decimals as u32))
-                    .ok_or(ErrorCode::MathOverflow)?
-                    .checked_div(PRICE_SCALE)
                     .ok_or(ErrorCode::MathOverflow)?;
                 
-                // Scale back up for consistency
-                let fee_usd = fee_usd_actual
-                    .checked_mul(PRICE_SCALE)
-                    .ok_or(ErrorCode::MathOverflow)?;
-                
+                msg!("Fee USD (scaled): {}", fee_usd);
                 fee_usd
             } else {
                 msg!("ERROR: No valid price path found");

@@ -223,11 +223,8 @@ pub fn swap_base_input_with_protocol_token(
     require!(ctx.remaining_accounts.len() >= 3, ErrorCode::InvalidInput);
     
     let kedolog_usdc_pool = &ctx.remaining_accounts[0];
-    let sol_usdc_pool = if ctx.remaining_accounts.len() >= 6 {
-        Some(&ctx.remaining_accounts[3])
-    } else {
-        None
-    };
+    // SOL/USDC pool is no longer needed - we only use vaults
+    let sol_usdc_pool = None;
     
     // Pass current pool vault amounts to avoid reading borrowed accounts
     let current_pool_input_amount = Some(ctx.accounts.input_vault.amount);
