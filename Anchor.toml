@@ -10,11 +10,13 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-kedolik_cp_swap = "4LyaQt2uNYX7zJABAVa56th8U68brWHWLioAYZSbCeEf"
+kedolik_cp_swap = "EvUXjxz9pc4mdUPePwF8RQUr4RG8Qk9aP9PmGXn15PVL"
 
 [programs.devnet]
-kedolik_cp_swap = "4LyaQt2uNYX7zJABAVa56th8U68brWHWLioAYZSbCeEf"
+kedolik_cp_swap = "EvUXjxz9pc4mdUPePwF8RQUr4RG8Qk9aP9PmGXn15PVL"
 
+[programs.mainnet]
+kedolik_cp_swap = "EvUXjxz9pc4mdUPePwF8RQUr4RG8Qk9aP9PmGXn15PVL"
 
 [registry]
 url = "https://github.com/kedolik-io/kedolik-cp-swap"

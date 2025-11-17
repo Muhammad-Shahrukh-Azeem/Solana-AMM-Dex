@@ -1,0 +1,30 @@
+{
+  "network": "mainnet",
+  "programId": "EvUXjxz9pc4mdUPePwF8RQUr4RG8Qk9aP9PmGXn15PVL",
+  "ammConfig": {
+    "index": 0,
+    "address": "ENDftP3K19BX29PnyQ6sAwHFGyjtuzAYW6bnnTfZzZRQ",
+    "protocolOwner": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot",
+    "fundOwner": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot",
+    "createPoolFeeReceiver": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot"
+  },
+  "kedologConfig": {
+    "address": "pVRUHo1ecQA5QjyoCJzBSdPTi4hSgjW2ErK8huNYB51",
+    "mint": "FUHwFRWE52FJXC4KoySzy9h6nNmRrppUg5unS4mKEDQN",
+    "discountRate": 2500,
+    "treasury": "EGX4XLHooJ8vtMeyu6JRzudPMv39Cy91bJV49oaHqHom",
+    "kedologUsdcPool": "11111111111111111111111111111111",
+    "solUsdcPool": "11111111111111111111111111111111",
+    "kedologSolPool": "11111111111111111111111111111111"
+  },
+  "fees": {
+    "tradeFeeRate": 2500,
+    "protocolFeeRate": 200000,
+    "lpFeeRate": -197500,
+    "fundFeeRate": 0,
+    "creatorFeeRate": 0,
+    "createPoolFee": 150000000
+  },
+  "deployedAt": "2025-11-15T18:57:36.735Z",
+  "deployedBy": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot"
+}

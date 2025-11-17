@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Bitcoin",
+    "symbol": "BTC",
+    "decimals": 8,
+    "mint": "FNFQgecg3UaStAevYDFvjKJicaefLqJURoP7TC98zBGP",
+    "supply": 21000000,
+    "ata": "sXUjDqS8p5ksoxXZB821Zrj2fHmCq3SggPg6EeduJNm",
+    "signature": "2uMj5vzUR1QVAVLeeFUet795QD4n8ih2XCJf3d711uksAUNp3ii2ob9BGRYGKoLrQDSN73eqwqPNbXBr4fX6UD5p"
+  },
+  {
+    "name": "Ethereum",
+    "symbol": "ETH",
+    "decimals": 9,
+    "mint": "2t31GRcgkW2sMRt6NsAAVGxLHpssj7rkqDrU4r44BQyA",
+    "supply": 120000000,
+    "ata": "8vgzysdBVmfZjYYWB1GqYY8B6cS1ZdoLs2pZWCsYaqUg",
+    "signature": "9tPgfcX5pAtqekvmCN6pZUDxep4evdfd4hreLeJf4qgEgSCRrGV9n9NwHwzRUZkfbPMt94EiJdffuXKJ9Vakdvo"
+  },
+  {
+    "name": "Tether USD",
+    "symbol": "USDT",
+    "decimals": 6,
+    "mint": "51KhreMnFUyE4hPtKhgyRn4jZiG2yLCWFvumqkMb6Tqd",
+    "supply": 100000000000,
+    "ata": "525RCdPmhF6s4xrZKdosMwxUAML1ZL883eWk9SidXGhZ",
+    "signature": "5kXh499R1m4qiViPJuJNpmy8a1XVKBQsKsAK8gkeSQwBRQdr29MwPrU34xZqdkQ8Fg9AQCZygMqY2VTGbmLAwRHg"
+  },
+  {
+    "name": "Binance Coin",
+    "symbol": "BNB",
+    "decimals": 8,
+    "mint": "6Biet4aHKtY9GGdtZzz4HN8dmnJy9NPeP6m1Pw4yrUK5",
+    "supply": 200000000,
+    "ata": "D1ge2Zzdgb9bspUiZ7bYXvYLbmcLVNucEiKCyutbXZ9w",
+    "signature": "4fpWk48yX3VhJUXsof7ss4ed1WijpKxg6PaEuscAbDffb2afUzo8xqVdaHJWqCZxHo4pWF37GNCo5epAxKaMnxwn"
+  },
+  {
+    "name": "Cardano",
+    "symbol": "ADA",
+    "decimals": 6,
+    "mint": "AoizYZmMMTXLHjXxdpNV7fAnvxshy7nNUnG8vwcjCqG1",
+    "supply": 45000000000,
+    "ata": "HJzLpzPbK9hxMzTuBXUhCgFqmrWXKJXn8xN3bdo1LJSD",
+    "signature": "4QtMEsnjjfpbSVSbtWo3YbZUMsTfkvd77v4preBEaMR8PhcWM4uTLT6bcsaXLgZf6QfYqqkLjHQd6hgkAseQGuSm"
+  }
+]

@@ -29,14 +29,14 @@ const { network: NETWORK, rpcUrl: RPC_URL } = getCurrentNetwork();
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const CONFIG_INDEX = 0; // Always use index 0 for new programs
-const KEDOLOG_MINT = new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx');
-const TREASURY = new PublicKey('67D6TM8PTsuv8nU5PnUP3dV6j8kW3rmTD9KNufcEUPCa');
+const KEDOLOG_MINT = new PublicKey('FUHwFRWE52FJXC4KoySzy9h6nNmRrppUg5unS4mKEDQN'); // Mainnet KEDOLOG
+const TREASURY = new PublicKey('EGX4XLHooJ8vtMeyu6JRzudPMv39Cy91bJV49oaHqHom'); // Fee Receiver
 
 // Reference pool addresses (set these after creating the pools!)
-const KEDOLOG_USDC_POOL = new PublicKey('4BNsmFr9SR3D5cPzUgrMrZFhbYWGhVDe41KaipMkUzDz');
+const KEDOLOG_USDC_POOL = PublicKey.default; // TODO: Set after creating KEDOLOG/USDC pool
 const SOL_USDC_POOL = PublicKey.default; // TODO: Set after creating SOL/USDC pool
 const KEDOLOG_SOL_POOL = PublicKey.default; // TODO: Set after creating KEDOLOG/SOL pool
-const USDC_MINT = new PublicKey('2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32'); // Devnet USDC
+const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'); // Mainnet USDC
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FEE CONFIGURATION
@@ -57,7 +57,7 @@ const USDC_MINT = new PublicKey('2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32');
 const TRADE_FEE_RATE = 2500;        // 0.25%
 const PROTOCOL_FEE_RATE = 200000;   // 20% of trade fee (results in 0.05% protocol fee)
 const FUND_FEE_RATE = 0;            // 0%
-const CREATE_POOL_FEE = 1000000000; // 1 SOL
+const CREATE_POOL_FEE = 150000000;  // 0.15 SOL
 const CREATOR_FEE_RATE = 0;         // 0%
 const KEDOLOG_DISCOUNT_RATE = 2500; // 25%
 
@@ -66,8 +66,22 @@ const KEDOLOG_DISCOUNT_RATE = 2500; // 25%
 async function main() {
   console.log('🔧 Creating AMM Config and KEDOLOG Config...\n');
   
-  // Load wallet
-  const walletPath = `${os.homedir()}/.config/solana/id.json`;
+  // Load wallet - use the same wallet that Solana CLI is using
+  let walletPath: string;
+  try {
+    const configOutput = execSync('solana config get', { encoding: 'utf-8' });
+    const keypairLine = configOutput.split('\n').find(line => line.includes('Keypair Path'));
+    walletPath = keypairLine ? keypairLine.split(':')[1].trim() : `${os.homedir()}/.config/solana/id.json`;
+    
+    // Expand ~ to home directory if needed
+    if (walletPath.startsWith('~')) {
+      walletPath = walletPath.replace('~', os.homedir());
+    }
+  } catch (e) {
+    walletPath = `${os.homedir()}/.config/solana/id.json`;
+  }
+  
+  console.log('📁 Using wallet:', walletPath);
   const keypairData = JSON.parse(fs.readFileSync(walletPath, 'utf-8'));
   const admin = Keypair.fromSecretKey(new Uint8Array(keypairData));
   
@@ -125,9 +139,9 @@ async function main() {
   console.log('📋 Configuration:');
   console.log('   AMM Config:', ammConfig.toString());
   console.log('   KEDOLOG Config:', protocolTokenConfig.toString());
-  console.log('   Pool Creation Fee: 1 SOL');
+  console.log('   Pool Creation Fee: 0.15 SOL');
   console.log('   KEDOLOG Discount: 25%');
-  console.log('   Treasury:', TREASURY.toString());
+  console.log('   Fee Receiver:', TREASURY.toString());
   console.log('');
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

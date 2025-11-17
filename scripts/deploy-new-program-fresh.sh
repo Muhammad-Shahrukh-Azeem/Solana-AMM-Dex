@@ -43,7 +43,7 @@ echo "  1. Generate NEW program keypair"
 echo "  2. Update program ID in code"
 echo "  3. Build program"
 echo "  4. Deploy program"
-echo "  5. Create AMM config (1 SOL pool fee)"
+echo "  5. Create AMM config (0.15 SOL pool fee)"
 echo "  6. Create KEDOLOG config (25% discount)"
 echo ""
 
@@ -87,6 +87,8 @@ echo "✅ Updated programs/cp-swap/src/lib.rs"
 # Update Anchor.toml
 sed -i "/\[programs.localnet\]/,/^$/s/kedolik_cp_swap = \"[^\"]*\"/kedolik_cp_swap = \"$NEW_PROGRAM_ID\"/" Anchor.toml
 sed -i "/\[programs.devnet\]/,/^$/s/kedolik_cp_swap = \"[^\"]*\"/kedolik_cp_swap = \"$NEW_PROGRAM_ID\"/" Anchor.toml
+
+sed -i "/\[programs.mainnet\]/,/^$/s/kedolik_cp_swap = \"[^\"]*\"/kedolik_cp_swap = \"$NEW_PROGRAM_ID\"/" Anchor.toml
 echo "✅ Updated Anchor.toml"
 
 echo ""
