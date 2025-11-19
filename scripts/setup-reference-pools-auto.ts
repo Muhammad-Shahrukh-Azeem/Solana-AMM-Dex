@@ -10,13 +10,14 @@ import { execSync } from 'child_process';
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const TOKEN_MINTS = {
-  // Update these for your deployment
-  KEDOLOG: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'),
+  // Mainnet KEDOLOG token
+  KEDOLOG: new PublicKey('FUHwFRWE52FJXC4KoySzy9h6nNmRrppUg5unS4mKEDQN'),
   
   // USDC addresses for different networks
   USDC: {
     devnet: new PublicKey('2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32'),
     testnet: new PublicKey('2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32'), // Same as devnet
+    mainnet: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'), // Mainnet USDC
   },
   
   // Wrapped SOL (same on all networks)
@@ -162,7 +163,7 @@ async function main() {
   }
   
   // Get USDC mint for this network
-  const usdcMint = TOKEN_MINTS.USDC[network as keyof typeof TOKEN_MINTS.USDC];
+  const usdcMint = TOKEN_MINTS.USDC.mainnet;
   
   console.log('📡 Network:', network.toUpperCase());
   console.log('🔗 RPC:', rpcUrl);
