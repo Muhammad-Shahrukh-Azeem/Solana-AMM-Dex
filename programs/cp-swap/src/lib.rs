@@ -361,4 +361,22 @@ pub mod kedolik_cp_swap {
     ) -> Result<()> {
         instructions::swap_base_input_with_protocol_token(ctx, amount_in, minimum_amount_out)
     }
+
+    /// Set LP token metadata for better wallet display
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx`- The context of accounts
+    /// * `name` - The name of the LP token
+    /// * `symbol` - The symbol of the LP token
+    /// * `uri` - The metadata URI for the LP token
+    ///
+    pub fn set_lp_token_metadata(
+        ctx: Context<SetLpTokenMetadata>,
+        name: String,
+        symbol: String,
+        uri: String,
+    ) -> Result<()> {
+        instructions::set_lp_token_metadata(ctx, name, symbol, uri)
+    }
 }

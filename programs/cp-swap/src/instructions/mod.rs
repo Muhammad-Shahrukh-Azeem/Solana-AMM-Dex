@@ -22,3 +22,6 @@ pub use collect_creator_fee::*;
 
 pub mod swap_base_input_with_protocol_token;
 pub use swap_base_input_with_protocol_token::*;
+
+pub mod set_lp_token_metadata;
+pub use set_lp_token_metadata::*;

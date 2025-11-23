@@ -1,0 +1,30 @@
+{
+  "name": "Kedolik LP",
+  "symbol": "KLP",
+  "description": "Liquidity Provider token for Kedolik AMM pools. Represents ownership in Kedolik liquidity pools and earns trading fees.",
+  "image": "https://raw.githubusercontent.com/KedolikSwap/metadata/refs/heads/main/LP-Tokens.png",
+  "external_url": "https://kedolikswap.com",
+  "attributes": [
+    {
+      "trait_type": "AMM",
+      "value": "Kedolik"
+    },
+    {
+      "trait_type": "Protocol",
+      "value": "Kedolik AMM"
+    },
+    {
+      "trait_type": "Category",
+      "value": "LP Token"
+    }
+  ],
+  "properties": {
+    "files": [
+      {
+        "uri": "https://raw.githubusercontent.com/KedolikSwap/metadata/refs/heads/main/LP-Tokens.png",
+        "type": "image/png"
+      }
+    ],
+    "category": "lp-token"
+  }
+}

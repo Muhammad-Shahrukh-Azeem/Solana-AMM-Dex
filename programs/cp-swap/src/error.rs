@@ -46,4 +46,6 @@ pub enum ErrorCode {
     OracleNotConfigured,
     #[msg("Stale oracle price")]
     StaleOraclePrice,
+    #[msg("Invalid authority")]
+    InvalidAuthority,
 }

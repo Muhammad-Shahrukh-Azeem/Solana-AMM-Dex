@@ -5,6 +5,7 @@
     },
     "dependencies": {
         "@coral-xyz/anchor": "0.31.0",
+        "@metaplex-foundation/mpl-token-metadata": "^3.4.0",
         "@pythnetwork/client": "^2.22.1",
         "@solana/spl-token": "^0.4.8"
     },

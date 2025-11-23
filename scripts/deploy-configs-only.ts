@@ -29,14 +29,30 @@ const { network: NETWORK, rpcUrl: RPC_URL } = getCurrentNetwork();
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const CONFIG_INDEX = 0; // Always use index 0 for new programs
-const KEDOLOG_MINT = new PublicKey('FUHwFRWE52FJXC4KoySzy9h6nNmRrppUg5unS4mKEDQN'); // Mainnet KEDOLOG
-const TREASURY = new PublicKey('EGX4XLHooJ8vtMeyu6JRzudPMv39Cy91bJV49oaHqHom'); // Fee Receiver
+
+// Network-specific token addresses
+const TOKEN_ADDRESSES = {
+  devnet: {
+    KEDOLOG: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'),
+    USDC: new PublicKey('2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32'),
+    TREASURY: new PublicKey('EGX4XLHooJ8vtMeyu6JRzudPMv39Cy91bJV49oaHqHom'), // Can be same or different
+  },
+  testnet: {
+    KEDOLOG: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'), // Testnet KEDOLOG (same as devnet)
+    USDC: new PublicKey('2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32'), // Testnet USDC (same as devnet)
+    TREASURY: new PublicKey('EGX4XLHooJ8vtMeyu6JRzudPMv39Cy91bJV49oaHqHom'), // Can be same or different
+  },
+  mainnet: {
+    KEDOLOG: new PublicKey('FUHwFRWE52FJXC4KoySzy9h6nNmRrppUg5unS4mKEDQN'),
+    USDC: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+    TREASURY: new PublicKey('EGX4XLHooJ8vtMeyu6JRzudPMv39Cy91bJV49oaHqHom'),
+  },
+};
 
 // Reference pool addresses (set these after creating the pools!)
 const KEDOLOG_USDC_POOL = PublicKey.default; // TODO: Set after creating KEDOLOG/USDC pool
 const SOL_USDC_POOL = PublicKey.default; // TODO: Set after creating SOL/USDC pool
 const KEDOLOG_SOL_POOL = PublicKey.default; // TODO: Set after creating KEDOLOG/SOL pool
-const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'); // Mainnet USDC
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FEE CONFIGURATION
@@ -105,6 +121,18 @@ async function main() {
   
   const balance = await connection.getBalance(admin.publicKey);
   console.log('💰 Balance:', (balance / 1e9).toFixed(4), 'SOL\n');
+  
+  // Get network-specific addresses
+  const networkAddresses = TOKEN_ADDRESSES[NETWORK as keyof typeof TOKEN_ADDRESSES] || TOKEN_ADDRESSES.mainnet;
+  const KEDOLOG_MINT = networkAddresses.KEDOLOG;
+  const USDC_MINT = networkAddresses.USDC;
+  const TREASURY = networkAddresses.TREASURY;
+  
+  console.log('📋 Token Addresses:');
+  console.log('   KEDOLOG:', KEDOLOG_MINT.toString());
+  console.log('   USDC:', USDC_MINT.toString());
+  console.log('   Treasury:', TREASURY.toString());
+  console.log('');
   
   // Load IDL and ensure it has the correct program ID
   let idl = JSON.parse(fs.readFileSync('./target/idl/kedolik_cp_swap.json', 'utf-8'));
