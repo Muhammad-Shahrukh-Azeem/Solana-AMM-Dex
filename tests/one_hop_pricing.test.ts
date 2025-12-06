@@ -56,7 +56,7 @@ describe("1-Hop Pricing with Token Ordering", () => {
     tokenXMint = await createMint(provider.connection, admin.payer, admin.publicKey, null, 8); // 8 decimals
     tokenYMint = await createMint(provider.connection, admin.payer, admin.publicKey, null, 6); // 6 decimals
 
-    console.log("✅ KEDOLOG mint:", kedologMint.toString());
+    console.log("✅ KEDOL mint:", kedologMint.toString());
     console.log("✅ USDC mint:", usdcMint.toString());
     console.log("✅ Token X mint:", tokenXMint.toString());
     console.log("✅ Token Y mint:", tokenYMint.toString());
@@ -120,7 +120,7 @@ describe("1-Hop Pricing with Token Ordering", () => {
 
     console.log("✅ Protocol Token Config created");
 
-    // Create KEDOLOG/USDC pool (KEDOLOG = $0.0017)
+    // Create KEDOL/USDC pool (KEDOL = $0.0017)
     kedologUsdcPool = Keypair.generate();
     kedologUsdcVault0 = await createAccount(
       provider.connection,
@@ -138,7 +138,7 @@ describe("1-Hop Pricing with Token Ordering", () => {
     await mintTo(provider.connection, admin.payer, kedologMint, kedologUsdcVault0, admin.publicKey, 1_000_000_000_000_000);
     await mintTo(provider.connection, admin.payer, usdcMint, kedologUsdcVault1, admin.publicKey, 1_700_000_000);
 
-    console.log("✅ KEDOLOG/USDC pool created");
+    console.log("✅ KEDOL/USDC pool created");
 
     // Create SOL/USDC pool (SOL = $200)
     solUsdcPool = Keypair.generate();
@@ -193,15 +193,15 @@ describe("1-Hop Pricing with Token Ordering", () => {
   });
 
   describe("📊 Token Ordering Tests", () => {
-    it("Handles KEDOLOG/USDC pool regardless of token order", async () => {
-      console.log("\n💱 Test: KEDOLOG/USDC Token Ordering\n");
+    it("Handles KEDOL/USDC pool regardless of token order", async () => {
+      console.log("\n💱 Test: KEDOL/USDC Token Ordering\n");
 
       const vault0 = await getAccount(provider.connection, kedologUsdcVault0);
       const vault1 = await getAccount(provider.connection, kedologUsdcVault1);
 
       console.log("Vault 0 mint:", vault0.mint.toString());
       console.log("Vault 1 mint:", vault1.mint.toString());
-      console.log("KEDOLOG mint:", kedologMint.toString());
+      console.log("KEDOL mint:", kedologMint.toString());
       console.log("USDC mint:", usdcMint.toString());
 
       // Calculate price regardless of order
@@ -209,7 +209,7 @@ describe("1-Hop Pricing with Token Ordering", () => {
       const usdcReserve = Number(vault1.amount) / 1_000_000;
       const price = usdcReserve / kedologReserve;
 
-      console.log("Calculated KEDOLOG price: $" + price.toFixed(4));
+      console.log("Calculated KEDOL price: $" + price.toFixed(4));
       assert.approximately(price, 0.0017, 0.0001, "Price should be ~$0.0017");
 
       console.log("✅ Token ordering handled correctly\n");
@@ -253,7 +253,7 @@ describe("1-Hop Pricing with Token Ordering", () => {
       console.log("Token X price: $" + tokenXPrice.toFixed(2));
       assert.approximately(tokenXPrice, 5, 0.1, "Token X should be ~$5");
 
-      // Calculate KEDOLOG fee for 1 Token X swap
+      // Calculate KEDOL fee for 1 Token X swap
       const swapAmount = 1;
       const protocolFee = swapAmount * 0.0005; // 0.05%
       const discountedFee = protocolFee * 0.75; // 25% discount
@@ -262,9 +262,9 @@ describe("1-Hop Pricing with Token Ordering", () => {
 
       console.log("Swap: 1 Token X ($5)");
       console.log("Protocol fee: $" + feeUsd.toFixed(6));
-      console.log("KEDOLOG fee: " + kedologFee.toFixed(4) + " KEDOLOG");
+      console.log("KEDOL fee: " + kedologFee.toFixed(4) + " KEDOL");
 
-      assert.approximately(kedologFee, 1.103, 0.1, "Should be ~1.103 KEDOLOG");
+      assert.approximately(kedologFee, 1.103, 0.1, "Should be ~1.103 KEDOL");
 
       console.log("✅ 1-hop pricing via USDC works\n");
     });
@@ -294,7 +294,7 @@ describe("1-Hop Pricing with Token Ordering", () => {
       console.log("Token Y price in USD: $" + tokenYPriceUsd.toFixed(2));
       assert.approximately(tokenYPriceUsd, 2, 0.1, "Token Y should be ~$2");
 
-      // Calculate KEDOLOG fee for 1 Token Y swap
+      // Calculate KEDOL fee for 1 Token Y swap
       const swapAmount = 1;
       const protocolFee = swapAmount * 0.0005;
       const discountedFee = protocolFee * 0.75;
@@ -303,9 +303,9 @@ describe("1-Hop Pricing with Token Ordering", () => {
 
       console.log("\nSwap: 1 Token Y ($2)");
       console.log("Protocol fee: $" + feeUsd.toFixed(6));
-      console.log("KEDOLOG fee: " + kedologFee.toFixed(4) + " KEDOLOG");
+      console.log("KEDOL fee: " + kedologFee.toFixed(4) + " KEDOL");
 
-      assert.approximately(kedologFee, 0.441, 0.05, "Should be ~0.441 KEDOLOG");
+      assert.approximately(kedologFee, 0.441, 0.05, "Should be ~0.441 KEDOL");
 
       console.log("✅ 2-hop pricing via SOL works\n");
     });
@@ -328,9 +328,9 @@ describe("1-Hop Pricing with Token Ordering", () => {
       const tokenYFee = (tokenYSwap * 2 * 0.0005 * 0.75) / 0.0017;
 
       console.log("$1 worth of swaps:");
-      console.log("  1 USDC → " + usdcFee.toFixed(4) + " KEDOLOG");
-      console.log("  0.2 Token X → " + tokenXFee.toFixed(4) + " KEDOLOG");
-      console.log("  0.5 Token Y → " + tokenYFee.toFixed(4) + " KEDOLOG");
+      console.log("  1 USDC → " + usdcFee.toFixed(4) + " KEDOL");
+      console.log("  0.2 Token X → " + tokenXFee.toFixed(4) + " KEDOL");
+      console.log("  0.5 Token Y → " + tokenYFee.toFixed(4) + " KEDOL");
 
       // All should be approximately equal
       assert.approximately(usdcFee, tokenXFee, 0.01, "USDC and Token X fees should match");
@@ -346,7 +346,7 @@ describe("1-Hop Pricing with Token Ordering", () => {
 
       console.log("Token X: 8 decimals");
       console.log("Token Y: 6 decimals");
-      console.log("KEDOLOG: 9 decimals");
+      console.log("KEDOL: 9 decimals");
       console.log("USDC: 6 decimals");
       console.log("SOL: 9 decimals");
 
@@ -357,8 +357,8 @@ describe("1-Hop Pricing with Token Ordering", () => {
       const tokenXFee = (1 * tokenXPrice * 0.0005 * 0.75) / 0.0017;
       const tokenYFee = (1 * tokenYPrice * 0.0005 * 0.75) / 0.0017;
 
-      console.log("\n1 Token X swap → " + tokenXFee.toFixed(4) + " KEDOLOG");
-      console.log("1 Token Y swap → " + tokenYFee.toFixed(4) + " KEDOLOG");
+      console.log("\n1 Token X swap → " + tokenXFee.toFixed(4) + " KEDOL");
+      console.log("1 Token Y swap → " + tokenYFee.toFixed(4) + " KEDOL");
 
       assert.isAbove(tokenXFee, 0, "Token X fee should be > 0");
       assert.isAbove(tokenYFee, 0, "Token Y fee should be > 0");

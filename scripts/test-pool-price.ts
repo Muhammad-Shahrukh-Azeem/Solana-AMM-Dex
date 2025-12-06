@@ -13,7 +13,7 @@ const TOKEN_1_VAULT = new PublicKey('A6fpTY76hfrEdrEGUTJMSfYB4h6uDQdXXhBrCvmY2yL
 
 async function main() {
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🧪 Testing KEDOLOG Pool-Based Pricing');
+  console.log('🧪 Testing KEDOL Pool-Based Pricing');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
   const connection = new Connection(RPC_URL, 'confirmed');
@@ -37,11 +37,11 @@ async function main() {
 
   console.log('🏦 Pool Reserves:');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`   KEDOLOG (Token 0): ${kedologAmount.toString()} lamports`);
+  console.log(`   KEDOL (Token 0): ${kedologAmount.toString()} lamports`);
   console.log(`   USDC (Token 1):    ${usdcAmount.toString()} lamports`);
   console.log('');
 
-  // Assuming KEDOLOG has 9 decimals and USDC has 6 decimals (adjust if different)
+  // Assuming KEDOL has 9 decimals and USDC has 6 decimals (adjust if different)
   const KEDOLOG_DECIMALS = 9;
   const USDC_DECIMALS = 6;
 
@@ -50,7 +50,7 @@ async function main() {
 
   console.log('💰 Human-Readable Reserves:');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`   KEDOLOG: ${kedologAmountDecimal.toLocaleString()} KEDOLOG`);
+  console.log(`   KEDOL: ${kedologAmountDecimal.toLocaleString()} KEDOL`);
   console.log(`   USDC:    ${usdcAmountDecimal.toLocaleString()} USDC`);
   console.log('');
 
@@ -58,9 +58,9 @@ async function main() {
   // Price = USDC_reserve / KEDOLOG_reserve
   const priceUSD = usdcAmountDecimal / kedologAmountDecimal;
   
-  console.log('📈 KEDOLOG Price:');
+  console.log('📈 KEDOL Price:');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log(`   1 KEDOLOG = $${priceUSD.toFixed(6)} USD`);
+  console.log(`   1 KEDOL = $${priceUSD.toFixed(6)} USD`);
   console.log('');
 
   // Show how the contract calculates it
@@ -91,14 +91,14 @@ async function main() {
   console.log(`   Swap Amount: $${exampleSwapAmount.toLocaleString()}`);
   console.log(`   Protocol Fee (0.05%): $${protocolFeeUSD.toFixed(2)}`);
   console.log(`   With 25% Discount: $${protocolFeeWithDiscount.toFixed(2)}`);
-  console.log(`   KEDOLOG Required: ${kedologRequired.toFixed(4)} KEDOLOG`);
+  console.log(`   KEDOL Required: ${kedologRequired.toFixed(4)} KEDOL`);
   console.log('');
 
   console.log('✅ Pool-based pricing is configured and working!');
   console.log('');
   console.log('📝 Frontend Integration:');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('   When users swap with KEDOLOG discount, pass these vaults:');
+  console.log('   When users swap with KEDOL discount, pass these vaults:');
   console.log(`   - Token 0 Vault: ${TOKEN_0_VAULT.toString()}`);
   console.log(`   - Token 1 Vault: ${TOKEN_1_VAULT.toString()}`);
   console.log('');

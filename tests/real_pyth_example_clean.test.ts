@@ -33,9 +33,9 @@ describe("🔮 Pyth Oracle Integration", () => {
     console.log("   ✅ Pass Pyth account to swap instructions");
   });
 
-  it("✅ KEDOLOG pricing options", async () => {
-    console.log("\n💎 KEDOLOG Price Options:");
-    console.log("   1. Pool-based (current): Fetch from KEDOLOG/USDC pool");
+  it("✅ KEDOL pricing options", async () => {
+    console.log("\n💎 KEDOL Price Options:");
+    console.log("   1. Pool-based (current): Fetch from KEDOL/USDC pool");
     console.log("   2. Manual: Update via config");
     console.log("   3. Switchboard: Custom oracle");
     console.log("   4. Pyth: When listed on exchanges");

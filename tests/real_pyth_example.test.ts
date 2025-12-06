@@ -82,15 +82,15 @@ describe("🔮 Real Pyth Oracle Example", () => {
     console.log("  .accounts({");
     console.log("    // ... all accounts ...");
     console.log("    inputTokenOracle: PYTH_SOL_USD,          // ← Real Pyth!");
-    console.log("    protocolTokenOracle: SystemProgram.programId, // ← Manual KEDOLOG");
+    console.log("    protocolTokenOracle: SystemProgram.programId, // ← Manual KEDOL");
     console.log("  })");
     console.log("  .rpc();");
     console.log("```");
     
     console.log("\n🔍 What Happens:");
     console.log("   1. Your contract reads SOL price from Pyth (e.g., $100)");
-    console.log("   2. Your contract reads KEDOLOG price from config (e.g., $0.10)");
-    console.log("   3. Calculates exact KEDOLOG fee based on real prices");
+    console.log("   2. Your contract reads KEDOL price from config (e.g., $0.10)");
+    console.log("   3. Calculates exact KEDOL fee based on real prices");
     console.log("   4. User pays precise amount!");
     
     console.log("\n✅ No Code Changes Needed!");
@@ -162,7 +162,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
     console.log("      payer: user,");
     console.log("      // ... all other accounts ...");
     console.log("      inputTokenOracle: inputOracle,           // Real Pyth!");
-    console.log("      protocolTokenOracle: SystemProgram.programId, // Manual KEDOLOG");
+    console.log("      protocolTokenOracle: SystemProgram.programId, // Manual KEDOL");
     console.log("    })");
     console.log("    .rpc();");
     console.log("  ");
@@ -176,21 +176,21 @@ describe("🔮 Real Pyth Oracle Example", () => {
     console.log("\n" + "=".repeat(80) + "\n");
   });
 
-  it("🎯 Explains KEDOLOG oracle options", async () => {
+  it("🎯 Explains KEDOL oracle options", async () => {
     console.log("\n" + "=".repeat(80));
-    console.log("🎯 KEDOLOG ORACLE OPTIONS");
+    console.log("🎯 KEDOL ORACLE OPTIONS");
     console.log("=".repeat(80));
     
     console.log("\n📊 Current Setup (Recommended for Launch):");
     console.log("   Input tokens: Real Pyth oracles ✅");
-    console.log("   KEDOLOG: Manual price from config ✅");
+    console.log("   KEDOL: Manual price from config ✅");
     console.log("   ");
-    console.log("   Why? KEDOLOG is new and not yet on Pyth.");
+    console.log("   Why? KEDOL is new and not yet on Pyth.");
     console.log("   You can add oracle later without redeploying!");
     
     console.log("\n🔮 Option 1: Get Listed on Pyth (Best Long-term)");
     console.log("   Requirements:");
-    console.log("   • KEDOLOG listed on major exchanges");
+    console.log("   • KEDOL listed on major exchanges");
     console.log("   • Minimum trading volume");
     console.log("   • Multiple data providers");
     console.log("   ");
@@ -201,20 +201,20 @@ describe("🔮 Real Pyth Oracle Example", () => {
     console.log("\n⚡ Option 2: Use Switchboard (Fast)");
     console.log("   Setup:");
     console.log("   $ npm install -g @switchboard-xyz/cli");
-    console.log("   $ sbv2 aggregator create --name 'KEDOLOG/USD'");
+    console.log("   $ sbv2 aggregator create --name 'KEDOL/USD'");
     console.log("   ");
     console.log("   Timeline: Immediate");
     console.log("   Cost: ~0.01 SOL/day");
     console.log("   Docs: https://switchboard.xyz/");
     
     console.log("\n🔄 Option 3: Use Your DEX Pool (Interim)");
-    console.log("   If you have KEDOLOG/USDC pool:");
+    console.log("   If you have KEDOL/USDC pool:");
     console.log("   • Calculate price from reserves");
     console.log("   • Update config periodically");
     console.log("   • Works until you get Pyth/Switchboard");
     
     console.log("\n💡 Recommendation:");
-    console.log("   1. Launch with manual KEDOLOG price");
+    console.log("   1. Launch with manual KEDOL price");
     console.log("   2. Set up Switchboard feed (1-2 weeks)");
     console.log("   3. Apply to Pyth (long-term)");
     console.log("   4. Switch to Pyth when approved");
@@ -228,7 +228,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
     console.log("=".repeat(80));
     
     try {
-      // Create KEDOLOG token
+      // Create KEDOL token
       const kedologMint = await createMint(
         connection,
         admin,
@@ -239,7 +239,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
         undefined,
         TOKEN_PROGRAM_ID
       );
-      console.log(`\n✅ KEDOLOG Mint: ${kedologMint.toString()}`);
+      console.log(`\n✅ KEDOL Mint: ${kedologMint.toString()}`);
       
       // Create treasury
       const treasury = Keypair.generate();
@@ -254,7 +254,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
       console.log(`✅ Treasury: ${treasury.publicKey.toString()}`);
       
       // Create protocol token config
-      // Set KEDOLOG price: 10 KEDOLOG = $1 USD (so 1 KEDOLOG = $0.10)
+      // Set KEDOL price: 10 KEDOL = $1 USD (so 1 KEDOL = $0.10)
       await createProtocolTokenConfig(
         program,
         connection,
@@ -263,12 +263,12 @@ describe("🔮 Real Pyth Oracle Example", () => {
         new BN(2000),           // 20% discount
         admin.publicKey,
         treasury.publicKey,
-        new BN(10_000_000),     // 10 KEDOLOG per USD
+        new BN(10_000_000),     // 10 KEDOL per USD
         { skipPreflight: true }
       );
       console.log("✅ Protocol Token Config created");
-      console.log("   KEDOLOG Price: 10 KEDOLOG = $1 USD");
-      console.log("   Therefore: 1 KEDOLOG = $0.10");
+      console.log("   KEDOL Price: 10 KEDOL = $1 USD");
+      console.log("   Therefore: 1 KEDOL = $0.10");
       
       // Create AMM config
       const configAddress = await createAmmConfig(
@@ -306,8 +306,8 @@ describe("🔮 Real Pyth Oracle Example", () => {
       console.log("");
       console.log("   Your contract does:");
       console.log("   1. Input token price = $1 (fallback for testing)");
-      console.log("   2. KEDOLOG price = from config (10 KEDOLOG per USD)");
-      console.log("   3. Calculate fee: 0.0004 tokens × $1 / $0.10 = 0.004 KEDOLOG");
+      console.log("   2. KEDOL price = from config (10 KEDOL per USD)");
+      console.log("   3. Calculate fee: 0.0004 tokens × $1 / $0.10 = 0.004 KEDOL");
       
       console.log("\n🔮 When you pass real Pyth (e.g., SOL/USD):");
       console.log("   inputTokenOracle: PYTH_SOL_USD");
@@ -315,8 +315,8 @@ describe("🔮 Real Pyth Oracle Example", () => {
       console.log("");
       console.log("   Your contract does:");
       console.log("   1. Input token price = from Pyth (e.g., $100)");
-      console.log("   2. KEDOLOG price = from config (10 KEDOLOG per USD)");
-      console.log("   3. Calculate fee: 0.0004 SOL × $100 / $0.10 = 0.4 KEDOLOG");
+      console.log("   2. KEDOL price = from config (10 KEDOL per USD)");
+      console.log("   3. Calculate fee: 0.0004 SOL × $100 / $0.10 = 0.4 KEDOL");
       
       console.log("\n💡 The difference:");
       console.log("   SystemProgram = $1 fallback (for testing)");
@@ -335,26 +335,26 @@ describe("🔮 Real Pyth Oracle Example", () => {
     }
   });
 
-  it("💡 Explains: How KEDOLOG pool price would work as oracle", async () => {
+  it("💡 Explains: How KEDOL pool price would work as oracle", async () => {
     console.log("\n" + "=".repeat(80));
-    console.log("💡 USING KEDOLOG POOL AS PRICE ORACLE");
+    console.log("💡 USING KEDOL POOL AS PRICE ORACLE");
     console.log("=".repeat(80));
     
-    console.log("\n📊 Scenario: You create a KEDOLOG/USDC pool");
+    console.log("\n📊 Scenario: You create a KEDOL/USDC pool");
     console.log("   Pool reserves:");
-    console.log("   - KEDOLOG: 1,000,000 tokens");
+    console.log("   - KEDOL: 1,000,000 tokens");
     console.log("   - USDC: 100,000 tokens");
     console.log("");
     console.log("   Price calculation:");
-    console.log("   KEDOLOG price = USDC reserve / KEDOLOG reserve");
-    console.log("   KEDOLOG price = 100,000 / 1,000,000 = $0.10");
+    console.log("   KEDOL price = USDC reserve / KEDOL reserve");
+    console.log("   KEDOL price = 100,000 / 1,000,000 = $0.10");
     
     console.log("\n🔧 Implementation Option 1: Manual Updates from Pool");
     console.log("```typescript");
     console.log("// Fetch pool data");
     console.log("const pool = await program.account.poolState.fetch(kedologUsdcPool);");
     console.log("");
-    console.log("// Calculate price (assuming token0 = KEDOLOG, token1 = USDC)");
+    console.log("// Calculate price (assuming token0 = KEDOL, token1 = USDC)");
     console.log("const kedologReserve = pool.token0VaultAmount.toNumber();");
     console.log("const usdcReserve = pool.token1VaultAmount.toNumber();");
     console.log("const pricePerKedolog = usdcReserve / kedologReserve;");
@@ -368,7 +368,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
     
     console.log("\n🔧 Implementation Option 2: Create Custom Oracle Program");
     console.log("   You could create a program that:");
-    console.log("   1. Reads your KEDOLOG/USDC pool reserves");
+    console.log("   1. Reads your KEDOL/USDC pool reserves");
     console.log("   2. Calculates TWAP (Time-Weighted Average Price)");
     console.log("   3. Stores price in an account");
     console.log("   4. Your swap program reads from that account");
@@ -406,11 +406,11 @@ describe("🔮 Real Pyth Oracle Example", () => {
 
   it("🎯 Shows exact code for pool-based pricing", async () => {
     console.log("\n" + "=".repeat(80));
-    console.log("🎯 COMPLETE CODE: Pool-Based KEDOLOG Pricing");
+    console.log("🎯 COMPLETE CODE: Pool-Based KEDOL Pricing");
     console.log("=".repeat(80));
     
     console.log("\n```typescript");
-    console.log("// scripts/update-kedolog-price-from-pool.ts");
+    console.log("// scripts/update-kedol-price-from-pool.ts");
     console.log("import * as anchor from '@coral-xyz/anchor';");
     console.log("import { Program, BN } from '@coral-xyz/anchor';");
     console.log("import { PublicKey } from '@solana/web3.js';");
@@ -419,7 +419,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
     console.log("  const program = anchor.workspace.KedolikCpSwap;");
     console.log("  const admin = anchor.Wallet.local().payer;");
     console.log("  ");
-    console.log("  // Your KEDOLOG/USDC pool address");
+    console.log("  // Your KEDOL/USDC pool address");
     console.log("  const kedologUsdcPool = new PublicKey('YOUR_POOL_ADDRESS');");
     console.log("  ");
     console.log("  // Fetch pool state");
@@ -431,7 +431,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
     console.log("  ");
     console.log("  // Calculate price");
     console.log("  const kedologPriceUsd = usdcReserve / kedologReserve;");
-    console.log("  console.log(`KEDOLOG Price: $${kedologPriceUsd.toFixed(4)}`);");
+    console.log("  console.log(`KEDOL Price: $${kedologPriceUsd.toFixed(4)}`);");
     console.log("  ");
     console.log("  // Convert to tokens per USD (scaled by 1e6)");
     console.log("  const tokensPerUsd = new BN(Math.floor((1 / kedologPriceUsd) * 1_000_000));");
@@ -451,7 +451,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
     console.log("    .signers([admin])");
     console.log("    .rpc();");
     console.log("  ");
-    console.log("  console.log('✅ KEDOLOG price updated!');");
+    console.log("  console.log('✅ KEDOL price updated!');");
     console.log("}");
     console.log("");
     console.log("// Run every 5 minutes");
@@ -460,7 +460,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
     
     console.log("\n📊 Example Output:");
     console.log("   Pool reserves:");
-    console.log("   - KEDOLOG: 1,000,000 tokens");
+    console.log("   - KEDOL: 1,000,000 tokens");
     console.log("   - USDC: 100,000 tokens");
     console.log("   ");
     console.log("   Calculation:");
@@ -470,7 +470,7 @@ describe("🔮 Real Pyth Oracle Example", () => {
     console.log("   ");
     console.log("   Config updated: protocol_token_per_usd = 10,000,000");
     
-    console.log("\n✅ This gives you accurate, automated KEDOLOG pricing!");
+    console.log("\n✅ This gives you accurate, automated KEDOL pricing!");
     console.log("   Until you get listed on Pyth or set up Switchboard.");
     
     console.log("\n" + "=".repeat(80) + "\n");

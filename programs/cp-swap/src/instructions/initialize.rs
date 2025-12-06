@@ -10,7 +10,11 @@ use anchor_lang::{
 };
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::spl_token,
+    metadata::{
+        create_metadata_accounts_v3,
+        CreateMetadataAccountsV3,
+        mpl_token_metadata::types::{Creator, DataV2},
+    },
     token::Token,
     token_interface::{Mint, TokenAccount, TokenInterface},
 };
@@ -160,6 +164,17 @@ pub struct Initialize<'info> {
     pub system_program: Program<'info, System>,
     /// Sysvar for program account
     pub rent: Sysvar<'info, Rent>,
+
+    /// CHECK: Optional metadata account for LP token
+    /// If provided, metadata will be created for the LP token
+    /// This account is optional - if not provided, metadata will not be created
+    #[account(mut)]
+    pub metadata_account: UncheckedAccount<'info>,
+
+    /// CHECK: Optional token metadata program
+    /// Required if metadata_account is provided
+    /// This account is optional - if not provided, metadata will not be created
+    pub token_metadata_program: UncheckedAccount<'info>,
 }
 
 pub fn initialize(
@@ -167,6 +182,9 @@ pub fn initialize(
     init_amount_0: u64,
     init_amount_1: u64,
     mut open_time: u64,
+    lp_token_name: Option<String>,
+    lp_token_symbol: Option<String>,
+    lp_token_uri: Option<String>,
 ) -> Result<()> {
     if !(is_supported_mint(&ctx.accounts.token_0_mint).unwrap()
         && is_supported_mint(&ctx.accounts.token_1_mint).unwrap())
@@ -323,6 +341,81 @@ pub fn initialize(
         CreatorFeeOn::BothToken,
         false,
     );
+
+    // Create LP token metadata if accounts and parameters are provided
+    // Check if metadata should be created by verifying if token_metadata_program is the Metaplex program
+    let metaplex_program_id = anchor_lang::solana_program::pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+    
+    if ctx.accounts.token_metadata_program.key() == metaplex_program_id {
+        // Use standard Kedolik LP metadata defaults if not provided
+        // Default name and symbol for all Kedolik LP tokens
+        let name = lp_token_name.unwrap_or_else(|| String::from("Kedolik LP"));
+        let symbol = lp_token_symbol.unwrap_or_else(|| String::from("KLP"));
+        
+        // Use standard Kedolik LP metadata URI from GitHub
+        // This points to the klp-metadata.json file hosted in the KedolikSwap/metadata repo
+        let default_uri = String::from("https://raw.githubusercontent.com/KedolikSwap/metadata/refs/heads/main/klp.json");
+        let uri = lp_token_uri.unwrap_or_else(|| default_uri.clone());
+        
+        msg!("🔥 STARTING MANDATORY LP TOKEN METADATA CREATION");
+        msg!("📝 Metadata: name={}, symbol={}, uri={}", name, symbol, uri);
+        
+        // Verify metadata account is correct PDA
+        let (expected_metadata_account, _) = Pubkey::find_program_address(
+            &[
+                b"metadata",
+                ctx.accounts.token_metadata_program.key().as_ref(),
+                ctx.accounts.lp_mint.key().as_ref(),
+            ],
+            &ctx.accounts.token_metadata_program.key(),
+        );
+        
+        require!(
+            ctx.accounts.metadata_account.key() == expected_metadata_account,
+            ErrorCode::InvalidMetadataAccount
+        );
+
+        // Create the metadata
+        let seeds = &[
+            crate::AUTH_SEED.as_bytes(),
+            &[ctx.bumps.authority],
+        ];
+        let signer_seeds = &[&seeds[..]];
+
+        create_metadata_accounts_v3(
+            CpiContext::new_with_signer(
+                ctx.accounts.token_metadata_program.to_account_info(),
+                CreateMetadataAccountsV3 {
+                    metadata: ctx.accounts.metadata_account.to_account_info(),
+                    mint: ctx.accounts.lp_mint.to_account_info(),
+                    mint_authority: ctx.accounts.authority.to_account_info(),
+                    payer: ctx.accounts.creator.to_account_info(),
+                    update_authority: ctx.accounts.authority.to_account_info(),
+                    system_program: ctx.accounts.system_program.to_account_info(),
+                    rent: ctx.accounts.rent.to_account_info(),
+                },
+                signer_seeds,
+            ),
+                DataV2 {
+                    name: name.clone(),
+                    symbol: symbol.clone(),
+                    uri: uri.clone(),
+                    seller_fee_basis_points: 0,
+                    creators: Some(vec![Creator {
+                        address: ctx.accounts.creator.key(),
+                        verified: false, // Creator will be verified in a separate transaction if needed
+                        share: 100,
+                    }]),
+                    collection: None,
+                    uses: None,
+                },
+            true, // is_mutable
+            true, // update_authority_is_signer
+            None, // collection_details
+        )?;
+
+        msg!("✅ LP TOKEN METADATA CREATED SUCCESSFULLY: name={}, symbol={}, uri={}", name, symbol, uri);
+    }
 
     Ok(())
 }

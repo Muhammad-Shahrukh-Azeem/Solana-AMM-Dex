@@ -43,20 +43,20 @@ async function main() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('');
   console.log('This script updates all 3 reference pools used for pricing:');
-  console.log('  1. KEDOLOG/USDC pool (required)');
+  console.log('  1. KEDOL/USDC pool (required)');
   console.log('  2. SOL/USDC pool (required for SOL pairs)');
-  console.log('  3. KEDOLOG/SOL pool (optional)');
+  console.log('  3. KEDOL/SOL pool (optional)');
   console.log('');
   console.log('Usage:');
   console.log('  npx ts-node scripts/set-reference-pools.ts \\');
-  console.log('    --kedolog-usdc POOL_ADDRESS \\');
+  console.log('    --kedol-usdc POOL_ADDRESS \\');
   console.log('    --sol-usdc POOL_ADDRESS \\');
-  console.log('    --kedolog-sol POOL_ADDRESS \\  # Optional');
+  console.log('    --kedol-sol POOL_ADDRESS \\  # Optional');
   console.log('    --program-id PROGRAM_ID       # Optional');
   console.log('');
   console.log('Example:');
   console.log('  npx ts-node scripts/set-reference-pools.ts \\');
-  console.log('    --kedolog-usdc 4BNsmFr9SR3D5cPzUgrMrZFhbYWGhVDe41KaipMkUzDz \\');
+  console.log('    --kedol-usdc 4BNsmFr9SR3D5cPzUgrMrZFhbYWGhVDe41KaipMkUzDz \\');
   console.log('    --sol-usdc 7qbRF6YsyGuLUVs6Y1q64bdVrfe4ZcUUz1JRdoVNUJnm');
   console.log('');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -78,12 +78,12 @@ async function main() {
         console.error('❌ Invalid program ID');
         process.exit(1);
       }
-    } else if (args[i] === '--kedolog-usdc' && args[i + 1]) {
+    } else if (args[i] === '--kedol-usdc' && args[i + 1]) {
       try {
         kedologUsdcPool = new PublicKey(args[i + 1]);
         i++;
       } catch (e) {
-        console.error('❌ Invalid KEDOLOG/USDC pool address');
+        console.error('❌ Invalid KEDOL/USDC pool address');
         process.exit(1);
       }
     } else if (args[i] === '--sol-usdc' && args[i + 1]) {
@@ -94,12 +94,12 @@ async function main() {
         console.error('❌ Invalid SOL/USDC pool address');
         process.exit(1);
       }
-    } else if (args[i] === '--kedolog-sol' && args[i + 1]) {
+    } else if (args[i] === '--kedol-sol' && args[i + 1]) {
       try {
         kedologSolPool = new PublicKey(args[i + 1]);
         i++;
       } catch (e) {
-        console.error('❌ Invalid KEDOLOG/SOL pool address');
+        console.error('❌ Invalid KEDOL/SOL pool address');
         process.exit(1);
       }
     }
@@ -118,7 +118,7 @@ async function main() {
   
   // Interactive mode if pools not provided
   if (!kedologUsdcPool) {
-    const input = await question('Enter KEDOLOG/USDC pool address (required): ');
+    const input = await question('Enter KEDOL/USDC pool address (required): ');
     try {
       kedologUsdcPool = new PublicKey(input.trim());
     } catch (e) {
@@ -138,7 +138,7 @@ async function main() {
   }
   
   if (!kedologSolPool) {
-    const input = await question('Enter KEDOLOG/SOL pool address (optional, press Enter to skip): ');
+    const input = await question('Enter KEDOL/SOL pool address (optional, press Enter to skip): ');
     if (input.trim()) {
       try {
         kedologSolPool = new PublicKey(input.trim());
@@ -190,9 +190,9 @@ async function main() {
     console.log('   Token Mint:', config.protocolTokenMint.toString());
     console.log('   Discount Rate:', config.discountRate.toString(), `(${config.discountRate.toNumber() / 100}%)`);
     console.log('   Treasury:', config.treasury.toString());
-    console.log('   Current KEDOLOG/USDC Pool:', config.kedologUsdcPool.toString());
+    console.log('   Current KEDOL/USDC Pool:', config.kedologUsdcPool.toString());
     console.log('   Current SOL/USDC Pool:', config.solUsdcPool.toString());
-    console.log('   Current KEDOLOG/SOL Pool:', config.kedologSolPool.toString());
+    console.log('   Current KEDOL/SOL Pool:', config.kedologSolPool.toString());
     console.log('   Authority:', config.authority.toString());
   } catch (e) {
     console.error('\n❌ Protocol token config not found!');
@@ -205,11 +205,11 @@ async function main() {
   
   try {
     const kedologPoolData: any = await (program.account as any).poolState.fetch(kedologUsdcPool);
-    console.log('✅ KEDOLOG/USDC Pool verified');
+    console.log('✅ KEDOL/USDC Pool verified');
     console.log('   Token 0:', kedologPoolData.token0Mint.toString());
     console.log('   Token 1:', kedologPoolData.token1Mint.toString());
   } catch (e) {
-    console.error('❌ KEDOLOG/USDC pool not found');
+    console.error('❌ KEDOL/USDC pool not found');
     process.exit(1);
   }
   
@@ -226,11 +226,11 @@ async function main() {
   if (kedologSolPool) {
     try {
       const kedologSolPoolData: any = await (program.account as any).poolState.fetch(kedologSolPool);
-      console.log('\n✅ KEDOLOG/SOL Pool verified');
+      console.log('\n✅ KEDOL/SOL Pool verified');
       console.log('   Token 0:', kedologSolPoolData.token0Mint.toString());
       console.log('   Token 1:', kedologSolPoolData.token1Mint.toString());
     } catch (e) {
-      console.error('⚠️  KEDOLOG/SOL pool not found, will use PublicKey.default');
+      console.error('⚠️  KEDOL/SOL pool not found, will use PublicKey.default');
       kedologSolPool = null;
     }
   }
@@ -243,9 +243,9 @@ async function main() {
   console.log('Protocol Token Config:', protocolTokenConfig.toString());
   console.log('');
   console.log('New Reference Pools:');
-  console.log('  1. KEDOLOG/USDC:', kedologUsdcPool.toString());
+  console.log('  1. KEDOL/USDC:', kedologUsdcPool.toString());
   console.log('  2. SOL/USDC:', solUsdcPool.toString());
-  console.log('  3. KEDOLOG/SOL:', kedologSolPool ? kedologSolPool.toString() : 'Not set (optional)');
+  console.log('  3. KEDOL/SOL:', kedologSolPool ? kedologSolPool.toString() : 'Not set (optional)');
   
   const networkUpper = NETWORK.toUpperCase();
   const confirm = await question(`\n⚠️  Update reference pools on ${networkUpper}? Type "UPDATE" to confirm: `);
@@ -286,9 +286,9 @@ async function main() {
     console.log('   Token Mint:', updatedConfig.protocolTokenMint.toString());
     console.log('   Discount Rate:', updatedConfig.discountRate.toString(), `(${updatedConfig.discountRate.toNumber() / 100}%)`);
     console.log('   Treasury:', updatedConfig.treasury.toString());
-    console.log('   KEDOLOG/USDC Pool:', updatedConfig.kedologUsdcPool.toString());
+    console.log('   KEDOL/USDC Pool:', updatedConfig.kedologUsdcPool.toString());
     console.log('   SOL/USDC Pool:', updatedConfig.solUsdcPool.toString());
-    console.log('   KEDOLOG/SOL Pool:', updatedConfig.kedologSolPool.toString());
+    console.log('   KEDOL/SOL Pool:', updatedConfig.kedologSolPool.toString());
     console.log('   Authority:', updatedConfig.authority.toString());
     
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');

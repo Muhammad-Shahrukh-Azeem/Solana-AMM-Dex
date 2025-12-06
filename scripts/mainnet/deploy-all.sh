@@ -14,7 +14,7 @@ echo ""
 echo "This will run all deployment steps:"
 echo "  1. Deploy Program"
 echo "  2. Create AMM Config (1 SOL pool fee)"
-echo "  3. Setup KEDOLOG Discount (25%)"
+echo "  3. Setup KEDOL Discount (25%)"
 echo ""
 
 # Check network
@@ -102,13 +102,13 @@ echo "✅ Step 2 Complete!"
 echo ""
 sleep 2
 
-# Step 3: Setup KEDOLOG
+# Step 3: Setup KEDOL
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "STEP 3/3: Setup KEDOLOG Discount"
+echo "STEP 3/3: Setup KEDOL Discount"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-./scripts/mainnet/3-setup-kedolog.sh
+./scripts/mainnet/3-setup-kedol.sh
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

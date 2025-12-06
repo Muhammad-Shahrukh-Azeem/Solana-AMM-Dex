@@ -32,7 +32,7 @@ async function main() {
   console.log("Discount Rate:", ptConfig.discountRate.toString(), `(${ptConfig.discountRate.toNumber() / 100}%)`);
   console.log("Authority:", ptConfig.authority.toString());
   console.log("Treasury:", ptConfig.treasury.toString());
-  console.log("Protocol Token per USD:", ptConfig.protocolTokenPerUsd.toString(), `(${ptConfig.protocolTokenPerUsd.toNumber() / 1_000_000} KEDOLOG per USD)`);
+  console.log("Protocol Token per USD:", ptConfig.protocolTokenPerUsd.toString(), `(${ptConfig.protocolTokenPerUsd.toNumber() / 1_000_000} KEDOL per USD)`);
 
   console.log("\n✅ Summary:");
   console.log("═══════════════════════════════════════");
@@ -40,8 +40,8 @@ async function main() {
   console.log("✅ Protocol Fee: 0.05%");
   console.log("✅ LP Fee: 0.20%");
   console.log("✅ Pool Creation Fee:", config.createPoolFee.toNumber() / 1e9, "SOL");
-  console.log("✅ KEDOLOG Discount: 20%");
-  console.log("✅ KEDOLOG Price: 10 per USD");
+  console.log("✅ KEDOL Discount: 20%");
+  console.log("✅ KEDOL Price: 10 per USD");
 }
 
 main();

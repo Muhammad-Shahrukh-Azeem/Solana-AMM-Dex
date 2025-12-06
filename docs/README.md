@@ -1,6 +1,6 @@
 # 📚 Kedolik CP-Swap Documentation
 
-Complete documentation for the Kedolik Constant Product AMM with KEDOLOG discount feature.
+Complete documentation for the Kedolik Constant Product AMM with KEDOL discount feature.
 
 ---
 
@@ -13,12 +13,12 @@ Complete documentation for the Kedolik Constant Product AMM with KEDOLOG discoun
 
 ### For Frontend Integration:
 1. **[Frontend Integration Guide](./FRONTEND_UPDATE_GUIDE.md)** - Complete integration instructions
-2. **[KEDOLOG Discount Feature](./KEDOLOG_DISCOUNT_FEATURE.md)** - How to implement the discount
+2. **[KEDOL Discount Feature](./KEDOLOG_DISCOUNT_FEATURE.md)** - How to implement the discount
 3. **[Vite Integration](./VITE_INTEGRATION_GUIDE.md)** - Specific guide for Vite projects
 
 ### For Backend Verification:
-1. **[KEDOLOG Backend Confirmed](./KEDOLOG_BACKEND_CONFIRMED.md)** - Proof that backend is configured
-2. **[KEDOLOG Discount Guide](./KEDOLOG_DISCOUNT_GUIDE.md)** - Complete feature documentation
+1. **[KEDOL Backend Confirmed](./KEDOLOG_BACKEND_CONFIRMED.md)** - Proof that backend is configured
+2. **[KEDOL Discount Guide](./KEDOLOG_DISCOUNT_GUIDE.md)** - Complete feature documentation
 
 ---
 
@@ -28,7 +28,7 @@ Complete documentation for the Kedolik Constant Product AMM with KEDOLOG discoun
 Program ID:              2LdLPZbRokzmcJyFE7fLyTgMKNxuR9PE6PKfunn6fkUi
 AMM Config:              6cYBQxes3T5CRStVgKNV4GiURNu2nCcUwmHwEWCcP4Zt
 Protocol Token Config:   7ZRkzDLJQkhYvoyKKJXHjk1qy1ArKtX8iqbNF7F4sETv
-KEDOLOG Mint:            22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
+KEDOL Mint:            22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
 ```
 
 ---
@@ -41,7 +41,7 @@ KEDOLOG Mint:            22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
 | **Trade Fee (Total)** | 0.25% | Split between LP & Protocol |
 | - LP Fee | 0.20% | Liquidity Providers |
 | - Protocol Fee | 0.05% | Protocol Owner (JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa) |
-| **KEDOLOG Discount** | 20% | On protocol fee only (0.05% → 0.04%) |
+| **KEDOL Discount** | 20% | On protocol fee only (0.05% → 0.04%) |
 
 ---
 
@@ -50,7 +50,7 @@ KEDOLOG Mint:            22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
 ✅ **Constant Product AMM** - Standard x*y=k formula  
 ✅ **Token2022 Support** - Works with both Token and Token2022  
 ✅ **Pool Creation Fee** - 0.15 SOL per pool (direct SOL transfer)  
-✅ **KEDOLOG Discount** - 20% off protocol fees when paying with KEDOLOG  
+✅ **KEDOL Discount** - 20% off protocol fees when paying with KEDOL  
 ✅ **Flexible Fee Structure** - Configurable fees for protocol, LP, and creator  
 
 ---
@@ -62,9 +62,9 @@ KEDOLOG Mint:            22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
 npx ts-node scripts/check-fees.ts
 ```
 
-### Update KEDOLOG Price:
+### Update KEDOL Price:
 ```bash
-npx ts-node scripts/fetch-kedolog-price-from-pool.ts
+npx ts-node scripts/fetch-kedol-price-from-pool.ts
 ```
 
 ### Deploy to Mainnet:

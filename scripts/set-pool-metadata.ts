@@ -26,7 +26,7 @@ async function main() {
     console.error("Usage: npx ts-node scripts/set-pool-metadata.ts <POOL_ADDRESS> [NAME] [SYMBOL] [URI]");
     console.error("Examples:");
     console.error("  npx ts-node scripts/set-pool-metadata.ts 8KYfYHmPyzpzqYQzVzHR3uv94E1UX8TsaEFLqBWzenRJ");
-    console.error("  npx ts-node scripts/set-pool-metadata.ts 8KYfYHmPyzpzqYQzVzHR3uv94E1UX8TsaEFLqBWzenRJ 'KEDOLOG-USDC LP' 'KEDO-USDC' 'https://kedolik.io/metadata/kedo-usdc-lp.json'");
+    console.error("  npx ts-node scripts/set-pool-metadata.ts 8KYfYHmPyzpzqYQzVzHR3uv94E1UX8TsaEFLqBWzenRJ 'KEDOL-USDC LP' 'KEDO-USDC' 'https://kedolik.io/metadata/kedo-usdc-lp.json'");
     process.exit(1);
   }
 

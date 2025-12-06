@@ -19,7 +19,7 @@ import * as fs from "fs";
  * 
  * This script tests:
  * 1. Normal swap (0.25% fee)
- * 2. Swap with KEDOLOG discount (0.24% effective fee)
+ * 2. Swap with KEDOL discount (0.24% effective fee)
  * 3. Verifies Pyth prices are used correctly
  */
 
@@ -86,9 +86,9 @@ async function main() {
     new BN(1 * 1e9) // 1 SOL
   );
   
-  // Test 2: Swap with KEDOLOG Discount
+  // Test 2: Swap with KEDOL Discount
   console.log("\n" + "━".repeat(60));
-  console.log("Test 2: Swap with KEDOLOG Discount (0.24% effective)");
+  console.log("Test 2: Swap with KEDOL Discount (0.24% effective)");
   console.log("━".repeat(60));
   
   await testSwapWithKedologDiscount(
@@ -237,7 +237,7 @@ async function testSwapWithKedologDiscount(
   kedologMint: PublicKey,
   amountIn: BN
 ) {
-  console.log(`\n💱 Swapping ${amountIn.toNumber() / 1e9} SOL → USDC (with KEDOLOG)`);
+  console.log(`\n💱 Swapping ${amountIn.toNumber() / 1e9} SOL → USDC (with KEDOL)`);
   
   // Get pool address
   const [poolAddress] = PublicKey.findProgramAddressSync(
@@ -283,7 +283,7 @@ async function testSwapWithKedologDiscount(
   console.log(`\n📊 Before:`);
   console.log(`   Input: ${inputBefore.amount.toString()}`);
   console.log(`   Output: ${outputBefore.amount.toString()}`);
-  console.log(`   KEDOLOG: ${kedologBefore.amount.toString()}`);
+  console.log(`   KEDOL: ${kedologBefore.amount.toString()}`);
   
   // Get vaults
   const [inputVault] = PublicKey.findProgramAddressSync(
@@ -336,7 +336,7 @@ async function testSwapWithKedologDiscount(
         protocolTokenTreasury,
         protocolTokenProgram: TOKEN_PROGRAM_ID,
         inputTokenOracle: PYTH_ORACLES.SOL_USD,  // Pyth SOL/USD
-        protocolTokenOracle: SystemProgram.programId,  // Manual KEDOLOG price
+        protocolTokenOracle: SystemProgram.programId,  // Manual KEDOL price
       })
       .rpc({ skipPreflight: true });
     
@@ -360,7 +360,7 @@ async function testSwapWithKedologDiscount(
     console.log(`\n📊 After:`);
     console.log(`   Input: ${inputAfter.amount.toString()}`);
     console.log(`   Output: ${outputAfter.amount.toString()}`);
-    console.log(`   KEDOLOG: ${kedologAfter.amount.toString()}`);
+    console.log(`   KEDOL: ${kedologAfter.amount.toString()}`);
     
     const inputDiff = Number(inputBefore.amount) - Number(inputAfter.amount);
     const outputDiff = Number(outputAfter.amount) - Number(outputBefore.amount);
@@ -369,7 +369,7 @@ async function testSwapWithKedologDiscount(
     console.log(`\n💰 Changes:`);
     console.log(`   Spent: ${inputDiff / 1e9} SOL`);
     console.log(`   Received: ${outputDiff / 1e6} USDC`);
-    console.log(`   KEDOLOG paid: ${kedologDiff / 1e9} tokens`);
+    console.log(`   KEDOL paid: ${kedologDiff / 1e9} tokens`);
     console.log(`   Effective fee: ${((amountIn.toNumber() - inputDiff) / amountIn.toNumber() * 100).toFixed(2)}%`);
     
     // Fetch and display logs
@@ -380,7 +380,7 @@ async function testSwapWithKedologDiscount(
     
     if (txDetails?.meta?.logMessages) {
       const pythLogs = txDetails.meta.logMessages.filter(log => 
-        log.includes("Pyth price") || log.includes("KEDOLOG")
+        log.includes("Pyth price") || log.includes("KEDOL")
       );
       
       if (pythLogs.length > 0) {

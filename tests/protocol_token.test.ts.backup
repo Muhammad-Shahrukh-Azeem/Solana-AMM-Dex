@@ -51,7 +51,7 @@ describe("Protocol Token Fee Payment Tests", () => {
 
   describe("Create Protocol Token Config", () => {
     it("Creates protocol token config successfully", async () => {
-      // Create protocol token (KEDOLOG)
+      // Create protocol token (KEDOL)
       protocolTokenMint = await createMint(
         connection,
         admin,
@@ -76,7 +76,7 @@ describe("Protocol Token Fee Payment Tests", () => {
 
       // Create protocol token config
       // 20% discount (2000 basis points)
-      // KEDOLOG price: 1 KEDOLOG = 0.1 USD, so 1 USD = 10 KEDOLOG
+      // KEDOL price: 1 KEDOL = 0.1 USD, so 1 USD = 10 KEDOL
       // protocol_token_per_usd = 10 * 10^6 = 10,000,000
       const discountRate = new BN(2000);
       const protocolTokenPerUsd = new BN(10_000_000);
@@ -121,7 +121,7 @@ describe("Protocol Token Fee Payment Tests", () => {
     it("Updates protocol token config successfully", async () => {
       // Update discount rate to 25% (2500 basis points)
       const newDiscountRate = new BN(2500);
-      const newProtocolTokenPerUsd = new BN(15_000_000); // 15 KEDOLOG per 1 USD
+      const newProtocolTokenPerUsd = new BN(15_000_000); // 15 KEDOL per 1 USD
 
       const tx = await updateProtocolTokenConfig(
         program,
@@ -196,7 +196,7 @@ describe("Protocol Token Fee Payment Tests", () => {
       // Use admin as the swapper since they have the tokens from pool setup
       userKeypair = admin;
 
-      // Create protocol token account for admin and mint KEDOLOG tokens
+      // Create protocol token account for admin and mint KEDOL tokens
       userProtocolTokenAccount = await createAssociatedTokenAccount(
         connection,
         admin,
@@ -212,7 +212,7 @@ describe("Protocol Token Fee Payment Tests", () => {
         protocolTokenMint,
         userProtocolTokenAccount,
         admin.publicKey,
-        10000000000, // 10,000 KEDOLOG tokens
+        10000000000, // 10,000 KEDOL tokens
         [],
         undefined,
         TOKEN_PROGRAM_ID
@@ -220,11 +220,11 @@ describe("Protocol Token Fee Payment Tests", () => {
     });
 
     it("Performs swap with protocol token payment and applies discount", async () => {
-      console.log("\n=== SWAP WITH KEDOLOG DISCOUNT TEST ===");
-      console.log("KEDOLOG Price: 1 KEDOLOG = 0.1 USD (10 KEDOLOG per 1 USD)");
+      console.log("\n=== SWAP WITH KEDOL DISCOUNT TEST ===");
+      console.log("KEDOL Price: 1 KEDOL = 0.1 USD (10 KEDOL per 1 USD)");
       console.log("Discount Rate: 20%");
       console.log("Trade Fee: 0.25% (LP: 0.20%, Protocol: 0.05%)");
-      console.log("With discount: Protocol fee becomes 0.04% paid in KEDOLOG\n");
+      console.log("With discount: Protocol fee becomes 0.04% paid in KEDOL\n");
 
       // Get initial balances
       const initialUserToken0 = await getAccount(
@@ -265,15 +265,15 @@ describe("Protocol Token Fee Payment Tests", () => {
       console.log("📊 Initial Balances:");
       console.log(`  User Token0: ${(Number(initialUserToken0.amount) / 1e9).toFixed(4)} tokens`);
       console.log(`  User Token1: ${(Number(initialUserToken1.amount) / 1e9).toFixed(4)} tokens`);
-      console.log(`  User KEDOLOG: ${(Number(initialUserKedolog.amount) / 1e9).toFixed(4)} KEDOLOG`);
-      console.log(`  Treasury KEDOLOG: ${(Number(initialTreasuryKedolog.amount) / 1e9).toFixed(4)} KEDOLOG\n`);
+      console.log(`  User KEDOL: ${(Number(initialUserKedolog.amount) / 1e9).toFixed(4)} KEDOL`);
+      console.log(`  Treasury KEDOL: ${(Number(initialTreasuryKedolog.amount) / 1e9).toFixed(4)} KEDOL\n`);
 
       // Perform swap: 100 token0 -> token1
       const amountIn = new BN(100000000000); // 100 tokens (9 decimals)
       const minAmountOut = new BN(1); // Allow any output for test
 
       console.log(`💱 Swapping: ${(Number(amountIn) / 1e9).toFixed(4)} Token0 → Token1`);
-      console.log("   Using KEDOLOG for protocol fee payment\n");
+      console.log("   Using KEDOL for protocol fee payment\n");
 
       let tx;
       try {
@@ -348,16 +348,16 @@ describe("Protocol Token Fee Payment Tests", () => {
       console.log("📊 Final Balances:");
       console.log(`  User Token0: ${(Number(finalUserToken0.amount) / 1e9).toFixed(4)} tokens`);
       console.log(`  User Token1: ${(Number(finalUserToken1.amount) / 1e9).toFixed(4)} tokens`);
-      console.log(`  User KEDOLOG: ${(Number(finalUserKedolog.amount) / 1e9).toFixed(4)} KEDOLOG`);
-      console.log(`  Treasury KEDOLOG: ${(Number(finalTreasuryKedolog.amount) / 1e9).toFixed(4)} KEDOLOG\n`);
+      console.log(`  User KEDOL: ${(Number(finalUserKedolog.amount) / 1e9).toFixed(4)} KEDOL`);
+      console.log(`  Treasury KEDOL: ${(Number(finalTreasuryKedolog.amount) / 1e9).toFixed(4)} KEDOL\n`);
 
       console.log("✅ Swap Summary:");
       console.log(`  Token0 Spent: ${(Number(token0Spent) / 1e9).toFixed(4)} tokens`);
       console.log(`  Token1 Received: ${(Number(token1Received) / 1e9).toFixed(4)} tokens`);
-      console.log(`  KEDOLOG Fee Paid: ${(Number(kedologSpent) / 1e9).toFixed(6)} KEDOLOG`);
+      console.log(`  KEDOL Fee Paid: ${(Number(kedologSpent) / 1e9).toFixed(6)} KEDOL`);
       console.log(`  Protocol Fee (0.05% of 1 token): ${(1 * 0.0005).toFixed(6)} tokens`);
       console.log(`  Discounted Fee (0.04%): ${(1 * 0.0004).toFixed(6)} tokens`);
-      console.log(`  Expected KEDOLOG (0.0004 tokens * 10 KEDOLOG/token): ${(0.0004 * 10).toFixed(6)} KEDOLOG\n`);
+      console.log(`  Expected KEDOL (0.0004 tokens * 10 KEDOL/token): ${(0.0004 * 10).toFixed(6)} KEDOL\n`);
 
       // Verify token0 was deducted
       assert.equal(
@@ -372,13 +372,13 @@ describe("Protocol Token Fee Payment Tests", () => {
         "Should receive token1"
       );
 
-      // Verify KEDOLOG was deducted from user
+      // Verify KEDOL was deducted from user
       assert.isTrue(
         kedologSpent > 0n,
-        "User should pay KEDOLOG tokens"
+        "User should pay KEDOL tokens"
       );
 
-      // Verify KEDOLOG was received by treasury
+      // Verify KEDOL was received by treasury
       assert.equal(
         kedologReceived.toString(),
         kedologSpent.toString(),
@@ -391,7 +391,7 @@ describe("Protocol Token Fee Payment Tests", () => {
       console.log("  - Protocol fee: 100% of trade fee");
       console.log("  - Original fee: ~1 token0");
       console.log("  - With 20% discount: ~0.8 token0 equivalent");
-      console.log("  - In KEDOLOG (10 per USD): ~8 KEDOLOG");
+      console.log("  - In KEDOL (10 per USD): ~8 KEDOL");
       console.log("===================\n");
     });
 
@@ -436,12 +436,12 @@ describe("Protocol Token Fee Payment Tests", () => {
         finalTreasuryKedolog.amount - initialTreasuryKedolog.amount;
 
       console.log(
-        "Total KEDOLOG collected from 3 swaps:",
+        "Total KEDOL collected from 3 swaps:",
         totalKedologCollected.toString()
       );
       assert.isTrue(
         totalKedologCollected > 0n,
-        "Treasury should accumulate KEDOLOG from multiple swaps"
+        "Treasury should accumulate KEDOL from multiple swaps"
       );
     });
   });

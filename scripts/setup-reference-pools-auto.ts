@@ -10,11 +10,11 @@ import { execSync } from 'child_process';
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 const TOKEN_MINTS = {
-  // KEDOLOG token addresses for different networks
-  KEDOLOG: {
-    devnet: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'), // Devnet KEDOLOG
-    testnet: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'), // Testnet KEDOLOG (same as devnet)
-    mainnet: new PublicKey('FUHwFRWE52FJXC4KoySzy9h6nNmRrppUg5unS4mKEDQN'), // Mainnet KEDOLOG
+  // KEDOL token addresses for different networks
+  KEDOL: {
+    devnet: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'), // Devnet KEDOL
+    testnet: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'), // Testnet KEDOL (same as devnet)
+    mainnet: new PublicKey('FUHwFRWE52FJXC4KoySzy9h6nNmRrppUg5unS4mKEDQN'), // Mainnet KEDOL
   },
   
   // USDC addresses for different networks
@@ -229,9 +229,9 @@ async function main() {
   console.log('');
   console.log('  # Or manually specify pool addresses:');
   console.log('  npx ts-node scripts/setup-reference-pools-auto.ts --network mainnet \\');
-  console.log('    --kedolog-usdc-pool <POOL_ADDRESS> \\');
+  console.log('    --kedol-usdc-pool <POOL_ADDRESS> \\');
   console.log('    --sol-usdc-pool <POOL_ADDRESS> \\');
-  console.log('    --kedolog-sol-pool <POOL_ADDRESS>');
+  console.log('    --kedol-sol-pool <POOL_ADDRESS>');
   console.log('');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   
@@ -259,12 +259,12 @@ async function main() {
     } else if (args[i] === '--rpc-url' && args[i + 1]) {
       customRpcUrl = args[i + 1];
       i++;
-    } else if (args[i] === '--kedolog-usdc-pool' && args[i + 1]) {
+    } else if (args[i] === '--kedol-usdc-pool' && args[i + 1]) {
       try {
         manualKedologUsdcPool = new PublicKey(args[i + 1]);
         i++;
       } catch (e) {
-        console.error('❌ Invalid KEDOLOG/USDC pool address');
+        console.error('❌ Invalid KEDOL/USDC pool address');
         process.exit(1);
       }
     } else if (args[i] === '--sol-usdc-pool' && args[i + 1]) {
@@ -275,12 +275,12 @@ async function main() {
         console.error('❌ Invalid SOL/USDC pool address');
         process.exit(1);
       }
-    } else if (args[i] === '--kedolog-sol-pool' && args[i + 1]) {
+    } else if (args[i] === '--kedol-sol-pool' && args[i + 1]) {
       try {
         manualKedologSolPool = new PublicKey(args[i + 1]);
         i++;
       } catch (e) {
-        console.error('❌ Invalid KEDOLOG/SOL pool address');
+        console.error('❌ Invalid KEDOL/SOL pool address');
         process.exit(1);
       }
     }
@@ -324,14 +324,14 @@ async function main() {
   }
   
   // Get token mints for this network
-  const kedologMint = TOKEN_MINTS.KEDOLOG[network as keyof typeof TOKEN_MINTS.KEDOLOG] || TOKEN_MINTS.KEDOLOG.mainnet;
+  const kedologMint = TOKEN_MINTS.KEDOL[network as keyof typeof TOKEN_MINTS.KEDOL] || TOKEN_MINTS.KEDOL.mainnet;
   const usdcMint = TOKEN_MINTS.USDC[network as keyof typeof TOKEN_MINTS.USDC] || TOKEN_MINTS.USDC.mainnet;
   
   console.log('📡 Network:', network.toUpperCase());
   console.log('🔗 RPC:', rpcUrl);
   console.log('');
   console.log('📋 Token Mints:');
-  console.log('   KEDOLOG:', kedologMint.toString());
+  console.log('   KEDOL:', kedologMint.toString());
   console.log('   USDC:', usdcMint.toString());
   console.log('   SOL:', TOKEN_MINTS.SOL.toString());
   console.log('');
@@ -410,9 +410,9 @@ async function main() {
     console.log('   Token Mint:', currentConfig.protocolTokenMint.toString());
     console.log('   Discount Rate:', currentConfig.discountRate.toString(), `(${currentConfig.discountRate.toNumber() / 100}%)`);
     console.log('   Treasury:', currentConfig.treasury.toString());
-    console.log('   Current KEDOLOG/USDC Pool:', currentConfig.kedologUsdcPool.toString());
+    console.log('   Current KEDOL/USDC Pool:', currentConfig.kedologUsdcPool.toString());
     console.log('   Current SOL/USDC Pool:', currentConfig.solUsdcPool.toString());
-    console.log('   Current KEDOLOG/SOL Pool:', currentConfig.kedologSolPool.toString());
+    console.log('   Current KEDOL/SOL Pool:', currentConfig.kedologSolPool.toString());
     console.log('   Authority:', currentConfig.authority.toString());
   } catch (e) {
     console.error('\n❌ Protocol token config not found!');
@@ -447,9 +447,9 @@ async function main() {
   let solUsdcPool: { pool: PublicKey; vault0: PublicKey; vault1: PublicKey } | null = null;
   let kedologSolPool: { pool: PublicKey; vault0: PublicKey; vault1: PublicKey } | null = null;
   
-  // 1. Find KEDOLOG/USDC pool
+  // 1. Find KEDOL/USDC pool
   if (manualKedologUsdcPool) {
-    console.log('1️⃣  KEDOLOG/USDC Pool (manual):');
+    console.log('1️⃣  KEDOL/USDC Pool (manual):');
     console.log(`   Using provided address: ${manualKedologUsdcPool.toString()}`);
     kedologUsdcPool = await fetchPoolByAddress(manualKedologUsdcPool);
     if (kedologUsdcPool) {
@@ -458,7 +458,7 @@ async function main() {
       console.log(`      Vault 1: ${kedologUsdcPool.vault1.toString()}`);
     }
   } else {
-  console.log('1️⃣  KEDOLOG/USDC Pool:');
+  console.log('1️⃣  KEDOL/USDC Pool:');
     kedologUsdcPool = await findPoolByTokenPair(program, kedologMint, usdcMint);
   }
   
@@ -477,9 +477,9 @@ async function main() {
     solUsdcPool = await findPoolByTokenPair(program, TOKEN_MINTS.SOL, usdcMint);
   }
   
-  // 3. Find KEDOLOG/SOL pool
+  // 3. Find KEDOL/SOL pool
   if (manualKedologSolPool) {
-    console.log('\n3️⃣  KEDOLOG/SOL Pool (manual):');
+    console.log('\n3️⃣  KEDOL/SOL Pool (manual):');
     console.log(`   Using provided address: ${manualKedologSolPool.toString()}`);
     kedologSolPool = await fetchPoolByAddress(manualKedologSolPool);
     if (kedologSolPool) {
@@ -488,7 +488,7 @@ async function main() {
       console.log(`      Vault 1: ${kedologSolPool.vault1.toString()}`);
     }
   } else {
-  console.log('\n3️⃣  KEDOLOG/SOL Pool:');
+  console.log('\n3️⃣  KEDOL/SOL Pool:');
     kedologSolPool = await findPoolByTokenPair(program, kedologMint, TOKEN_MINTS.SOL);
   }
   
@@ -498,10 +498,10 @@ async function main() {
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   
   if (!kedologUsdcPool) {
-    console.error('❌ KEDOLOG/USDC pool not found!');
+    console.error('❌ KEDOL/USDC pool not found!');
     console.error('   You must create this pool first.');
     console.error('   Create a pool with:');
-    console.error(`   - Token 0: KEDOLOG (${kedologMint.toString()})`);
+    console.error(`   - Token 0: KEDOL (${kedologMint.toString()})`);
     console.error(`   - Token 1: USDC (${usdcMint.toString()})`);
     process.exit(1);
   }
@@ -515,13 +515,13 @@ async function main() {
     process.exit(1);
   }
   
-  console.log('✅ KEDOLOG/USDC Pool:', kedologUsdcPool.pool.toString());
+  console.log('✅ KEDOL/USDC Pool:', kedologUsdcPool.pool.toString());
   console.log('✅ SOL/USDC Pool:', solUsdcPool.pool.toString());
   
   if (kedologSolPool) {
-    console.log('✅ KEDOLOG/SOL Pool:', kedologSolPool.pool.toString());
+    console.log('✅ KEDOL/SOL Pool:', kedologSolPool.pool.toString());
   } else {
-    console.log('⚠️  KEDOLOG/SOL Pool: Not found (optional)');
+    console.log('⚠️  KEDOL/SOL Pool: Not found (optional)');
   }
   
   // Confirm update
@@ -532,9 +532,9 @@ async function main() {
   console.log('Protocol Token Config:', protocolTokenConfig.toString());
   console.log('');
   console.log('New Reference Pools:');
-  console.log('  1. KEDOLOG/USDC:', kedologUsdcPool.pool.toString());
+  console.log('  1. KEDOL/USDC:', kedologUsdcPool.pool.toString());
   console.log('  2. SOL/USDC:', solUsdcPool.pool.toString());
-  console.log('  3. KEDOLOG/SOL:', kedologSolPool ? kedologSolPool.pool.toString() : 'Not set (optional)');
+  console.log('  3. KEDOL/SOL:', kedologSolPool ? kedologSolPool.pool.toString() : 'Not set (optional)');
   
   const networkUpper = network.toUpperCase();
   const confirm = await question(`\n⚠️  Update reference pools on ${networkUpper}? Type "UPDATE" to confirm: `);
@@ -612,9 +612,9 @@ async function main() {
     console.log('   Token Mint:', updatedConfig.protocolTokenMint.toString());
     console.log('   Discount Rate:', updatedConfig.discountRate.toString(), `(${updatedConfig.discountRate.toNumber() / 100}%)`);
     console.log('   Treasury:', updatedConfig.treasury.toString());
-    console.log('   KEDOLOG/USDC Pool:', updatedConfig.kedologUsdcPool.toString());
+    console.log('   KEDOL/USDC Pool:', updatedConfig.kedologUsdcPool.toString());
     console.log('   SOL/USDC Pool:', updatedConfig.solUsdcPool.toString());
-    console.log('   KEDOLOG/SOL Pool:', updatedConfig.kedologSolPool.toString());
+    console.log('   KEDOL/SOL Pool:', updatedConfig.kedologSolPool.toString());
     console.log('   Authority:', updatedConfig.authority.toString());
     
     // Save deployment info

@@ -8,7 +8,7 @@ pub const PROTOCOL_TOKEN_CONFIG_SEED: &str = "protocol_token_config";
 pub struct ProtocolTokenConfig {
     /// Bump to identify PDA
     pub bump: u8,
-    /// Protocol token mint address (e.g., KEDOLOG token)
+    /// Protocol token mint address (e.g., KEDOL token)
     pub protocol_token_mint: Pubkey,
     /// Discount rate when paying fees with protocol token (e.g., 2000 = 20% discount, 2500 = 25% discount)
     pub discount_rate: u64,
@@ -16,11 +16,11 @@ pub struct ProtocolTokenConfig {
     pub authority: Pubkey,
     /// Protocol token treasury to receive fee payments
     pub treasury: Pubkey,
-    /// KEDOLOG/USDC pool - primary price reference for KEDOLOG
+    /// KEDOL/USDC pool - primary price reference for KEDOL
     pub kedolog_usdc_pool: Pubkey,
     /// SOL/USDC pool - price reference for SOL
     pub sol_usdc_pool: Pubkey,
-    /// KEDOLOG/SOL pool - alternative price path for KEDOLOG
+    /// KEDOL/SOL pool - alternative price path for KEDOL
     pub kedolog_sol_pool: Pubkey,
     /// USDC mint address (for validation)
     pub usdc_mint: Pubkey,

@@ -1,25 +1,25 @@
 #!/bin/bash
 
-# 🪙 Quick KEDOLOG Setup
-# Usage: ./scripts/quick-setup-kedolog.sh YOUR_KEDOLOG_MINT_ADDRESS
+# 🪙 Quick KEDOL Setup
+# Usage: ./scripts/quick-setup-kedol.sh YOUR_KEDOLOG_MINT_ADDRESS
 
 if [ -z "$1" ]; then
-    echo "❌ Error: KEDOLOG mint address is required"
+    echo "❌ Error: KEDOL mint address is required"
     echo ""
     echo "Usage:"
-    echo "  ./scripts/quick-setup-kedolog.sh YOUR_KEDOLOG_MINT_ADDRESS"
+    echo "  ./scripts/quick-setup-kedol.sh YOUR_KEDOLOG_MINT_ADDRESS"
     echo ""
     echo "Example:"
-    echo "  ./scripts/quick-setup-kedolog.sh 22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx"
+    echo "  ./scripts/quick-setup-kedol.sh 22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx"
     exit 1
 fi
 
 KEDOLOG_MINT=$1
 
-echo "🪙 Quick KEDOLOG Setup"
+echo "🪙 Quick KEDOL Setup"
 echo "===================================="
 echo ""
-echo "KEDOLOG Mint: $KEDOLOG_MINT"
+echo "KEDOL Mint: $KEDOLOG_MINT"
 echo ""
 echo "Verifying token on devnet..."
 
@@ -49,14 +49,14 @@ EOF
 
 echo ""
 echo "======================================"
-echo "✅ KEDOLOG Token Configured!"
+echo "✅ KEDOL Token Configured!"
 echo "======================================"
 echo ""
-echo "📝 KEDOLOG Mint: $KEDOLOG_MINT"
+echo "📝 KEDOL Mint: $KEDOLOG_MINT"
 echo "💾 Saved to: devnet-addresses.json"
 echo ""
 echo "🎯 Next Steps:"
 echo "   1. Run deployment: ./scripts/deploy-and-test-devnet.sh"
-echo "   2. The script will use your existing KEDOLOG token"
+echo "   2. The script will use your existing KEDOL token"
 echo ""
 

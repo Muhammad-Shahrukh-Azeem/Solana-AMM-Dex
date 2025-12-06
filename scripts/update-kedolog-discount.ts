@@ -4,13 +4,13 @@ import { KedolikCpSwap } from "../target/types/kedolik_cp_swap";
 import { Connection, PublicKey } from "@solana/web3.js";
 
 /**
- * Update KEDOLOG Discount Configuration
+ * Update KEDOL Discount Configuration
  * 
  * This updates the GLOBAL config - changes apply to ALL pools immediately!
  */
 
 async function main() {
-  console.log("🔧 Updating KEDOLOG Discount Configuration");
+  console.log("🔧 Updating KEDOL Discount Configuration");
   console.log("═══════════════════════════════════════\n");
 
   const connection = new Connection("https://api.devnet.solana.com", "confirmed");
@@ -36,13 +36,13 @@ async function main() {
     console.log("📊 Current Configuration:");
     console.log("─────────────────────────────────────");
     console.log("Discount Rate:", (currentConfig.discountRate.toNumber() / 100) + "%");
-    console.log("KEDOLOG per USD:", currentConfig.protocolTokenPerUsd.toNumber() / 1_000_000);
+    console.log("KEDOL per USD:", currentConfig.protocolTokenPerUsd.toNumber() / 1_000_000);
     console.log("Treasury:", currentConfig.treasury.toString());
     console.log("Authority:", currentConfig.authority.toString());
     console.log("");
   } catch (e) {
     console.error("❌ Protocol Token Config doesn't exist!");
-    console.error("Run activate-kedolog-discount.ts first.");
+    console.error("Run activate-kedol-discount.ts first.");
     process.exit(1);
   }
 
@@ -56,10 +56,10 @@ async function main() {
     // Discount rate: 2500 = 25%, 3000 = 30%
     discountRate: 2500, // Change to 25% (was 20%)
     
-    // Treasury address (where KEDOLOG fees go)
+    // Treasury address (where KEDOL fees go)
     treasury: null, // null = keep current
     
-    // Price ratio: KEDOLOG per USD (scaled by 10^6)
+    // Price ratio: KEDOL per USD (scaled by 10^6)
     protocolTokenPerUsd: null, // null = keep current
     
     // New authority (who can update config)
@@ -79,7 +79,7 @@ async function main() {
     console.log("Treasury: → " + NEW_CONFIG.treasury.toString());
   }
   if (NEW_CONFIG.protocolTokenPerUsd !== null) {
-    console.log("KEDOLOG per USD: → " + (NEW_CONFIG.protocolTokenPerUsd / 1_000_000));
+    console.log("KEDOL per USD: → " + (NEW_CONFIG.protocolTokenPerUsd / 1_000_000));
   }
   if (NEW_CONFIG.newAuthority !== null) {
     console.log("Authority: → " + NEW_CONFIG.newAuthority.toString());
@@ -130,7 +130,7 @@ async function main() {
   const updatedConfig = await program.account.protocolTokenConfig.fetch(protocolTokenConfigAddress);
   console.log("📊 Updated Configuration:");
   console.log("   Discount Rate:", (updatedConfig.discountRate.toNumber() / 100) + "%");
-  console.log("   KEDOLOG per USD:", updatedConfig.protocolTokenPerUsd.toNumber() / 1_000_000);
+  console.log("   KEDOL per USD:", updatedConfig.protocolTokenPerUsd.toNumber() / 1_000_000);
   console.log("   Treasury:", updatedConfig.treasury.toString());
   console.log("");
 

@@ -1,17 +1,17 @@
-# 🎯 KEDOLOG Discount Feature - Complete Guide
+# 🎯 KEDOL Discount Feature - Complete Guide
 
 ## ✅ Setup Complete!
 
-The KEDOLOG discount feature is now **fully configured and active**!
+The KEDOL discount feature is now **fully configured and active**!
 
 ---
 
 ## 📊 Current Configuration
 
 ```
-KEDOLOG Price:     1 KEDOLOG = 0.10 USDC (10 KEDOLOG per 1 USD)
-Discount Rate:     20% (when paying with KEDOLOG)
-Protocol Fee:      0.05% (normal) → 0.04% (with KEDOLOG discount)
+KEDOL Price:     1 KEDOL = 0.10 USDC (10 KEDOL per 1 USD)
+Discount Rate:     20% (when paying with KEDOL)
+Protocol Fee:      0.05% (normal) → 0.04% (with KEDOL discount)
 LP Fee:            0.20% (always the same, no discount)
 ```
 
@@ -30,20 +30,20 @@ Swap 100 SOL → Receive 99.75 SOL worth of tokens
 - Protocol Fee: 0.05 SOL (goes to protocol owner)
 ```
 
-#### **Option 2: Pay with KEDOLOG (Discounted)**
+#### **Option 2: Pay with KEDOL (Discounted)**
 ```
 Swap 100 SOL → Receive 99.80 SOL worth of tokens
 - LP Fee: 0.20 SOL (goes to liquidity providers)
-- Protocol Fee: 0.04% paid in KEDOLOG (20% discount!)
+- Protocol Fee: 0.04% paid in KEDOL (20% discount!)
 ```
 
-**Users save 0.01% when paying with KEDOLOG!**
+**Users save 0.01% when paying with KEDOL!**
 
 ---
 
 ## 🔧 How to Use (Frontend Integration)
 
-### **Step 1: Check if User Has KEDOLOG**
+### **Step 1: Check if User Has KEDOL**
 
 ```typescript
 import { getAssociatedTokenAddress } from "@solana/spl-token";
@@ -63,7 +63,7 @@ const hasKedolog = kedologBalance.value.uiAmount > 0;
 ```typescript
 if (hasKedolog) {
   // Show checkbox or toggle:
-  // ☑ Pay protocol fee with KEDOLOG (Save 20%!)
+  // ☑ Pay protocol fee with KEDOL (Save 20%!)
 }
 ```
 
@@ -100,28 +100,28 @@ if (useKedologDiscount) {
 ## ❓ FAQ
 
 ### **Q: Is the discount automatic?**
-**A:** No! Users must **explicitly choose** to pay with KEDOLOG. It's an optional feature.
+**A:** No! Users must **explicitly choose** to pay with KEDOL. It's an optional feature.
 
 ### **Q: Is it enabled for all pools?**
 **A:** Yes! Once the `ProtocolTokenConfig` is created (which you've done), the discount is available for **all pools** on your platform.
 
 ### **Q: Do I need to add pool addresses?**
-**A:** No! The contract automatically calculates the KEDOLOG price from the `protocol_token_per_usd` value you just set.
+**A:** No! The contract automatically calculates the KEDOL price from the `protocol_token_per_usd` value you just set.
 
 ### **Q: How often should I update the price?**
-**A:** Run the price update script whenever KEDOLOG's price changes significantly:
+**A:** Run the price update script whenever KEDOL's price changes significantly:
 
 ```bash
-npx ts-node scripts/fetch-kedolog-price-from-pool.ts
+npx ts-node scripts/fetch-kedol-price-from-pool.ts
 ```
 
 You can automate this with a cron job or run it manually.
 
-### **Q: What if a user doesn't have enough KEDOLOG?**
+### **Q: What if a user doesn't have enough KEDOL?**
 **A:** The transaction will fail. Your frontend should:
-1. Check KEDOLOG balance before showing the discount option
-2. Calculate required KEDOLOG amount and show it to the user
-3. Only allow the discount if they have enough KEDOLOG
+1. Check KEDOL balance before showing the discount option
+2. Calculate required KEDOL amount and show it to the user
+3. Only allow the discount if they have enough KEDOL
 
 ### **Q: Can I change the discount rate?**
 **A:** Yes! As the authority, you can update it:
@@ -143,14 +143,14 @@ Let's say a user swaps 100 SOL:
 - Protocol gets: 0.05 SOL (in SOL)
 - User receives: 99.75 SOL worth of tokens
 
-### **With KEDOLOG Discount:**
+### **With KEDOL Discount:**
 - Trade Fee: 0.24% = 0.24 SOL (only LP fee charged in swap)
 - LP gets: 0.20 SOL
-- Protocol gets: 0.04% in KEDOLOG tokens
+- Protocol gets: 0.04% in KEDOL tokens
   - 0.04% of 100 SOL = 0.04 SOL worth
-  - At 10 KEDOLOG per USD, if SOL = $150:
+  - At 10 KEDOL per USD, if SOL = $150:
   - 0.04 SOL = $6
-  - User pays: 60 KEDOLOG
+  - User pays: 60 KEDOL
 - User receives: 99.80 SOL worth of tokens
 
 **User saves: 0.05 SOL worth = $7.50!**
@@ -161,7 +161,7 @@ Let's say a user swaps 100 SOL:
 
 ### **Check Current Price:**
 ```bash
-npx ts-node scripts/fetch-kedolog-price-from-pool.ts
+npx ts-node scripts/fetch-kedol-price-from-pool.ts
 ```
 
 ### **View Protocol Token Config:**
@@ -169,15 +169,15 @@ npx ts-node scripts/fetch-kedolog-price-from-pool.ts
 solana account 7ZRkzDLJQkhYvoyKKJXHjk1qy1ArKtX8iqbNF7F4sETv --url devnet
 ```
 
-### **Check KEDOLOG Treasury Balance:**
-The KEDOLOG fees are sent to the treasury address configured in the `ProtocolTokenConfig`.
+### **Check KEDOL Treasury Balance:**
+The KEDOL fees are sent to the treasury address configured in the `ProtocolTokenConfig`.
 
 ---
 
 ## 🎉 Summary
 
-✅ **KEDOLOG discount is ACTIVE**  
-✅ **Price is set**: 1 KEDOLOG = 0.10 USDC  
+✅ **KEDOL discount is ACTIVE**  
+✅ **Price is set**: 1 KEDOL = 0.10 USDC  
 ✅ **Discount rate**: 20%  
 ✅ **Available for**: ALL pools  
 ✅ **User choice**: OPTIONAL (users choose at swap time)  

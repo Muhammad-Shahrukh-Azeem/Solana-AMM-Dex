@@ -62,7 +62,7 @@ describe("Universal Pricing System Tests", () => {
       admin.payer,
       admin.publicKey,
       null,
-      9 // KEDOLOG decimals
+      9 // KEDOL decimals
     );
 
     usdcMint = await createMint(
@@ -73,7 +73,7 @@ describe("Universal Pricing System Tests", () => {
       6 // USDC decimals
     );
 
-    console.log("✅ KEDOLOG mint:", kedologMint.toString());
+    console.log("✅ KEDOL mint:", kedologMint.toString());
     console.log("✅ USDC mint:", usdcMint.toString());
 
     // Create AMM Config
@@ -128,7 +128,7 @@ describe("Universal Pricing System Tests", () => {
 
     console.log("✅ Protocol Token Config created:", protocolTokenConfig.toString());
 
-    // Create KEDOLOG/USDC pool
+    // Create KEDOL/USDC pool
     kedologUsdcPool = Keypair.generate();
     kedologUsdcVault0 = await createAccount(
       provider.connection,
@@ -144,8 +144,8 @@ describe("Universal Pricing System Tests", () => {
     );
 
     // Mint tokens to vaults to establish price
-    // KEDOLOG price = $0.0017 (1 USDC = ~588 KEDOLOG)
-    // Vault0 (KEDOLOG): 1,000,000 KEDOLOG
+    // KEDOL price = $0.0017 (1 USDC = ~588 KEDOL)
+    // Vault0 (KEDOL): 1,000,000 KEDOL
     // Vault1 (USDC): 1,700 USDC
     await mintTo(
       provider.connection,
@@ -153,7 +153,7 @@ describe("Universal Pricing System Tests", () => {
       kedologMint,
       kedologUsdcVault0,
       admin.publicKey,
-      1_000_000_000_000_000 // 1M KEDOLOG
+      1_000_000_000_000_000 // 1M KEDOL
     );
 
     await mintTo(
@@ -165,8 +165,8 @@ describe("Universal Pricing System Tests", () => {
       1_700_000_000 // 1,700 USDC
     );
 
-    console.log("✅ KEDOLOG/USDC pool vaults created and funded");
-    console.log("   Vault0 (KEDOLOG):", kedologUsdcVault0.toString());
+    console.log("✅ KEDOL/USDC pool vaults created and funded");
+    console.log("   Vault0 (KEDOL):", kedologUsdcVault0.toString());
     console.log("   Vault1 (USDC):", kedologUsdcVault1.toString());
 
     // Create SOL/USDC pool
@@ -229,23 +229,23 @@ describe("Universal Pricing System Tests", () => {
     console.log("✅ Protocol Token Config updated with pool addresses\n");
   });
 
-  it("Calculates correct KEDOLOG price from pool", async () => {
-    console.log("\n📊 Test: KEDOLOG Price Calculation\n");
+  it("Calculates correct KEDOL price from pool", async () => {
+    console.log("\n📊 Test: KEDOL Price Calculation\n");
 
     const vault0 = await getAccount(provider.connection, kedologUsdcVault0);
     const vault1 = await getAccount(provider.connection, kedologUsdcVault1);
 
-    console.log("KEDOLOG vault balance:", vault0.amount.toString());
+    console.log("KEDOL vault balance:", vault0.amount.toString());
     console.log("USDC vault balance:", vault1.amount.toString());
 
-    // Expected price: 1,700 USDC / 1,000,000 KEDOLOG = $0.0017 per KEDOLOG
+    // Expected price: 1,700 USDC / 1,000,000 KEDOL = $0.0017 per KEDOL
     const expectedPrice = 0.0017;
     const calculatedPrice = Number(vault1.amount) / 1_000_000 / (Number(vault0.amount) / 1_000_000_000);
 
-    console.log("Expected KEDOLOG price: $" + expectedPrice);
-    console.log("Calculated KEDOLOG price: $" + calculatedPrice.toFixed(4));
+    console.log("Expected KEDOL price: $" + expectedPrice);
+    console.log("Calculated KEDOL price: $" + calculatedPrice.toFixed(4));
 
-    assert.approximately(calculatedPrice, expectedPrice, 0.0001, "KEDOLOG price should be ~$0.0017");
+    assert.approximately(calculatedPrice, expectedPrice, 0.0001, "KEDOL price should be ~$0.0017");
   });
 
   it("Calculates correct SOL price from pool", async () => {
@@ -273,7 +273,7 @@ describe("Universal Pricing System Tests", () => {
     // Test scenario: Swapping 1 USDC
     // Protocol fee (0.05% of 1 USDC) = 0.0005 USDC = $0.0005
     // With 25% discount = 0.000375 USDC = $0.000375
-    // KEDOLOG needed = $0.000375 / $0.0017 = ~0.2206 KEDOLOG
+    // KEDOL needed = $0.000375 / $0.0017 = ~0.2206 KEDOL
 
     const swapAmount = 1_000_000; // 1 USDC
     const protocolFeeRate = 200000; // 20% of trade fee
@@ -288,13 +288,13 @@ describe("Universal Pricing System Tests", () => {
     const discountedFee = Math.floor((protocolFee * (10000 - discountRate)) / 10000);
     console.log("Discounted fee (USDC):", discountedFee / 1_000_000);
 
-    // Calculate KEDOLOG amount
+    // Calculate KEDOL amount
     const kedologPrice = 0.0017;
     const expectedKedolog = (discountedFee / 1_000_000) / kedologPrice;
-    console.log("Expected KEDOLOG fee:", expectedKedolog.toFixed(4));
+    console.log("Expected KEDOL fee:", expectedKedolog.toFixed(4));
 
-    // This should be ~0.2206 KEDOLOG
-    assert.approximately(expectedKedolog, 0.2206, 0.01, "KEDOLOG fee should be ~0.2206 for 1 USDC swap");
+    // This should be ~0.2206 KEDOL
+    assert.approximately(expectedKedolog, 0.2206, 0.01, "KEDOL fee should be ~0.2206 for 1 USDC swap");
   });
 
   it("Verifies fee calculation consistency for SOL swaps", async () => {
@@ -304,7 +304,7 @@ describe("Universal Pricing System Tests", () => {
     // Protocol fee (0.05% of 0.005 SOL) = 0.000025 SOL
     // USD value = 0.000025 * $200 = $0.005
     // With 25% discount = $0.00375
-    // KEDOLOG needed = $0.00375 / $0.0017 = ~2.206 KEDOLOG
+    // KEDOL needed = $0.00375 / $0.0017 = ~2.206 KEDOL
 
     const swapAmount = 5_000_000; // 0.005 SOL (9 decimals)
     const solPrice = 200; // $200 per SOL
@@ -324,16 +324,16 @@ describe("Universal Pricing System Tests", () => {
     const discountedFeeUsd = protocolFeeUsd * (10000 - discountRate) / 10000;
     console.log("Discounted fee (USD):", discountedFeeUsd);
 
-    // Calculate KEDOLOG amount
+    // Calculate KEDOL amount
     const kedologPrice = 0.0017;
     const expectedKedolog = discountedFeeUsd / kedologPrice;
-    console.log("Expected KEDOLOG fee:", expectedKedolog.toFixed(4));
+    console.log("Expected KEDOL fee:", expectedKedolog.toFixed(4));
 
-    // This should be ~2.206 KEDOLOG (10x more than USDC swap because $1 vs $0.1)
-    assert.approximately(expectedKedolog, 2.206, 0.1, "KEDOLOG fee should be ~2.206 for $1 worth of SOL");
+    // This should be ~2.206 KEDOL (10x more than USDC swap because $1 vs $0.1)
+    assert.approximately(expectedKedolog, 2.206, 0.1, "KEDOL fee should be ~2.206 for $1 worth of SOL");
   });
 
-  it("Verifies KEDOLOG fee is consistent across different token pairs with same USD value", async () => {
+  it("Verifies KEDOL fee is consistent across different token pairs with same USD value", async () => {
     console.log("\n📊 Test: Cross-Pair Fee Consistency\n");
 
     const kedologPrice = 0.0017;
@@ -349,7 +349,7 @@ describe("Universal Pricing System Tests", () => {
     console.log("1 USDC swap:");
     console.log("  Protocol fee: $" + (usdcProtocolFee / 1_000_000));
     console.log("  Discounted fee: $" + (usdcDiscountedFee / 1_000_000));
-    console.log("  KEDOLOG fee:", usdcKedologFee.toFixed(4));
+    console.log("  KEDOL fee:", usdcKedologFee.toFixed(4));
 
     // Test 2: 0.005 SOL swap (= $1)
     const solSwap = 5_000_000; // 0.005 SOL
@@ -361,7 +361,7 @@ describe("Universal Pricing System Tests", () => {
     console.log("\n0.005 SOL swap ($1 worth):");
     console.log("  Protocol fee: $" + solProtocolFeeUsd.toFixed(6));
     console.log("  Discounted fee: $" + solDiscountedFeeUsd.toFixed(6));
-    console.log("  KEDOLOG fee:", solKedologFee.toFixed(4));
+    console.log("  KEDOL fee:", solKedologFee.toFixed(4));
 
     // Both should be equal since they're both $1 swaps
     console.log("\n✅ Ratio (SOL/USDC):", (solKedologFee / usdcKedologFee).toFixed(2));
@@ -369,7 +369,7 @@ describe("Universal Pricing System Tests", () => {
       solKedologFee / usdcKedologFee,
       1.0,
       0.1,
-      "KEDOLOG fees should be equal for equal USD value swaps"
+      "KEDOL fees should be equal for equal USD value swaps"
     );
   });
 
@@ -378,14 +378,14 @@ describe("Universal Pricing System Tests", () => {
 
     const config = await program.account.protocolTokenConfig.fetch(protocolTokenConfig);
 
-    console.log("KEDOLOG/USDC pool in config:", config.kedologUsdcPool.toString());
+    console.log("KEDOL/USDC pool in config:", config.kedologUsdcPool.toString());
     console.log("SOL/USDC pool in config:", config.solUsdcPool.toString());
     console.log("USDC mint in config:", config.usdcMint.toString());
 
     assert.equal(
       config.kedologUsdcPool.toString(),
       kedologUsdcPool.publicKey.toString(),
-      "KEDOLOG/USDC pool should match"
+      "KEDOL/USDC pool should match"
     );
 
     assert.equal(

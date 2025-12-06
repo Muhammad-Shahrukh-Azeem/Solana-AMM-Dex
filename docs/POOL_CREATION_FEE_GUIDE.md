@@ -173,10 +173,10 @@ Goes to:
   - 0.05% → Protocol Owner (claimable)
 ```
 
-### **KEDOLOG Discount Fee:**
+### **KEDOL Discount Fee:**
 ```
-Amount: 0.04% in KEDOLOG (instead of 0.05% SOL)
-When: Swap with KEDOLOG payment option
+Amount: 0.04% in KEDOL (instead of 0.05% SOL)
+When: Swap with KEDOL payment option
 Goes to: Protocol treasury (your wallet)
 ```
 

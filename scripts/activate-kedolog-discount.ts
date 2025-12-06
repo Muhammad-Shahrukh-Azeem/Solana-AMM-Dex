@@ -4,14 +4,14 @@ import { KedolikCpSwap } from "../target/types/kedolik_cp_swap";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 
 /**
- * Activate KEDOLOG Token Discount Feature
+ * Activate KEDOL Token Discount Feature
  * 
  * This creates a GLOBAL config that applies to ALL pools (existing and new)
- * Users can pay protocol fees with KEDOLOG tokens and get a discount!
+ * Users can pay protocol fees with KEDOL tokens and get a discount!
  */
 
 async function main() {
-  console.log("🎯 Activating KEDOLOG Discount Feature");
+  console.log("🎯 Activating KEDOL Discount Feature");
   console.log("═══════════════════════════════════════\n");
 
   const connection = new Connection("https://api.devnet.solana.com", "confirmed");
@@ -30,19 +30,19 @@ async function main() {
   // ═══════════════════════════════════════════════════════════
 
   const KEDOLOG_CONFIG = {
-    // KEDOLOG token mint address
+    // KEDOL token mint address
     protocolTokenMint: new PublicKey("22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx"),
     
     // Discount rate: 2000 = 20% discount, 2500 = 25% discount
     discountRate: 2000, // 20% discount
     
-    // Treasury where KEDOLOG fees go
+    // Treasury where KEDOL fees go
     treasury: wallet.publicKey, // You can change this later
     
-    // Price ratio: How many KEDOLOG per 1 USD (scaled by 10^6)
-    // Example: If 1 USD = 10 KEDOLOG, set to 10_000_000
-    // Example: If 1 USD = 100 KEDOLOG, set to 100_000_000
-    protocolTokenPerUsd: 10_000_000, // 1 USD = 10 KEDOLOG
+    // Price ratio: How many KEDOL per 1 USD (scaled by 10^6)
+    // Example: If 1 USD = 10 KEDOL, set to 10_000_000
+    // Example: If 1 USD = 100 KEDOL, set to 100_000_000
+    protocolTokenPerUsd: 10_000_000, // 1 USD = 10 KEDOL
   };
 
   // Derive protocol token config PDA
@@ -59,10 +59,10 @@ async function main() {
     const existingConfig = await program.account.protocolTokenConfig.fetch(protocolTokenConfigAddress);
     console.log("✅ Protocol Token Config already exists!");
     console.log("   Discount Rate:", existingConfig.discountRate.toString(), "(" + (existingConfig.discountRate.toNumber() / 100) + "%)");
-    console.log("   KEDOLOG per USD:", existingConfig.protocolTokenPerUsd.toNumber() / 1_000_000);
+    console.log("   KEDOL per USD:", existingConfig.protocolTokenPerUsd.toNumber() / 1_000_000);
     console.log("   Treasury:", existingConfig.treasury.toString());
     console.log("");
-    console.log("💡 To update, use the update-kedolog-discount.ts script.");
+    console.log("💡 To update, use the update-kedol-discount.ts script.");
     return;
   } catch (e) {
     console.log("📝 Config doesn't exist, will create new one...");
@@ -74,24 +74,24 @@ async function main() {
 
   console.log("\n📊 Configuration Preview:");
   console.log("─────────────────────────────────────");
-  console.log("KEDOLOG Token:", KEDOLOG_CONFIG.protocolTokenMint.toString());
+  console.log("KEDOL Token:", KEDOLOG_CONFIG.protocolTokenMint.toString());
   console.log("Discount Rate:", (KEDOLOG_CONFIG.discountRate / 100) + "%");
   console.log("Treasury:", KEDOLOG_CONFIG.treasury.toString());
-  console.log("Price Ratio:", KEDOLOG_CONFIG.protocolTokenPerUsd / 1_000_000, "KEDOLOG per USD");
+  console.log("Price Ratio:", KEDOLOG_CONFIG.protocolTokenPerUsd / 1_000_000, "KEDOL per USD");
   console.log("");
 
   console.log("💰 Example: 100 SOL Swap (assuming 1 SOL = $100)");
   console.log("─────────────────────────────────────");
-  console.log("Without KEDOLOG:");
+  console.log("Without KEDOL:");
   console.log("  Protocol Fee: 0.05 SOL = $5");
   console.log("");
-  console.log("With KEDOLOG (20% discount):");
+  console.log("With KEDOL (20% discount):");
   console.log("  Protocol Fee: 0.04 SOL worth = $4");
-  console.log("  User pays: 0.4 KEDOLOG (at 10 KEDOLOG = $1)");
+  console.log("  User pays: 0.4 KEDOL (at 10 KEDOL = $1)");
   console.log("  Savings: $1 (20% off!) 🎉");
   console.log("");
 
-  console.log("⚠️  This will enable KEDOLOG discounts for ALL pools!");
+  console.log("⚠️  This will enable KEDOL discounts for ALL pools!");
   console.log("Both existing and future pools will support this feature.");
   console.log("");
   console.log("🚀 Creating protocol token config...\n");
@@ -120,18 +120,18 @@ async function main() {
   const config = await program.account.protocolTokenConfig.fetch(protocolTokenConfigAddress);
   console.log("📊 Verified Configuration:");
   console.log("   Discount Rate:", (config.discountRate.toNumber() / 100) + "%");
-  console.log("   KEDOLOG per USD:", config.protocolTokenPerUsd.toNumber() / 1_000_000);
+  console.log("   KEDOL per USD:", config.protocolTokenPerUsd.toNumber() / 1_000_000);
   console.log("   Treasury:", config.treasury.toString());
   console.log("");
 
-  console.log("✅ KEDOLOG discount feature is now ACTIVE for ALL pools!");
+  console.log("✅ KEDOL discount feature is now ACTIVE for ALL pools!");
   console.log("");
   console.log("📝 Next steps:");
   console.log("1. Update your frontend to show discount option");
   console.log("2. Users call 'swap_base_input_with_protocol_token' to use discount");
-  console.log("3. Monitor KEDOLOG fee collection in treasury");
+  console.log("3. Monitor KEDOL fee collection in treasury");
   console.log("");
-  console.log("💡 To update settings later, use update-kedolog-discount.ts");
+  console.log("💡 To update settings later, use update-kedol-discount.ts");
 }
 
 main()

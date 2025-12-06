@@ -94,7 +94,7 @@ async function main() {
           txType = "Swap";
           totalSwaps++;
         } else if (logs.some(log => log.includes("Instruction: SwapBaseInputWithProtocolToken"))) {
-          txType = "Swap (KEDOLOG Discount)";
+          txType = "Swap (KEDOL Discount)";
           totalSwaps++;
         } else if (logs.some(log => log.includes("Instruction: Initialize"))) {
           txType = "Pool Creation";
@@ -126,9 +126,9 @@ async function main() {
           console.log(`   - LP Fee: 0.20% (distributed to LPs)`);
           console.log(`   - Protocol Fee: 0.05% (claimable by owner)`);
           
-          if (txType.includes("KEDOLOG")) {
-            console.log(`   💎 KEDOLOG Discount Applied: 20% off protocol fee!`);
-            console.log(`   - Actual Protocol Fee: 0.04% (paid in KEDOLOG)`);
+          if (txType.includes("KEDOL")) {
+            console.log(`   💎 KEDOL Discount Applied: 20% off protocol fee!`);
+            console.log(`   - Actual Protocol Fee: 0.04% (paid in KEDOL)`);
           }
         }
 

@@ -49,7 +49,7 @@ pub struct SwapWithProtocolToken<'info> {
     #[account(mut)]
     pub protocol_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    /// The fee receiver account to receive protocol token (KEDOLOG) discount fees
+    /// The fee receiver account to receive protocol token (KEDOL) discount fees
     /// This uses the unified fee_receiver from AmmConfig
     /// CRITICAL: Must be owned by the fee_receiver wallet from amm_config
     #[account(
@@ -106,9 +106,9 @@ pub struct SwapWithProtocolToken<'info> {
 }
 
 // Remaining accounts (in order):
-// [0]: KEDOLOG/USDC pool account
-// [1]: KEDOLOG/USDC token_0_vault
-// [2]: KEDOLOG/USDC token_1_vault
+// [0]: KEDOL/USDC pool account
+// [1]: KEDOL/USDC token_0_vault
+// [2]: KEDOL/USDC token_1_vault
 // [3]: SOL/USDC pool account (optional, only if SOL pair)
 // [4]: SOL/USDC token_0_vault (optional, only if SOL pair)
 // [5]: SOL/USDC token_1_vault (optional, only if SOL pair)
@@ -175,27 +175,27 @@ pub fn swap_base_input_with_protocol_token(
     
     // Calculate reduced trade fee (remove FULL protocol portion)
     // Example: 2500 - 500 = 2000 (0.20%)
-    // LPs get their full 0.20%, protocol fee paid separately in KEDOLOG
+    // LPs get their full 0.20%, protocol fee paid separately in KEDOL
     let reduced_trade_fee_rate = trade_fee_rate
         .checked_sub(protocol_fee_portion)
         .unwrap();
     
     // Calculate the swap result with REDUCED fee (only LP portion)
     // User pays 0.20% in swap, gets 99.80 SOL worth
-    // Then pays 0.04% separately in KEDOLOG
+    // Then pays 0.04% separately in KEDOL
     let result = CurveCalculator::swap_base_input(
         u128::from(actual_amount_in),
         u128::from(total_input_token_amount),
         u128::from(total_output_token_amount),
         reduced_trade_fee_rate,  // Only LP fee (0.20%)
         creator_fee_rate,
-        0,  // Protocol fee is 0 in swap calculation (paid separately in KEDOLOG)
+        0,  // Protocol fee is 0 in swap calculation (paid separately in KEDOL)
         ctx.accounts.amm_config.fund_fee_rate,
         is_creator_fee_on_input,
     )
     .ok_or(ErrorCode::ZeroTradingTokens)?;
 
-    // Calculate the discounted protocol fee that will be paid in KEDOLOG
+    // Calculate the discounted protocol fee that will be paid in KEDOL
     // Apply discount (e.g., 25%) to the protocol fee
     let original_protocol_fee_amount = (u128::from(actual_amount_in))
         .checked_mul(protocol_fee_portion as u128)
@@ -215,8 +215,8 @@ pub fn swap_base_input_with_protocol_token(
     // Calculate equivalent protocol token amount using universal pricing
     // 
     // Remaining accounts format:
-    // [0]: KEDOLOG/USDC pool
-    // [1-2]: KEDOLOG/USDC vaults
+    // [0]: KEDOL/USDC pool
+    // [1-2]: KEDOL/USDC vaults
     // [3]: SOL/USDC pool (optional)
     // [4-5]: SOL/USDC vaults (optional)
     

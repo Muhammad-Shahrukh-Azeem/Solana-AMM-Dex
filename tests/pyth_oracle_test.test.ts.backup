@@ -48,7 +48,7 @@ describe("🔮 Pyth Oracle Integration Test", () => {
     console.log("=".repeat(80));
     console.log("Testing oracle integration with real Pyth price feeds\n");
 
-    // Create KEDOLOG token
+    // Create KEDOL token
     protocolTokenMint = await createMint(
       connection,
       admin,
@@ -59,7 +59,7 @@ describe("🔮 Pyth Oracle Integration Test", () => {
       undefined,
       TOKEN_PROGRAM_ID
     );
-    console.log(`✅ KEDOLOG Mint: ${protocolTokenMint.toString()}`);
+    console.log(`✅ KEDOL Mint: ${protocolTokenMint.toString()}`);
 
     // Create treasury
     treasuryKeypair = Keypair.generate();
@@ -82,7 +82,7 @@ describe("🔮 Pyth Oracle Integration Test", () => {
       new BN(2000), // 20% discount
       admin.publicKey,
       treasuryKeypair.publicKey,
-      new BN(10_000_000), // 10 KEDOLOG per USD
+      new BN(10_000_000), // 10 KEDOL per USD
       confirmOptions
     );
     console.log("✅ Protocol Token Config created");
@@ -126,7 +126,7 @@ describe("🔮 Pyth Oracle Integration Test", () => {
     console.log("\n💡 In Your Swap:");
     console.log("   1. User passes Pyth feed account as 'inputTokenOracle'");
     console.log("   2. Program fetches real-time price from Pyth");
-    console.log("   3. Calculates exact KEDOLOG amount needed");
+    console.log("   3. Calculates exact KEDOL amount needed");
     console.log("   4. User pays precise fee based on current market price");
     
     console.log("\n" + "=".repeat(80) + "\n");
@@ -149,7 +149,7 @@ describe("🔮 Pyth Oracle Integration Test", () => {
     console.log("    payer: user.publicKey,");
     console.log("    // ... other accounts ...");
     console.log("    inputTokenOracle: SOL_USD_PYTH,  // ← Real-time SOL price!");
-    console.log("    protocolTokenOracle: null,        // ← KEDOLOG uses manual");
+    console.log("    protocolTokenOracle: null,        // ← KEDOL uses manual");
     console.log("  })");
     console.log("  .rpc();");
     console.log("```");
@@ -157,8 +157,8 @@ describe("🔮 Pyth Oracle Integration Test", () => {
     console.log("\n📊 What Happens:");
     console.log("   1. Program reads SOL price from Pyth: $100");
     console.log("   2. Fee: 0.0004 SOL × $100 = $0.04");
-    console.log("   3. KEDOLOG needed: $0.04 / $0.10 = 0.4 KEDOLOG");
-    console.log("   4. User pays exactly 0.4 KEDOLOG");
+    console.log("   3. KEDOL needed: $0.04 / $0.10 = 0.4 KEDOL");
+    console.log("   4. User pays exactly 0.4 KEDOL");
     
     console.log("\n✅ Benefits:");
     console.log("   • Accurate pricing for all tokens");
@@ -201,7 +201,7 @@ describe("🔮 Pyth Oracle Integration Test", () => {
     console.log("🎯 MANUAL VS ORACLE PRICING");
     console.log("=".repeat(80));
     
-    console.log("\n📊 Scenario: Swap 1 SOL with KEDOLOG discount");
+    console.log("\n📊 Scenario: Swap 1 SOL with KEDOL discount");
     console.log("   Protocol Fee: 0.04% = 0.0004 SOL");
     
     console.log("\n🔧 Option 1: MANUAL PRICING (Current)");
@@ -210,9 +210,9 @@ describe("🔮 Pyth Oracle Integration Test", () => {
     console.log("   ");
     console.log("   Calculation:");
     console.log("   - SOL price: $1 (assumed)");
-    console.log("   - KEDOLOG price: $0.10 (from config)");
+    console.log("   - KEDOL price: $0.10 (from config)");
     console.log("   - Fee in USD: 0.0004 × $1 = $0.0004");
-    console.log("   - KEDOLOG needed: $0.0004 / $0.10 = 0.004 KEDOLOG");
+    console.log("   - KEDOL needed: $0.0004 / $0.10 = 0.004 KEDOL");
     console.log("   ");
     console.log("   ⚠️  Problem: SOL is not $1, it's ~$100!");
     console.log("   ⚠️  User pays 100x less than they should!");
@@ -223,16 +223,16 @@ describe("🔮 Pyth Oracle Integration Test", () => {
     console.log("   ");
     console.log("   Calculation:");
     console.log("   - SOL price: $100 (from Pyth)");
-    console.log("   - KEDOLOG price: $0.10 (from config)");
+    console.log("   - KEDOL price: $0.10 (from config)");
     console.log("   - Fee in USD: 0.0004 × $100 = $0.04");
-    console.log("   - KEDOLOG needed: $0.04 / $0.10 = 0.4 KEDOLOG");
+    console.log("   - KEDOL needed: $0.04 / $0.10 = 0.4 KEDOL");
     console.log("   ");
     console.log("   ✅ Correct: User pays accurate fee!");
     
     console.log("\n💡 Recommendation:");
     console.log("   • Stablecoins (USDC, USDT): Use manual (oracle: null)");
     console.log("   • Volatile tokens (SOL, BTC, ETH): Use oracle");
-    console.log("   • KEDOLOG: Use manual (set in config)");
+    console.log("   • KEDOL: Use manual (set in config)");
     
     console.log("\n" + "=".repeat(80) + "\n");
   });
@@ -282,7 +282,7 @@ describe("🔮 Pyth Oracle Integration Test", () => {
     console.log("await swapBaseInputWithProtocolToken(");
     console.log("  // ... params ...");
     console.log("  inputOracle,  // Pyth feed or null");
-    console.log("  null,         // KEDOLOG uses manual");
+    console.log("  null,         // KEDOL uses manual");
     console.log(");");
     console.log("```");
     

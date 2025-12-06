@@ -22,7 +22,7 @@ pub struct AmmConfig {
     pub create_pool_fee: u64,
     /// Address of the protocol fee owner (admin - can update config)
     pub protocol_owner: Pubkey,
-    /// UNIFIED FEE RECEIVER - receives ALL fees (pool creation, protocol, fund, KEDOLOG discount)
+    /// UNIFIED FEE RECEIVER - receives ALL fees (pool creation, protocol, fund, KEDOL discount)
     pub fee_receiver: Pubkey,
     /// The pool creator fee, denominated in hundredths of a bip (10^-6)
     pub creator_fee_rate: u64,

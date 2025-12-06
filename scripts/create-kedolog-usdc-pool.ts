@@ -17,16 +17,16 @@ import {
 import * as fs from "fs";
 
 /**
- * 🏊 Create KEDOLOG/USDC Pool on Devnet
+ * 🏊 Create KEDOL/USDC Pool on Devnet
  * 
  * This script:
- * 1. Creates a KEDOLOG/USDC pool
+ * 1. Creates a KEDOL/USDC pool
  * 2. Adds initial liquidity (sets initial price)
  * 3. Saves pool address for price updates
  */
 
 async function main() {
-  console.log("🏊 Creating KEDOLOG/USDC Pool");
+  console.log("🏊 Creating KEDOL/USDC Pool");
   console.log("=".repeat(60));
   
   // Setup
@@ -53,7 +53,7 @@ async function main() {
   const usdcMint = new PublicKey(addresses.testTokens.usdc);
   
   console.log(`\n📊 Pool Tokens:`);
-  console.log(`   KEDOLOG: ${kedologMint.toString()}`);
+  console.log(`   KEDOL: ${kedologMint.toString()}`);
   console.log(`   USDC: ${usdcMint.toString()}`);
   
   // Get AMM config
@@ -149,14 +149,14 @@ async function main() {
   );
   
   // Initial liquidity amounts
-  // Setting price: 10 KEDOLOG = 1 USDC (so 1 KEDOLOG = $0.10)
-  const kedologAmount = new BN(1_000_000 * 1e9); // 1M KEDOLOG (9 decimals)
+  // Setting price: 10 KEDOL = 1 USDC (so 1 KEDOL = $0.10)
+  const kedologAmount = new BN(1_000_000 * 1e9); // 1M KEDOL (9 decimals)
   const usdcAmount = new BN(100_000 * 1e6);      // 100K USDC (6 decimals)
   
   console.log(`\n💰 Initial Liquidity:`);
-  console.log(`   KEDOLOG: ${kedologAmount.toNumber() / 1e9} tokens`);
+  console.log(`   KEDOL: ${kedologAmount.toNumber() / 1e9} tokens`);
   console.log(`   USDC: ${usdcAmount.toNumber() / 1e6} tokens`);
-  console.log(`   Initial Price: 1 KEDOLOG = $${(usdcAmount.toNumber() / 1e6) / (kedologAmount.toNumber() / 1e9)}`);
+  console.log(`   Initial Price: 1 KEDOL = $${(usdcAmount.toNumber() / 1e6) / (kedologAmount.toNumber() / 1e9)}`);
   
   try {
     const tx = await program.methods
@@ -194,9 +194,9 @@ async function main() {
     console.log(`\n📝 Pool address saved to devnet-addresses.json`);
     
     console.log(`\n🎯 Next Steps:`);
-    console.log(`   1. Update KEDOLOG price from pool:`);
-    console.log(`      npx ts-node scripts/update-kedolog-price-from-pool.ts --once`);
-    console.log(`   2. Test swaps with KEDOLOG discount`);
+    console.log(`   1. Update KEDOL price from pool:`);
+    console.log(`      npx ts-node scripts/update-kedol-price-from-pool.ts --once`);
+    console.log(`   2. Test swaps with KEDOL discount`);
     console.log(`   3. Verify prices in logs`);
     
   } catch (error) {

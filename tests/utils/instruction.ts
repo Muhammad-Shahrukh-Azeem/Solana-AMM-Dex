@@ -878,7 +878,7 @@ export async function swapBaseInputWithProtocolToken(
       protocolTokenTreasury,
       protocolTokenProgram: protocolTokenProgram,
       inputTokenOracle: SystemProgram.programId, // Pass Pyth oracle for input token
-      protocolTokenOracle: SystemProgram.programId, // SystemProgram = use manual KEDOLOG price
+      protocolTokenOracle: SystemProgram.programId, // SystemProgram = use manual KEDOL price
     })
     .signers([owner])
     .rpc(confirmOptions);

@@ -9,7 +9,7 @@ const PROGRAM_ID = new PublicKey('2LdLPZbRokzmcJyFE7fLyTgMKNxuR9PE6PKfunn6fkUi')
 const PROTOCOL_TOKEN_CONFIG = new PublicKey('7ZRkzDLJQkhYvoyKKJXHjk1qy1ArKtX8iqbNF7F4sETv');
 
 async function main() {
-  console.log('\n🔧 Updating KEDOLOG Discount from 20% to 25%');
+  console.log('\n🔧 Updating KEDOL Discount from 20% to 25%');
   console.log('━'.repeat(80));
   
   // Load wallet
@@ -72,7 +72,7 @@ async function main() {
   console.log(`\n📊 This applies to:`);
   console.log(`   ✅ All existing pools`);
   console.log(`   ✅ All new pools that will be created`);
-  console.log(`\n💡 Users will now save 25% on protocol fees when paying with KEDOLOG!`);
+  console.log(`\n💡 Users will now save 25% on protocol fees when paying with KEDOL!`);
   console.log(`${'━'.repeat(80)}\n`);
 }
 

@@ -5,10 +5,10 @@ import { KedolikCpSwap } from "../target/types/kedolik_cp_swap";
 import * as fs from "fs";
 
 /**
- * Script to fetch KEDOLOG price from your pool and update ProtocolTokenConfig
+ * Script to fetch KEDOL price from your pool and update ProtocolTokenConfig
  * 
- * This calculates: How many KEDOLOG tokens = 1 USD
- * Based on the KEDOLOG/USDC pool reserves
+ * This calculates: How many KEDOL tokens = 1 USD
+ * Based on the KEDOL/USDC pool reserves
  */
 
 const NETWORK = process.env.NETWORK || "devnet";
@@ -17,7 +17,7 @@ const RPC_URL = NETWORK === "mainnet"
   : "https://api.devnet.solana.com";
 
 async function main() {
-  console.log("💰 Fetching KEDOLOG Price from Pool");
+  console.log("💰 Fetching KEDOL Price from Pool");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("");
 
@@ -55,10 +55,10 @@ async function main() {
 
   console.log("📋 Configuration:");
   console.log(`   Program ID: ${deployment.programId}`);
-  console.log(`   KEDOLOG Mint: ${deployment.kedologMint}`);
+  console.log(`   KEDOL Mint: ${deployment.kedologMint}`);
   console.log("");
 
-  // Derive the KEDOLOG/USDC pool address
+  // Derive the KEDOL/USDC pool address
   const kedologMint = new PublicKey(deployment.kedologMint);
   const usdcMint = new PublicKey("2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32");
   const ammConfig = new PublicKey(deployment.ammConfig);
@@ -80,9 +80,9 @@ async function main() {
     programId
   );
 
-  console.log("🔍 KEDOLOG/USDC Pool:");
+  console.log("🔍 KEDOL/USDC Pool:");
   console.log(`   Pool Address: ${poolState.toString()}`);
-  console.log(`   KEDOLOG is Token${isKedologToken0 ? "0" : "1"}`);
+  console.log(`   KEDOL is Token${isKedologToken0 ? "0" : "1"}`);
   console.log("");
 
   // Fetch pool data
@@ -103,34 +103,34 @@ async function main() {
     const token1Decimals = token1VaultInfo.value.decimals;
 
     console.log("✅ Pool Reserves:");
-    console.log(`   Token0 (${isKedologToken0 ? "KEDOLOG" : "USDC"}): ${token0Amount / Math.pow(10, token0Decimals)}`);
-    console.log(`   Token1 (${isKedologToken0 ? "USDC" : "KEDOLOG"}): ${token1Amount / Math.pow(10, token1Decimals)}`);
+    console.log(`   Token0 (${isKedologToken0 ? "KEDOL" : "USDC"}): ${token0Amount / Math.pow(10, token0Decimals)}`);
+    console.log(`   Token1 (${isKedologToken0 ? "USDC" : "KEDOL"}): ${token1Amount / Math.pow(10, token1Decimals)}`);
     console.log("");
 
-    // Calculate price: How many KEDOLOG per 1 USDC?
+    // Calculate price: How many KEDOL per 1 USDC?
     let kedologPerUsdc: number;
     if (isKedologToken0) {
-      // KEDOLOG is token0, USDC is token1
+      // KEDOL is token0, USDC is token1
       // Price = token0_amount / token1_amount (adjusted for decimals)
       kedologPerUsdc = (token0Amount / Math.pow(10, token0Decimals)) / (token1Amount / Math.pow(10, token1Decimals));
     } else {
-      // USDC is token0, KEDOLOG is token1
+      // USDC is token0, KEDOL is token1
       // Price = token1_amount / token0_amount (adjusted for decimals)
       kedologPerUsdc = (token1Amount / Math.pow(10, token1Decimals)) / (token0Amount / Math.pow(10, token0Decimals));
     }
 
     console.log("💵 Calculated Price:");
-    console.log(`   1 USDC = ${kedologPerUsdc.toFixed(6)} KEDOLOG`);
-    console.log(`   1 KEDOLOG = ${(1 / kedologPerUsdc).toFixed(6)} USDC`);
+    console.log(`   1 USDC = ${kedologPerUsdc.toFixed(6)} KEDOL`);
+    console.log(`   1 KEDOL = ${(1 / kedologPerUsdc).toFixed(6)} USDC`);
     console.log("");
 
     // Convert to protocol_token_per_usd format (scaled by 10^6)
-    // This represents: how many KEDOLOG tokens (in smallest units) per 1 USD
+    // This represents: how many KEDOL tokens (in smallest units) per 1 USD
     const protocolTokenPerUsd = Math.floor(kedologPerUsdc * 1_000_000);
 
     console.log("🔢 For Contract:");
     console.log(`   protocol_token_per_usd: ${protocolTokenPerUsd}`);
-    console.log(`   (This means: ${kedologPerUsdc.toFixed(6)} KEDOLOG per 1 USD)`);
+    console.log(`   (This means: ${kedologPerUsdc.toFixed(6)} KEDOL per 1 USD)`);
     console.log("");
 
     // Ask if user wants to update
@@ -167,13 +167,13 @@ async function main() {
       console.log("");
 
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-      console.log("✅ SUCCESS! KEDOLOG price updated!");
+      console.log("✅ SUCCESS! KEDOL price updated!");
       console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log("");
       console.log("🎯 What This Means:");
-      console.log(`   • When users swap, they can pay protocol fees with KEDOLOG`);
+      console.log(`   • When users swap, they can pay protocol fees with KEDOL`);
       console.log(`   • They get a ${updatedConfig.discountRate.toNumber() / 100}% discount`);
-      console.log(`   • The contract uses this price: 1 USD = ${kedologPerUsdc.toFixed(6)} KEDOLOG`);
+      console.log(`   • The contract uses this price: 1 USD = ${kedologPerUsdc.toFixed(6)} KEDOL`);
       console.log(`   • This is OPTIONAL - users choose at swap time`);
       console.log("");
       console.log("💡 TIP: Run this script periodically to update the price!");
@@ -191,7 +191,7 @@ async function main() {
     console.error("❌ Error fetching pool data:", error.message || error);
     console.error("");
     console.error("💡 Make sure:");
-    console.error("   1. You've created the KEDOLOG/USDC pool");
+    console.error("   1. You've created the KEDOL/USDC pool");
     console.error("   2. The pool has liquidity");
     console.error("   3. You're connected to the correct network");
     process.exit(1);

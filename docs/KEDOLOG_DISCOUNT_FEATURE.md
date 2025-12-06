@@ -1,8 +1,8 @@
-# 🎯 KEDOLOG DISCOUNT FEATURE - COMPLETE GUIDE
+# 🎯 KEDOL DISCOUNT FEATURE - COMPLETE GUIDE
 
 ## ✅ **GREAT NEWS: This Feature is ALREADY Built Into Your Code!**
 
-You asked: *"If I want to implement logic where users get a discount by paying fees with KEDOLOG token, can I update it for all pools (existing and new)?"*
+You asked: *"If I want to implement logic where users get a discount by paying fees with KEDOL token, can I update it for all pools (existing and new)?"*
 
 **Answer: YES! ✅ This feature is already implemented and can be activated for ALL pools!**
 
@@ -36,9 +36,9 @@ This means:
 
 | Setting | Description | Can Update? |
 |---------|-------------|-------------|
-| **Discount Rate** | % discount when paying with KEDOLOG | ✅ YES |
-| **KEDOLOG Price** | How many KEDOLOG per $1 USD | ✅ YES |
-| **Treasury Address** | Where KEDOLOG fees go | ✅ YES |
+| **Discount Rate** | % discount when paying with KEDOL | ✅ YES |
+| **KEDOL Price** | How many KEDOL per $1 USD | ✅ YES |
+| **Treasury Address** | Where KEDOL fees go | ✅ YES |
 | **Enable/Disable** | Turn feature on/off | ✅ YES |
 
 ### **❌ Cannot Update for Existing Pools:**
@@ -55,7 +55,7 @@ This means:
 
 ### **Scenario: User Swaps 100 SOL**
 
-**Without KEDOLOG (Normal):**
+**Without KEDOL (Normal):**
 ```
 Swap: 100 SOL
 Trade Fee: 0.25 SOL
@@ -63,7 +63,7 @@ Protocol Fee (YOU): 0.05 SOL
 User pays: 0.25 SOL in regular tokens
 ```
 
-**With KEDOLOG (20% Discount):**
+**With KEDOL (20% Discount):**
 ```
 Swap: 100 SOL
 Trade Fee: 0.25 SOL
@@ -71,7 +71,7 @@ Protocol Fee (YOU): 0.05 SOL
 
 Discount Applied: 20% off protocol fee
 Discounted Fee: 0.04 SOL worth
-User pays: 0.4 KEDOLOG (if 1 KEDOLOG = $10, 1 SOL = $100)
+User pays: 0.4 KEDOL (if 1 KEDOL = $10, 1 SOL = $100)
 
 Savings: 0.01 SOL worth = $1 saved! 🎉
 ```
@@ -88,10 +88,10 @@ This is a ONE-TIME setup that applies to ALL pools:
 // Create the global config
 await program.methods
   .createProtocolTokenConfig(
-    kedologMint,              // Your KEDOLOG token
+    kedologMint,              // Your KEDOL token
     new anchor.BN(2000),      // 20% discount (2000 / 10000)
-    treasuryAddress,          // Where KEDOLOG fees go
-    new anchor.BN(10_000_000) // 1 USD = 10 KEDOLOG
+    treasuryAddress,          // Where KEDOL fees go
+    new anchor.BN(10_000_000) // 1 USD = 10 KEDOL
   )
   .accounts({
     authority: adminWallet.publicKey,
@@ -101,7 +101,7 @@ await program.methods
   .rpc();
 ```
 
-### **Step 2: Users Swap with KEDOLOG**
+### **Step 2: Users Swap with KEDOL**
 
 Users call a different swap function:
 
@@ -112,7 +112,7 @@ await program.methods
   .accounts({ /* ... */ })
   .rpc();
 
-// Swap with KEDOLOG discount
+// Swap with KEDOL discount
 await program.methods
   .swapBaseInputWithProtocolToken(amountIn, minAmountOut)
   .accounts({
@@ -150,15 +150,15 @@ await program.methods
 // ✅ ALL pools now have 25% discount immediately!
 ```
 
-### **Update KEDOLOG Price:**
+### **Update KEDOL Price:**
 
 ```typescript
-// Update price: 1 USD = 20 KEDOLOG (was 10)
+// Update price: 1 USD = 20 KEDOL (was 10)
 await program.methods
   .updateProtocolTokenConfig(
     null,                      // Don't change discount
     null,                      // Don't change treasury
-    new anchor.BN(20_000_000), // 1 USD = 20 KEDOLOG
+    new anchor.BN(20_000_000), // 1 USD = 20 KEDOL
     null                       // Don't change authority
   )
   .rpc();
@@ -181,14 +181,14 @@ await program.methods
 5000  = 50% discount
 ```
 
-### **Price Ratio (KEDOLOG per USD)**
+### **Price Ratio (KEDOL per USD)**
 
 ```typescript
 // Format: tokens_per_usd * 1_000_000
-10_000_000   = 1 USD = 10 KEDOLOG
-20_000_000   = 1 USD = 20 KEDOLOG
-100_000_000  = 1 USD = 100 KEDOLOG
-1_000_000    = 1 USD = 1 KEDOLOG
+10_000_000   = 1 USD = 10 KEDOL
+20_000_000   = 1 USD = 20 KEDOL
+100_000_000  = 1 USD = 100 KEDOL
+1_000_000    = 1 USD = 1 KEDOL
 ```
 
 ---
@@ -201,7 +201,7 @@ I've created a script for you:
 cd /home/ubuntu/raydium-cp-swap
 ```
 
-Create `scripts/activate-kedolog-discount.ts`:
+Create `scripts/activate-kedol-discount.ts`:
 
 ```typescript
 import * as anchor from "@coral-xyz/anchor";
@@ -220,7 +220,7 @@ async function main() {
   // Configuration
   const KEDOLOG_MINT = new PublicKey("22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx");
   const DISCOUNT_RATE = 2000; // 20%
-  const KEDOLOG_PER_USD = 10_000_000; // 1 USD = 10 KEDOLOG
+  const KEDOLOG_PER_USD = 10_000_000; // 1 USD = 10 KEDOL
 
   // Derive PDA
   const [protocolTokenConfigAddress] = PublicKey.findProgramAddressSync(
@@ -244,7 +244,7 @@ async function main() {
     })
     .rpc();
 
-  console.log("✅ KEDOLOG discount activated!");
+  console.log("✅ KEDOL discount activated!");
   console.log("Transaction:", tx);
   console.log("Config Address:", protocolTokenConfigAddress.toString());
 }
@@ -256,7 +256,7 @@ main();
 
 ## 💻 **FRONTEND INTEGRATION**
 
-### **Step 1: Check if User Has KEDOLOG**
+### **Step 1: Check if User Has KEDOL**
 
 ```typescript
 const userKedologBalance = await connection.getTokenAccountBalance(
@@ -277,7 +277,7 @@ const hasKedolog = userKedologBalance.value.uiAmount > 0;
       onChange={(e) => setUseKedolog(e.target.checked)}
     />
     <label>
-      Pay fees with KEDOLOG (Save 20%! 🎉)
+      Pay fees with KEDOL (Save 20%! 🎉)
     </label>
   </div>
 )}
@@ -287,7 +287,7 @@ const hasKedolog = userKedologBalance.value.uiAmount > 0;
 
 ```typescript
 if (useKedolog) {
-  // Swap with KEDOLOG discount
+  // Swap with KEDOL discount
   await program.methods
     .swapBaseInputWithProtocolToken(amountIn, minAmountOut)
     .accounts({
@@ -325,24 +325,24 @@ if (useKedolog) {
     {useKedolog ? (
       <div className="discount-active">
         Protocol Fee: <strike>0.05%</strike> 0.04% 
-        <span className="badge">20% OFF with KEDOLOG</span>
+        <span className="badge">20% OFF with KEDOL</span>
       </div>
     ) : (
       <div>Protocol Fee: 0.05%</div>
     )}
   </div>
   
-  {/* KEDOLOG Option */}
+  {/* KEDOL Option */}
   {hasKedolog && (
-    <label className="kedolog-option">
+    <label className="kedol-option">
       <input 
         type="checkbox" 
         checked={useKedolog}
         onChange={(e) => setUseKedolog(e.target.checked)}
       />
-      <span>Pay with KEDOLOG & save 20%</span>
+      <span>Pay with KEDOL & save 20%</span>
       <span className="balance">
-        Balance: {kedologBalance} KEDOLOG
+        Balance: {kedologBalance} KEDOL
       </span>
     </label>
   )}
@@ -360,7 +360,7 @@ if (useKedolog) {
 ```
 Protocol Token Config
 ├─ Discount Rate ✅ (update anytime)
-├─ KEDOLOG Price ✅ (update anytime)
+├─ KEDOL Price ✅ (update anytime)
 ├─ Treasury ✅ (update anytime)
 └─ Authority ✅ (update anytime)
 
@@ -384,7 +384,7 @@ Effect: Only for new pools
 ## ✅ **SUMMARY**
 
 ### **Your Question:**
-> "Can I implement KEDOLOG discount logic that applies to all pools (existing and new)?"
+> "Can I implement KEDOL discount logic that applies to all pools (existing and new)?"
 
 ### **Answer:**
 **YES! ✅** The feature is already built and works like this:
@@ -396,7 +396,7 @@ Effect: Only for new pools
 
 ### **What You CAN Update Globally:**
 - ✅ Discount rate (10%, 20%, 30%, etc.)
-- ✅ KEDOLOG price ratio
+- ✅ KEDOL price ratio
 - ✅ Treasury address
 - ✅ Enable/disable feature
 
@@ -413,10 +413,10 @@ Run this command when ready:
 
 ```bash
 cd /home/ubuntu/raydium-cp-swap
-ANCHOR_WALLET=~/.config/solana/id.json npx ts-node scripts/activate-kedolog-discount.ts
+ANCHOR_WALLET=~/.config/solana/id.json npx ts-node scripts/activate-kedol-discount.ts
 ```
 
-**This will enable KEDOLOG discounts for ALL your pools!** 🎉
+**This will enable KEDOL discounts for ALL your pools!** 🎉
 
 ---
 

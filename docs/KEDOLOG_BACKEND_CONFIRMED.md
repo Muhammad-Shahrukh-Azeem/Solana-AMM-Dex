@@ -1,8 +1,8 @@
-# ✅ KEDOLOG Discount Backend - CONFIRMED WORKING!
+# ✅ KEDOL Discount Backend - CONFIRMED WORKING!
 
 ## 🎉 Backend Configuration Status: FULLY OPERATIONAL
 
-The backend configuration for the KEDOLOG discount feature has been **verified and is working correctly**!
+The backend configuration for the KEDOL discount feature has been **verified and is working correctly**!
 
 ---
 
@@ -10,9 +10,9 @@ The backend configuration for the KEDOLOG discount feature has been **verified a
 
 ```
 ✅ Protocol Token Config Address: 7ZRkzDLJQkhYvoyKKJXHjk1qy1ArKtX8iqbNF7F4sETv
-✅ Protocol Token Mint (KEDOLOG):  22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
+✅ Protocol Token Mint (KEDOL):  22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
 ✅ Discount Rate:                  2000 (20%)
-✅ Protocol Token Per USD:         10,000,000 (10 KEDOLOG per 1 USD)
+✅ Protocol Token Per USD:         10,000,000 (10 KEDOL per 1 USD)
 ✅ Authority:                      JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa
 ```
 
@@ -42,22 +42,22 @@ console.log("Protocol Token Per USD:", config.protocolTokenPerUsd.toString());
 // Protocol Token Per USD: 10000000
 ```
 
-### 2. **User Doesn't Have Enough KEDOLOG**
+### 2. **User Doesn't Have Enough KEDOL**
 
-The swap will fail if the user doesn't have enough KEDOLOG tokens to pay the discounted fee.
+The swap will fail if the user doesn't have enough KEDOL tokens to pay the discounted fee.
 
 **Frontend should check:**
 ```typescript
-// Calculate required KEDOLOG
+// Calculate required KEDOL
 const protocolFeeInUSD = (swapAmount * 0.0004); // 0.04% of swap
-const kedologNeeded = protocolFeeInUSD * 10; // 10 KEDOLOG per USD
+const kedologNeeded = protocolFeeInUSD * 10; // 10 KEDOL per USD
 
 // Check user balance
 const userKedologBalance = await getKedologBalance(userWallet);
 
 if (userKedologBalance < kedologNeeded) {
   // Don't show discount option or show error
-  console.error("Insufficient KEDOLOG for discount");
+  console.error("Insufficient KEDOL for discount");
 }
 ```
 
@@ -66,7 +66,7 @@ if (userKedologBalance < kedologNeeded) {
 Make sure the frontend is calling the correct instruction:
 
 ```typescript
-// For KEDOLOG discount:
+// For KEDOL discount:
 await program.methods
   .swapBaseInputWithProtocolToken(
     new BN(amountIn),
@@ -87,7 +87,7 @@ await program.methods
     outputTokenMint: outputMint,
     observationState: observationPubkey,
     
-    // KEDOLOG-specific accounts:
+    // KEDOL-specific accounts:
     protocolTokenConfig: PROTOCOL_TOKEN_CONFIG,
     protocolTokenUserAccount: userKedologAccount,
     protocolTokenTreasury: treasuryKedologAccount,
@@ -102,9 +102,9 @@ await program.methods
 The `swap_base_input_with_protocol_token` instruction requires these additional accounts:
 
 - `protocol_token_config` - The config account (7ZRkzDLJQkhYvoyKKJXHjk1qy1ArKtX8iqbNF7F4sETv)
-- `protocol_token_user_account` - User's KEDOLOG token account
-- `protocol_token_treasury` - Treasury's KEDOLOG token account
-- `protocol_token_mint` - KEDOLOG mint (22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx)
+- `protocol_token_user_account` - User's KEDOL token account
+- `protocol_token_treasury` - Treasury's KEDOL token account
+- `protocol_token_mint` - KEDOL mint (22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx)
 - `protocol_token_program` - Token program
 
 ---
@@ -122,7 +122,7 @@ Should show account with 193 bytes of data.
 ### Test 2: Decode Config Values
 
 ```bash
-npx ts-node scripts/fetch-kedolog-price-from-pool.ts
+npx ts-node scripts/fetch-kedol-price-from-pool.ts
 ```
 
 Should show:
@@ -131,14 +131,14 @@ Should show:
 ✅ Discount Rate: 2000 (20%)
 ```
 
-### Test 3: Check KEDOLOG Pool
+### Test 3: Check KEDOL Pool
 
 ```bash
-# Your KEDOLOG/USDC pool
+# Your KEDOL/USDC pool
 solana account AGse7A8VPuQzLiuquTpV4Mg6NJLPQn8BxCPDWuqrFMez --url devnet
 ```
 
-Should show the pool with liquidity (1000 KEDOLOG + 100 USDC).
+Should show the pool with liquidity (1000 KEDOL + 100 USDC).
 
 ---
 
@@ -150,20 +150,20 @@ When the frontend shows an error, check:
    - Address: `7ZRkzDLJQkhYvoyKKJXHjk1qy1ArKtX8iqbNF7F4sETv`
    - Should have `protocolTokenPerUsd = 10000000`
 
-2. ✅ **Does the user have KEDOLOG?**
-   - Check user's KEDOLOG token account balance
+2. ✅ **Does the user have KEDOL?**
+   - Check user's KEDOL token account balance
    - Calculate if they have enough for the fee
 
 3. ✅ **Are all accounts provided?**
-   - Check that all 5 KEDOLOG-specific accounts are in the instruction
+   - Check that all 5 KEDOL-specific accounts are in the instruction
 
 4. ✅ **Is the correct instruction being called?**
    - Should be `swap_base_input_with_protocol_token`
    - NOT `swap_base_input`
 
 5. ✅ **Are the token accounts initialized?**
-   - User's KEDOLOG account must exist
-   - Treasury's KEDOLOG account must exist
+   - User's KEDOL account must exist
+   - Treasury's KEDOL account must exist
 
 ---
 
@@ -184,10 +184,10 @@ if (config.protocolTokenPerUsd.gt(new BN(0))) {
 }
 ```
 
-### ❌ Mistake 2: Not creating user's KEDOLOG account
+### ❌ Mistake 2: Not creating user's KEDOL account
 
 ```typescript
-// User needs a KEDOLOG token account
+// User needs a KEDOL token account
 const userKedologAccount = await getOrCreateAssociatedTokenAccount(
   connection,
   userWallet,
@@ -213,17 +213,17 @@ const treasuryKedologAccount = await getAssociatedTokenAddress(
 
 When everything is configured correctly:
 
-1. **User initiates swap with KEDOLOG discount**
+1. **User initiates swap with KEDOL discount**
 2. **Contract calculates:**
    - Swap amount: 100 SOL
    - Protocol fee (0.04%): 0.04 SOL worth
-   - At 10 KEDOLOG per USD, if SOL = $150:
+   - At 10 KEDOL per USD, if SOL = $150:
    - 0.04 SOL = $6
-   - Required KEDOLOG: 60 tokens
+   - Required KEDOL: 60 tokens
 
 3. **Contract executes:**
-   - Deducts 60 KEDOLOG from user
-   - Sends 60 KEDOLOG to treasury
+   - Deducts 60 KEDOL from user
+   - Sends 60 KEDOL to treasury
    - User receives 99.80 SOL worth of output tokens
 
 4. **User saves 0.01% compared to normal swap!**
@@ -234,7 +234,7 @@ When everything is configured correctly:
 
 ✅ **Backend is 100% configured and working**  
 ✅ **Discount rate: 20%**  
-✅ **Price: 10 KEDOLOG per 1 USD**  
+✅ **Price: 10 KEDOL per 1 USD**  
 ✅ **All accounts exist and have correct data**  
 
 **If the frontend is showing errors, it's a frontend integration issue, not a backend configuration problem.**
@@ -246,7 +246,7 @@ When everything is configured correctly:
 Check these files:
 - `KEDOLOG_DISCOUNT_GUIDE.md` - Complete feature guide
 - `FRONTEND_UPDATE_GUIDE.md` - Frontend integration instructions
-- `scripts/fetch-kedolog-price-from-pool.ts` - Price update script
+- `scripts/fetch-kedol-price-from-pool.ts` - Price update script
 
 ---
 

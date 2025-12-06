@@ -91,9 +91,9 @@ async function main() {
   
   console.log('📋 Deployment Plan:');
   console.log('   AMM Config (index', CONFIG_INDEX + '):', ammConfig.toString());
-  console.log('   KEDOLOG Config:', protocolTokenConfig.toString());
+  console.log('   KEDOL Config:', protocolTokenConfig.toString());
   console.log('   Pool Creation Fee: 1 SOL');
-  console.log('   KEDOLOG Discount: 25%');
+  console.log('   KEDOL Discount: 25%');
   console.log('   Treasury:', TREASURY.toString());
   console.log('');
   
@@ -141,18 +141,18 @@ async function main() {
   }
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // Check and handle KEDOLOG Config
+  // Check and handle KEDOL Config
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🔄 Checking KEDOLOG Config...');
+  console.log('🔄 Checking KEDOL Config...');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   
   let needsNewKedologConfig = false;
   
   try {
     const existingConfig: any = await (program.account as any).protocolTokenConfig.fetch(protocolTokenConfig);
-    console.log('⚠️  KEDOLOG Config already exists!');
+    console.log('⚠️  KEDOL Config already exists!');
     console.log('   Token Mint:', existingConfig.protocolTokenMint.toString());
     console.log('   Discount Rate:', (existingConfig.discountRate.toNumber() / 100), '%');
     console.log('   Treasury:', existingConfig.treasury.toString());
@@ -163,14 +163,14 @@ async function main() {
     console.log('   To deploy fresh, you need to either:');
     console.log('   1. Use the existing config (recommended)');
     console.log('   2. Deploy a completely new program with new program ID');
-    console.log('\n✅ Using existing KEDOLOG config');
+    console.log('\n✅ Using existing KEDOL config');
     
   } catch (e) {
     needsNewKedologConfig = true;
   }
   
   if (needsNewKedologConfig) {
-    console.log('✅ No existing KEDOLOG config found. Creating new one...\n');
+    console.log('✅ No existing KEDOL config found. Creating new one...\n');
     
     try {
       const kedologTx = await (program.methods as any)
@@ -186,7 +186,7 @@ async function main() {
         })
         .rpc();
       
-      console.log('✅ KEDOLOG Config created!');
+      console.log('✅ KEDOL Config created!');
       console.log('   Transaction:', kedologTx);
       console.log('   Explorer:', `https://explorer.solana.com/tx/${kedologTx}?cluster=${NETWORK}`);
       
@@ -200,7 +200,7 @@ async function main() {
       console.log('   Price Pool:', kedologConfig.pricePool.toString(), '(not set yet)');
       
     } catch (error: any) {
-      console.error('\n❌ Failed to create KEDOLOG config:', error.message);
+      console.error('\n❌ Failed to create KEDOL config:', error.message);
       if (error.logs) console.error('Logs:', error.logs);
       process.exit(1);
     }
@@ -254,13 +254,13 @@ async function main() {
   console.log('   Program ID:', PROGRAM_ID.toString());
   console.log('   AMM Config (NEW):', ammConfig.toString());
   console.log('   AMM Config Index:', CONFIG_INDEX);
-  console.log('   KEDOLOG Config:', protocolTokenConfig.toString());
+  console.log('   KEDOL Config:', protocolTokenConfig.toString());
   console.log('   Pool Creation Fee: 1 SOL');
-  console.log('   KEDOLOG Discount: 25%');
+  console.log('   KEDOL Discount: 25%');
   
   console.log('\n📝 Next Steps:');
-  console.log('   1. Create KEDOLOG/USDC pool from frontend using AMM config:', ammConfig.toString());
-  console.log('   2. Run: npx ts-node scripts/set-kedolog-price-pool.ts');
+  console.log('   1. Create KEDOL/USDC pool from frontend using AMM config:', ammConfig.toString());
+  console.log('   2. Run: npx ts-node scripts/set-kedol-price-pool.ts');
   console.log('   3. Enter your pool address to enable pool-based pricing');
   
   console.log('\n🎉 Ready to create pools!');

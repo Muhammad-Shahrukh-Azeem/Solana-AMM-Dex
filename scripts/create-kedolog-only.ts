@@ -27,7 +27,7 @@ async function main() {
     PROGRAM_ID
   );
   
-  console.log('🔄 Creating KEDOLOG Config...\n');
+  console.log('🔄 Creating KEDOL Config...\n');
   console.log('Program ID:', PROGRAM_ID.toString());
   console.log('Config Address:', protocolTokenConfig.toString());
   console.log('');
@@ -49,7 +49,7 @@ async function main() {
     })
     .rpc();
   
-  console.log('✅ KEDOLOG Config created!');
+  console.log('✅ KEDOL Config created!');
   console.log('Transaction:', kedologTx);
   console.log('Explorer:', `https://explorer.solana.com/tx/${kedologTx}?cluster=devnet`);
   console.log('');
@@ -59,9 +59,9 @@ async function main() {
   console.log('');
   console.log('Program ID:', PROGRAM_ID.toString());
   console.log('AMM Config: 7hiyWmzAH1Shp9aC5DVeeM8hoie5ZzLen83SuDh9jvfE');
-  console.log('KEDOLOG Config:', protocolTokenConfig.toString());
+  console.log('KEDOL Config:', protocolTokenConfig.toString());
   console.log('');
-  console.log('Next: Create KEDOLOG/USDC pool from frontend');
+  console.log('Next: Create KEDOL/USDC pool from frontend');
 }
 
 main().catch(console.error);

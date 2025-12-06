@@ -141,13 +141,13 @@ fn get_token_price_in_quote<'info>(
     Ok(price)
 }
 
-/// Get KEDOLOG price in USDC from KEDOLOG/USDC pool
+/// Get KEDOL price in USDC from KEDOL/USDC pool
 fn get_kedolog_usdc_price<'info>(
     kedolog_vault: &AccountInfo<'info>,
     usdc_vault: &AccountInfo<'info>,
     kedolog_mint: &Pubkey,
 ) -> Result<u128> {
-    msg!("Fetching KEDOLOG/USDC price");
+    msg!("Fetching KEDOL/USDC price");
     
     // Read vault data - these should be reference pool vaults
     let vault_0_data = kedolog_vault.try_borrow_data()
@@ -158,29 +158,29 @@ fn get_kedolog_usdc_price<'info>(
     let vault_0_account = TokenAccount::try_deserialize(&mut &vault_0_data[..])?;
     let vault_1_account = TokenAccount::try_deserialize(&mut &vault_1_data[..])?;
     
-    // Determine which vault is KEDOLOG and which is USDC
+    // Determine which vault is KEDOL and which is USDC
     let (kedolog_reserve, usdc_reserve) = if vault_0_account.mint == *kedolog_mint {
-        msg!("KEDOLOG is vault 0, USDC is vault 1");
+        msg!("KEDOL is vault 0, USDC is vault 1");
         (vault_0_account.amount, vault_1_account.amount)
     } else if vault_1_account.mint == *kedolog_mint {
-        msg!("KEDOLOG is vault 1, USDC is vault 0");
+        msg!("KEDOL is vault 1, USDC is vault 0");
         (vault_1_account.amount, vault_0_account.amount)
     } else {
-        msg!("ERROR: Neither vault matches KEDOLOG mint");
+        msg!("ERROR: Neither vault matches KEDOL mint");
         return Err(ErrorCode::InvalidInput.into());
     };
     
     require_gt!(kedolog_reserve, 0, ErrorCode::InvalidInput);
     require_gt!(usdc_reserve, 0, ErrorCode::InvalidInput);
     
-    msg!("KEDOLOG reserve: {}, USDC reserve: {}", kedolog_reserve, usdc_reserve);
+    msg!("KEDOL reserve: {}, USDC reserve: {}", kedolog_reserve, usdc_reserve);
     
-    // Price of KEDOLOG in USDC
-    // KEDOLOG has 9 decimals, USDC has 6 decimals
+    // Price of KEDOL in USDC
+    // KEDOL has 9 decimals, USDC has 6 decimals
     let price = (usdc_reserve as u128)
         .checked_mul(PRICE_SCALE)
         .ok_or(ErrorCode::MathOverflow)?
-        .checked_mul(10u128.pow(9))  // KEDOLOG decimals
+        .checked_mul(10u128.pow(9))  // KEDOL decimals
         .ok_or(ErrorCode::MathOverflow)?
         .checked_div(
             (kedolog_reserve as u128)
@@ -189,7 +189,7 @@ fn get_kedolog_usdc_price<'info>(
         )
         .ok_or(ErrorCode::MathOverflow)?;
     
-    msg!("KEDOLOG price in USDC: {}", price);
+    msg!("KEDOL price in USDC: {}", price);
     
     Ok(price)
 }
@@ -248,9 +248,9 @@ fn get_sol_usdc_price(
 
 /// Calculate protocol token amount needed to pay fee
 /// 
-/// This is the main entry point for KEDOLOG fee calculation.
+/// This is the main entry point for KEDOL fee calculation.
 /// It automatically detects the token pair and calculates the USD value,
-/// then converts to KEDOLOG amount.
+/// then converts to KEDOL amount.
 /// 
 /// # Arguments
 /// * `fee_amount_in_input_token` - The fee amount in input token units
@@ -258,9 +258,9 @@ fn get_sol_usdc_price(
 /// * `input_token_decimals` - Decimals of input token
 /// * `output_token_mint` - The mint of the output token
 /// * `output_token_decimals` - Decimals of output token
-/// * `protocol_token_config` - The KEDOLOG config with reference pools
-/// * `protocol_token_decimals` - KEDOLOG decimals (9)
-/// * `kedolog_usdc_pool` - KEDOLOG/USDC pool account (contract reads vaults)
+/// * `protocol_token_config` - The KEDOL config with reference pools
+/// * `protocol_token_decimals` - KEDOL decimals (9)
+/// * `kedolog_usdc_pool` - KEDOL/USDC pool account (contract reads vaults)
 /// * `sol_usdc_pool` - SOL/USDC pool account (optional, contract reads vaults)
 pub fn calculate_protocol_token_amount<'info>(
     fee_amount_in_input_token: u64,
@@ -277,7 +277,7 @@ pub fn calculate_protocol_token_amount<'info>(
     current_pool_input_vault_amount: Option<u64>,
     current_pool_output_vault_amount: Option<u64>,
 ) -> Result<u64> {
-    msg!("=== KEDOLOG Fee Calculation ===");
+    msg!("=== KEDOL Fee Calculation ===");
     msg!("Fee amount in input token: {}", fee_amount_in_input_token);
     msg!("Input token mint: {}", input_token_mint);
     msg!("Output token mint: {}", output_token_mint);
@@ -285,7 +285,7 @@ pub fn calculate_protocol_token_amount<'info>(
     let sol_mint = Pubkey::try_from(SOL_MINT).unwrap();
     let usdc_mint = protocol_token_config.usdc_mint;
     
-    // Verify KEDOLOG/USDC pool matches config
+    // Verify KEDOL/USDC pool matches config
     require!(kedolog_usdc_pool.key() == protocol_token_config.kedolog_usdc_pool, ErrorCode::InvalidInput);
     
     // Get vault accounts from remaining_accounts
@@ -296,13 +296,13 @@ pub fn calculate_protocol_token_amount<'info>(
     let kedolog_usdc_vault_1 = &remaining_accounts[1];
     
     // Determine the token pair type and calculate USD value
-    // Special case: If input token IS the protocol token (KEDOLOG), no conversion needed!
+    // Special case: If input token IS the protocol token (KEDOL), no conversion needed!
     if *input_token_mint == protocol_token_config.protocol_token_mint {
-        // Case 0: Input is KEDOLOG - fee is already in KEDOLOG!
-        msg!("Case 0: Input token is KEDOLOG - fee already in protocol token, no conversion needed");
-        msg!("KEDOLOG fee amount (direct): {}", fee_amount_in_input_token);
+        // Case 0: Input is KEDOL - fee is already in KEDOL!
+        msg!("Case 0: Input token is KEDOL - fee already in protocol token, no conversion needed");
+        msg!("KEDOL fee amount (direct): {}", fee_amount_in_input_token);
         
-        // The fee is already in KEDOLOG, just verify it's non-zero and return it
+        // The fee is already in KEDOL, just verify it's non-zero and return it
         require_gt!(fee_amount_in_input_token, 0, ErrorCode::InvalidInput);
         
         msg!("=== End Calculation (direct return) ===");
@@ -358,7 +358,7 @@ pub fn calculate_protocol_token_amount<'info>(
             fee_usd
         } else {
             // Normal case: Read SOL price from SOL/USDC pool vaults
-            // remaining_accounts format: [0-1] = KEDOLOG/USDC vaults, [2-3] = SOL/USDC vaults
+            // remaining_accounts format: [0-1] = KEDOL/USDC vaults, [2-3] = SOL/USDC vaults
             require!(remaining_accounts.len() >= 4, ErrorCode::InvalidInput);
             
             let sol_usdc_vault_0 = &remaining_accounts[2];
@@ -398,8 +398,8 @@ pub fn calculate_protocol_token_amount<'info>(
         // Check if input token has a USDC or SOL pool
         msg!("Case 3: Checking for intermediate hop via USDC or SOL");
         
-        // We need at least 6 accounts for 1-hop: [kedolog pool (3), intermediate pool (3)]
-        // If we have 9 accounts, we have: [kedolog pool (3), intermediate pool (3), final pool (3)]
+        // We need at least 6 accounts for 1-hop: [kedol pool (3), intermediate pool (3)]
+        // If we have 9 accounts, we have: [kedol pool (3), intermediate pool (3), final pool (3)]
         
         if remaining_accounts.len() >= 4 {
             // We have an intermediate pool provided
@@ -587,17 +587,17 @@ pub fn calculate_protocol_token_amount<'info>(
     msg!("Fee value in USD (scaled): {}", fee_value_in_usd);
     msg!("PRICE_SCALE: {}", PRICE_SCALE);
     
-    // Get KEDOLOG price in USDC
+    // Get KEDOL price in USDC
     let kedolog_price_usd = get_kedolog_usdc_price(
         kedolog_usdc_vault_0,
         kedolog_usdc_vault_1,
         &protocol_token_config.protocol_token_mint,
     )?;
     
-    msg!("KEDOLOG price in USD (scaled): {}", kedolog_price_usd);
+    msg!("KEDOL price in USD (scaled): {}", kedolog_price_usd);
     msg!("Protocol token decimals: {}", protocol_token_decimals);
     
-    // Calculate KEDOLOG amount needed
+    // Calculate KEDOL amount needed
     // Both fee_value_in_usd and kedolog_price_usd are scaled by PRICE_SCALE
     // kedolog_amount = (fee_usd_scaled * 10^kedolog_decimals) / kedolog_price_scaled
     let intermediate = fee_value_in_usd
@@ -610,7 +610,7 @@ pub fn calculate_protocol_token_amount<'info>(
         .checked_div(kedolog_price_usd)
         .ok_or(ErrorCode::MathOverflow)?;
     
-    msg!("KEDOLOG amount (raw): {}", kedolog_amount);
+    msg!("KEDOL amount (raw): {}", kedolog_amount);
     
     // Convert to u64
     let result = u64::try_from(kedolog_amount)
@@ -618,7 +618,7 @@ pub fn calculate_protocol_token_amount<'info>(
     
     require_gt!(result, 0, ErrorCode::InvalidInput);
     
-    msg!("KEDOLOG amount required (final): {}", result);
+    msg!("KEDOL amount required (final): {}", result);
     msg!("=== End Calculation ===");
     
     Ok(result)
@@ -630,8 +630,8 @@ mod tests {
     
     #[test]
     fn test_price_calculation() {
-        // Test case: 0.05 SOL fee, SOL = $200, KEDOLOG = $0.0017
-        // Expected: 0.05 * 200 / 0.0017 ≈ 5882 KEDOLOG
+        // Test case: 0.05 SOL fee, SOL = $200, KEDOL = $0.0017
+        // Expected: 0.05 * 200 / 0.0017 ≈ 5882 KEDOL
         
         let fee_amount = 50_000_000; // 0.05 SOL (9 decimals)
         let sol_price = 200 * PRICE_SCALE; // $200
@@ -654,7 +654,7 @@ mod tests {
             .checked_div(kedolog_price)
             .unwrap();
         
-        assert!(kedolog_amount > 5_000_000_000); // Should be around 5882 KEDOLOG
+        assert!(kedolog_amount > 5_000_000_000); // Should be around 5882 KEDOL
         assert!(kedolog_amount < 6_000_000_000);
     }
 }

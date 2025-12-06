@@ -39,21 +39,21 @@ function question(query: string): Promise<string> {
 
 async function main() {
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🔧 Set KEDOLOG Price Pool');
+  console.log('🔧 Set KEDOL Price Pool');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   console.log('');
   console.log('Usage:');
-  console.log('  npx ts-node scripts/set-kedolog-price-pool.ts [POOL_ADDRESS] [--program-id PROGRAM_ID]');
+  console.log('  npx ts-node scripts/set-kedol-price-pool.ts [POOL_ADDRESS] [--program-id PROGRAM_ID]');
   console.log('');
   console.log('Examples:');
   console.log('  # Interactive mode (will prompt for pool address):');
-  console.log('  npx ts-node scripts/set-kedolog-price-pool.ts');
+  console.log('  npx ts-node scripts/set-kedol-price-pool.ts');
   console.log('');
   console.log('  # With pool address:');
-  console.log('  npx ts-node scripts/set-kedolog-price-pool.ts H3dg1Je7wA4tGmtLxrQcsFUBnVKth2dNUGPceC1Jiuus');
+  console.log('  npx ts-node scripts/set-kedol-price-pool.ts H3dg1Je7wA4tGmtLxrQcsFUBnVKth2dNUGPceC1Jiuus');
   console.log('');
   console.log('  # With custom program ID:');
-  console.log('  npx ts-node scripts/set-kedolog-price-pool.ts H3dg1Je7... --program-id 2LVtzKZ7...');
+  console.log('  npx ts-node scripts/set-kedol-price-pool.ts H3dg1Je7... --program-id 2LVtzKZ7...');
   console.log('');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   
@@ -78,7 +78,7 @@ async function main() {
     const programIdMatch = anchorToml.match(/kedolik_cp_swap = "([A-Za-z0-9]+)"/);
     if (!programIdMatch) {
       console.error('❌ Could not find program ID in Anchor.toml');
-      console.error('💡 Usage: npx ts-node scripts/set-kedolog-price-pool.ts [POOL_ADDRESS] [--program-id PROGRAM_ID]');
+      console.error('💡 Usage: npx ts-node scripts/set-kedol-price-pool.ts [POOL_ADDRESS] [--program-id PROGRAM_ID]');
       process.exit(1);
     }
     PROGRAM_ID = new PublicKey(programIdMatch[1]);
@@ -140,7 +140,7 @@ async function main() {
   
   // Ask for pool address (or use from command line)
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🏊 KEDOLOG/USDC Pool Configuration');
+  console.log('🏊 KEDOL/USDC Pool Configuration');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   
   let poolAddressStr: string;
@@ -148,7 +148,7 @@ async function main() {
     poolAddressStr = poolAddressFromArgs;
     console.log('Using pool address from command line:', poolAddressStr);
   } else {
-    poolAddressStr = await question('Enter KEDOLOG/USDC pool address: ');
+    poolAddressStr = await question('Enter KEDOL/USDC pool address: ');
   }
   
   let POOL_ADDRESS: PublicKey;
@@ -170,20 +170,20 @@ async function main() {
     console.log('   Token 0 Vault:', poolData.token0Vault.toString());
     console.log('   Token 1 Vault:', poolData.token1Vault.toString());
     
-    // Verify it's a KEDOLOG pool
+    // Verify it's a KEDOL pool
     const config: any = await (program.account as any).protocolTokenConfig.fetch(protocolTokenConfig);
     const kedologMint = config.protocolTokenMint.toString();
     
     if (poolData.token0Mint.toString() !== kedologMint && poolData.token1Mint.toString() !== kedologMint) {
-      console.error('\n⚠️  WARNING: This pool does not contain KEDOLOG token!');
-      console.error('   KEDOLOG Mint:', kedologMint);
+      console.error('\n⚠️  WARNING: This pool does not contain KEDOL token!');
+      console.error('   KEDOL Mint:', kedologMint);
       const confirmAnyway = await question('\nContinue anyway? (yes/no): ');
       if (confirmAnyway.toLowerCase() !== 'yes') {
         console.log('❌ Aborted');
         process.exit(1);
       }
     } else {
-      console.log('✅ Pool contains KEDOLOG');
+      console.log('✅ Pool contains KEDOL');
     }
     
   } catch (e) {
@@ -257,7 +257,7 @@ async function main() {
     console.log(`     { pubkey: "${poolData.token1Vault.toString()}", isSigner: false, isWritable: false },`);
     console.log('   ]');
     
-    console.log('\n🎉 The contract will now automatically fetch KEDOLOG price from the pool!');
+    console.log('\n🎉 The contract will now automatically fetch KEDOL price from the pool!');
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     
   } catch (error: any) {

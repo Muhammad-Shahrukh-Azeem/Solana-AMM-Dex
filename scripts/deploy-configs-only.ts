@@ -33,26 +33,26 @@ const CONFIG_INDEX = 0; // Always use index 0 for new programs
 // Network-specific token addresses
 const TOKEN_ADDRESSES = {
   devnet: {
-    KEDOLOG: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'),
+    KEDOL: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'),
     USDC: new PublicKey('2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32'),
     TREASURY: new PublicKey('EGX4XLHooJ8vtMeyu6JRzudPMv39Cy91bJV49oaHqHom'), // Can be same or different
   },
   testnet: {
-    KEDOLOG: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'), // Testnet KEDOLOG (same as devnet)
+    KEDOL: new PublicKey('22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx'), // Testnet KEDOL (same as devnet)
     USDC: new PublicKey('2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32'), // Testnet USDC (same as devnet)
     TREASURY: new PublicKey('EGX4XLHooJ8vtMeyu6JRzudPMv39Cy91bJV49oaHqHom'), // Can be same or different
   },
   mainnet: {
-    KEDOLOG: new PublicKey('FUHwFRWE52FJXC4KoySzy9h6nNmRrppUg5unS4mKEDQN'),
+    KEDOL: new PublicKey('FUHwFRWE52FJXC4KoySzy9h6nNmRrppUg5unS4mKEDQN'),
     USDC: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
     TREASURY: new PublicKey('EGX4XLHooJ8vtMeyu6JRzudPMv39Cy91bJV49oaHqHom'),
   },
 };
 
 // Reference pool addresses (set these after creating the pools!)
-const KEDOLOG_USDC_POOL = PublicKey.default; // TODO: Set after creating KEDOLOG/USDC pool
+const KEDOLOG_USDC_POOL = PublicKey.default; // TODO: Set after creating KEDOL/USDC pool
 const SOL_USDC_POOL = PublicKey.default; // TODO: Set after creating SOL/USDC pool
-const KEDOLOG_SOL_POOL = PublicKey.default; // TODO: Set after creating KEDOLOG/SOL pool
+const KEDOLOG_SOL_POOL = PublicKey.default; // TODO: Set after creating KEDOL/SOL pool
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // FEE CONFIGURATION
@@ -67,7 +67,7 @@ const KEDOLOG_SOL_POOL = PublicKey.default; // TODO: Set after creating KEDOLOG/
 //
 // For a 1 USDC swap:
 //   - Original protocol fee = 1,000,000 * 500 / 1,000,000 = 500 units
-//   - With 25% KEDOLOG discount = 500 * 0.75 = 375 units
+//   - With 25% KEDOL discount = 500 * 0.75 = 375 units
 //   - This MUST be > 0 or swaps will fail!
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const TRADE_FEE_RATE = 2500;        // 0.25%
@@ -80,7 +80,7 @@ const KEDOLOG_DISCOUNT_RATE = 2500; // 25%
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 async function main() {
-  console.log('🔧 Creating AMM Config and KEDOLOG Config...\n');
+  console.log('🔧 Creating AMM Config and KEDOL Config...\n');
   
   // Load wallet - use the same wallet that Solana CLI is using
   let walletPath: string;
@@ -124,12 +124,12 @@ async function main() {
   
   // Get network-specific addresses
   const networkAddresses = TOKEN_ADDRESSES[NETWORK as keyof typeof TOKEN_ADDRESSES] || TOKEN_ADDRESSES.mainnet;
-  const KEDOLOG_MINT = networkAddresses.KEDOLOG;
+  const KEDOLOG_MINT = networkAddresses.KEDOL;
   const USDC_MINT = networkAddresses.USDC;
   const TREASURY = networkAddresses.TREASURY;
   
   console.log('📋 Token Addresses:');
-  console.log('   KEDOLOG:', KEDOLOG_MINT.toString());
+  console.log('   KEDOL:', KEDOLOG_MINT.toString());
   console.log('   USDC:', USDC_MINT.toString());
   console.log('   Treasury:', TREASURY.toString());
   console.log('');
@@ -166,9 +166,9 @@ async function main() {
   
   console.log('📋 Configuration:');
   console.log('   AMM Config:', ammConfig.toString());
-  console.log('   KEDOLOG Config:', protocolTokenConfig.toString());
+  console.log('   KEDOL Config:', protocolTokenConfig.toString());
   console.log('   Pool Creation Fee: 0.15 SOL');
-  console.log('   KEDOLOG Discount: 25%');
+  console.log('   KEDOL Discount: 25%');
   console.log('   Fee Receiver:', TREASURY.toString());
   console.log('');
   
@@ -218,10 +218,10 @@ async function main() {
   }
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // Create KEDOLOG Config
+  // Create KEDOL Config
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   
-  console.log('\n🔄 Creating KEDOLOG Config...\n');
+  console.log('\n🔄 Creating KEDOL Config...\n');
   
   try {
     const SystemProgram = new PublicKey('11111111111111111111111111111111');
@@ -244,25 +244,25 @@ async function main() {
       })
       .rpc();
     
-    console.log('✅ KEDOLOG Config created!');
+    console.log('✅ KEDOL Config created!');
     console.log('   Transaction:', kedologTx);
     console.log('   Explorer:', `https://explorer.solana.com/tx/${kedologTx}?cluster=${NETWORK}`);
     
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     const kedologConfig: any = await (program.account as any).protocolTokenConfig.fetch(protocolTokenConfig);
-    console.log('\n📋 Verified KEDOLOG Config:');
+    console.log('\n📋 Verified KEDOL Config:');
     console.log('   Address:', protocolTokenConfig.toString());
     console.log('   Token Mint:', kedologConfig.protocolTokenMint.toString());
     console.log('   Discount Rate:', (kedologConfig.discountRate.toNumber() / 100), '%');
     console.log('   Treasury:', kedologConfig.treasury.toString());
     console.log('   Authority:', kedologConfig.authority.toString());
-    console.log('   KEDOLOG/USDC Pool:', kedologConfig.kedologUsdcPool.toString());
+    console.log('   KEDOL/USDC Pool:', kedologConfig.kedologUsdcPool.toString());
     console.log('   SOL/USDC Pool:', kedologConfig.solUsdcPool.toString());
-    console.log('   KEDOLOG/SOL Pool:', kedologConfig.kedologSolPool.toString());
+    console.log('   KEDOL/SOL Pool:', kedologConfig.kedologSolPool.toString());
     
   } catch (error: any) {
-    console.error('\n❌ Failed to create KEDOLOG config:', error.message);
+    console.error('\n❌ Failed to create KEDOL config:', error.message);
     if (error.logs) console.error('Logs:', error.logs);
     process.exit(1);
   }

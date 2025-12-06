@@ -102,7 +102,7 @@ When someone creates a pool:
 | Trade Fee (Total) | 0.25% | Split between LP & Protocol |
 | - LP Fee | 0.20% | Liquidity Providers |
 | - Protocol Fee | 0.05% | Protocol Owner |
-| KEDOLOG Discount | 20% | On protocol fee only |
+| KEDOL Discount | 20% | On protocol fee only |
 
 ---
 

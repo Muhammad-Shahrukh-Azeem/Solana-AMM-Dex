@@ -70,7 +70,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "✅ STEP 2 COMPLETE!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "➡️  Next: Run ./scripts/mainnet/3-setup-kedolog.sh"
+echo "➡️  Next: Run ./scripts/mainnet/3-setup-kedol.sh"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""

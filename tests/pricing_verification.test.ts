@@ -33,7 +33,7 @@ describe("Pricing Verification - All Scenarios", () => {
   let solUsdcVault1: PublicKey;
 
   // Test prices
-  const KEDOLOG_PRICE = 0.0017; // $0.0017 per KEDOLOG
+  const KEDOLOG_PRICE = 0.0017; // $0.0017 per KEDOL
   const SOL_PRICE = 200; // $200 per SOL
   const USDC_PRICE = 1; // $1 per USDC
 
@@ -51,7 +51,7 @@ describe("Pricing Verification - All Scenarios", () => {
     kedologMint = await createMint(provider.connection, admin.payer, admin.publicKey, null, 9);
     usdcMint = await createMint(provider.connection, admin.payer, admin.publicKey, null, 6);
 
-    console.log("✅ KEDOLOG mint:", kedologMint.toString());
+    console.log("✅ KEDOL mint:", kedologMint.toString());
     console.log("✅ USDC mint:", usdcMint.toString());
 
     // Create AMM Config
@@ -105,7 +105,7 @@ describe("Pricing Verification - All Scenarios", () => {
 
     console.log("✅ Protocol Token Config created");
 
-    // Create KEDOLOG/USDC pool
+    // Create KEDOL/USDC pool
     kedologUsdcPool = Keypair.generate();
     kedologUsdcVault0 = await createAccount(
       provider.connection,
@@ -120,15 +120,15 @@ describe("Pricing Verification - All Scenarios", () => {
       kedologUsdcPool.publicKey
     );
 
-    // Set KEDOLOG price = $0.0017
-    // 1M KEDOLOG / 1,700 USDC = 588 KEDOLOG per USDC
+    // Set KEDOL price = $0.0017
+    // 1M KEDOL / 1,700 USDC = 588 KEDOL per USDC
     await mintTo(
       provider.connection,
       admin.payer,
       kedologMint,
       kedologUsdcVault0,
       admin.publicKey,
-      1_000_000_000_000_000 // 1M KEDOLOG
+      1_000_000_000_000_000 // 1M KEDOL
     );
 
     await mintTo(
@@ -140,7 +140,7 @@ describe("Pricing Verification - All Scenarios", () => {
       1_700_000_000 // 1,700 USDC
     );
 
-    console.log("✅ KEDOLOG/USDC pool created (price: $0.0017)");
+    console.log("✅ KEDOL/USDC pool created (price: $0.0017)");
 
     // Create SOL/USDC pool
     solUsdcPool = Keypair.generate();
@@ -199,7 +199,7 @@ describe("Pricing Verification - All Scenarios", () => {
   });
 
   describe("📊 Scenario 1: USDC → SOL Swap", () => {
-    it("Calculates correct KEDOLOG fee for 1 USDC swap", async () => {
+    it("Calculates correct KEDOL fee for 1 USDC swap", async () => {
       console.log("\n💱 Test: USDC → SOL (1 USDC swap)\n");
 
       // Swap amount: 1 USDC
@@ -222,20 +222,20 @@ describe("Pricing Verification - All Scenarios", () => {
       const discountedFee = Math.floor((protocolFee * (10000 - discountRate)) / 10000);
       console.log("Discounted fee (75%): $" + (discountedFee / 1_000_000));
       
-      // Convert to KEDOLOG
-      // KEDOLOG price = $0.0017
+      // Convert to KEDOL
+      // KEDOL price = $0.0017
       const expectedKedolog = (discountedFee / 1_000_000) / KEDOLOG_PRICE;
-      console.log("Expected KEDOLOG fee: " + expectedKedolog.toFixed(4) + " KEDOLOG");
+      console.log("Expected KEDOL fee: " + expectedKedolog.toFixed(4) + " KEDOL");
       
       // Verify calculation
-      assert.approximately(expectedKedolog, 0.2206, 0.01, "Should be ~0.2206 KEDOLOG");
+      assert.approximately(expectedKedolog, 0.2206, 0.01, "Should be ~0.2206 KEDOL");
       
       console.log("✅ USDC → SOL fee calculation is correct\n");
     });
   });
 
   describe("📊 Scenario 2: SOL → USDC Swap", () => {
-    it("Calculates correct KEDOLOG fee for 0.005 SOL swap ($1 worth)", async () => {
+    it("Calculates correct KEDOL fee for 0.005 SOL swap ($1 worth)", async () => {
       console.log("\n💱 Test: SOL → USDC (0.005 SOL = $1)\n");
 
       // Swap amount: 0.005 SOL (= $1 at $200/SOL)
@@ -258,12 +258,12 @@ describe("Pricing Verification - All Scenarios", () => {
       const discountedFeeUsd = protocolFeeUsd * (10000 - discountRate) / 10000;
       console.log("Discounted fee (75%): $" + discountedFeeUsd.toFixed(6));
       
-      // Convert to KEDOLOG
+      // Convert to KEDOL
       const expectedKedolog = discountedFeeUsd / KEDOLOG_PRICE;
-      console.log("Expected KEDOLOG fee: " + expectedKedolog.toFixed(4) + " KEDOLOG");
+      console.log("Expected KEDOL fee: " + expectedKedolog.toFixed(4) + " KEDOL");
       
       // Verify calculation
-      assert.approximately(expectedKedolog, 2.206, 0.1, "Should be ~2.206 KEDOLOG");
+      assert.approximately(expectedKedolog, 2.206, 0.1, "Should be ~2.206 KEDOL");
       
       console.log("✅ SOL → USDC fee calculation is correct\n");
     });
@@ -284,8 +284,8 @@ describe("Pricing Verification - All Scenarios", () => {
       const solDiscountedFeeUsd = solProtocolFeeUsd * 0.75;
       const solKedolog = solDiscountedFeeUsd / KEDOLOG_PRICE;
 
-      console.log("1 USDC swap → " + usdcKedolog.toFixed(4) + " KEDOLOG");
-      console.log("0.005 SOL swap ($1) → " + solKedolog.toFixed(4) + " KEDOLOG");
+      console.log("1 USDC swap → " + usdcKedolog.toFixed(4) + " KEDOL");
+      console.log("0.005 SOL swap ($1) → " + solKedolog.toFixed(4) + " KEDOL");
       console.log("Ratio (SOL/USDC): " + (solKedolog / usdcKedolog).toFixed(2) + "x");
 
       // They should be approximately equal (both $1 swaps)
@@ -313,15 +313,15 @@ describe("Pricing Verification - All Scenarios", () => {
       const lpFee = totalTradeFee - protocolFee;
       console.log("LP fee (0.20%): " + (lpFee / 1_000_000) + " USDC");
 
-      // With KEDOLOG discount (25% off protocol fee)
+      // With KEDOL discount (25% off protocol fee)
       const discountedProtocolFee = Math.floor((protocolFee * 7500) / 10000);
-      console.log("\nWith KEDOLOG discount:");
+      console.log("\nWith KEDOL discount:");
       console.log("  Discounted protocol fee (0.0375%): " + (discountedProtocolFee / 1_000_000) + " USDC");
       console.log("  Savings: " + ((protocolFee - discountedProtocolFee) / 1_000_000) + " USDC");
 
-      // Convert to KEDOLOG
+      // Convert to KEDOL
       const kedologFee = (discountedProtocolFee / 1_000_000) / KEDOLOG_PRICE;
-      console.log("  KEDOLOG fee: " + kedologFee.toFixed(2) + " KEDOLOG");
+      console.log("  KEDOL fee: " + kedologFee.toFixed(2) + " KEDOL");
 
       // Verify percentages
       assert.approximately(protocolFee / swapAmount, 0.0005, 0.00001, "Protocol fee should be 0.05%");
@@ -333,8 +333,8 @@ describe("Pricing Verification - All Scenarios", () => {
   });
 
   describe("📊 Scenario 4: Price Fetching Logic", () => {
-    it("Verifies KEDOLOG price is fetched from KEDOLOG/USDC pool", async () => {
-      console.log("\n💱 Test: KEDOLOG Price Fetching\n");
+    it("Verifies KEDOL price is fetched from KEDOL/USDC pool", async () => {
+      console.log("\n💱 Test: KEDOL Price Fetching\n");
 
       const vault0 = await getAccount(provider.connection, kedologUsdcVault0);
       const vault1 = await getAccount(provider.connection, kedologUsdcVault1);
@@ -344,14 +344,14 @@ describe("Pricing Verification - All Scenarios", () => {
 
       const calculatedPrice = usdcReserve / kedologReserve;
 
-      console.log("KEDOLOG reserve: " + kedologReserve.toLocaleString() + " KEDOLOG");
+      console.log("KEDOL reserve: " + kedologReserve.toLocaleString() + " KEDOL");
       console.log("USDC reserve: " + usdcReserve.toLocaleString() + " USDC");
       console.log("Calculated price: $" + calculatedPrice.toFixed(4));
       console.log("Expected price: $" + KEDOLOG_PRICE);
 
       assert.approximately(calculatedPrice, KEDOLOG_PRICE, 0.0001, "Price should match pool ratio");
 
-      console.log("✅ KEDOLOG price fetching verified\n");
+      console.log("✅ KEDOL price fetching verified\n");
     });
 
     it("Verifies SOL price is fetched from SOL/USDC pool", async () => {
@@ -390,8 +390,8 @@ describe("Pricing Verification - All Scenarios", () => {
 
       if (discountedFee > 0) {
         const kedologFee = (discountedFee / 1_000_000) / KEDOLOG_PRICE;
-        console.log("KEDOLOG fee: " + kedologFee.toFixed(6) + " KEDOLOG");
-        assert.isAbove(kedologFee, 0, "KEDOLOG fee should be > 0");
+        console.log("KEDOL fee: " + kedologFee.toFixed(6) + " KEDOL");
+        assert.isAbove(kedologFee, 0, "KEDOL fee should be > 0");
       } else {
         console.log("⚠️  Fee too small (rounds to 0)");
       }
@@ -410,17 +410,17 @@ describe("Pricing Verification - All Scenarios", () => {
       console.log("Swap amount: 10,000 USDC");
       console.log("Protocol fee: " + (protocolFee / 1_000_000) + " USDC");
       console.log("Discounted fee: " + (discountedFee / 1_000_000) + " USDC");
-      console.log("KEDOLOG fee: " + kedologFee.toFixed(2) + " KEDOLOG");
+      console.log("KEDOL fee: " + kedologFee.toFixed(2) + " KEDOL");
 
-      assert.isAbove(kedologFee, 0, "KEDOLOG fee should be > 0");
-      assert.approximately(kedologFee, 2205.88, 10, "Should be ~2,206 KEDOLOG");
+      assert.isAbove(kedologFee, 0, "KEDOL fee should be > 0");
+      assert.approximately(kedologFee, 2205.88, 10, "Should be ~2,206 KEDOL");
 
       console.log("✅ Large swap handled\n");
     });
   });
 
   describe("📊 Scenario 6: Cross-Verification", () => {
-    it("Verifies all swaps with same USD value have same KEDOLOG fee", async () => {
+    it("Verifies all swaps with same USD value have same KEDOL fee", async () => {
       console.log("\n💱 Test: Cross-Pair Consistency ($10 worth)\n");
 
       // Test 1: 10 USDC
@@ -438,13 +438,13 @@ describe("Pricing Verification - All Scenarios", () => {
 
       console.log("10 USDC swap:");
       console.log("  USD value: $10");
-      console.log("  KEDOLOG fee: " + usdcKedolog.toFixed(4));
+      console.log("  KEDOL fee: " + usdcKedolog.toFixed(4));
 
       console.log("\n0.05 SOL swap:");
       console.log("  USD value: $10");
-      console.log("  KEDOLOG fee: " + solKedolog.toFixed(4));
+      console.log("  KEDOL fee: " + solKedolog.toFixed(4));
 
-      console.log("\nDifference: " + Math.abs(usdcKedolog - solKedolog).toFixed(4) + " KEDOLOG");
+      console.log("\nDifference: " + Math.abs(usdcKedolog - solKedolog).toFixed(4) + " KEDOL");
       console.log("Ratio: " + (solKedolog / usdcKedolog).toFixed(4));
 
       // Should be approximately equal
@@ -452,7 +452,7 @@ describe("Pricing Verification - All Scenarios", () => {
         solKedolog / usdcKedolog,
         1.0,
         0.1,
-        "KEDOLOG fees should be equal for equal USD value swaps"
+        "KEDOL fees should be equal for equal USD value swaps"
       );
 
       console.log("✅ Cross-pair consistency verified\n");

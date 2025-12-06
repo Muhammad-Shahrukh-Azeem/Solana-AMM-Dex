@@ -76,30 +76,30 @@ echo "MAINNET" | npx ts-node scripts/mainnet/2-create-config.ts
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "📋 STEP 3: Setup KEDOLOG"
+echo "📋 STEP 3: Setup KEDOL"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Check if we have a KEDOLOG token on devnet
+# Check if we have a KEDOL token on devnet
 if [ -f "deployed-devnet-new.json" ]; then
-    KEDOLOG_MINT=$(jq -r '.kedolog.mint' deployed-devnet-new.json 2>/dev/null || echo "")
+    KEDOLOG_MINT=$(jq -r '.kedol.mint' deployed-devnet-new.json 2>/dev/null || echo "")
     if [ ! -z "$KEDOLOG_MINT" ] && [ "$KEDOLOG_MINT" != "null" ]; then
-        echo "📝 Using existing KEDOLOG mint from deployed-devnet-new.json"
+        echo "📝 Using existing KEDOL mint from deployed-devnet-new.json"
         echo "   Mint: $KEDOLOG_MINT"
         echo ""
         export KEDOLOG_MINT=$KEDOLOG_MINT
-        echo -e "$KEDOLOG_MINT\n\nKEDOLOG" | npx ts-node scripts/mainnet/3-setup-kedolog.ts
+        echo -e "$KEDOLOG_MINT\n\nKEDOLOG" | npx ts-node scripts/mainnet/3-setup-kedol.ts
     else
-        echo "⚠️  No KEDOLOG mint found in deployed-devnet-new.json"
-        echo "   Skipping KEDOLOG setup for this test"
+        echo "⚠️  No KEDOL mint found in deployed-devnet-new.json"
+        echo "   Skipping KEDOL setup for this test"
         echo "   You can run it manually later with:"
-        echo "   npx ts-node scripts/mainnet/3-setup-kedolog.ts"
+        echo "   npx ts-node scripts/mainnet/3-setup-kedol.ts"
     fi
 else
     echo "⚠️  deployed-devnet-new.json not found"
-    echo "   Skipping KEDOLOG setup for this test"
+    echo "   Skipping KEDOL setup for this test"
     echo "   You can run it manually later with:"
-    echo "   npx ts-node scripts/mainnet/3-setup-kedolog.ts"
+    echo "   npx ts-node scripts/mainnet/3-setup-kedol.ts"
 fi
 
 echo ""
@@ -124,7 +124,7 @@ echo "  1. solana config set --url mainnet-beta"
 echo "  2. Ensure you have 15+ SOL"
 echo "  3. Run: ./scripts/mainnet/1-deploy-program.sh"
 echo "  4. Run: npx ts-node scripts/mainnet/2-create-config.ts"
-echo "  5. Run: npx ts-node scripts/mainnet/3-setup-kedolog.ts"
+echo "  5. Run: npx ts-node scripts/mainnet/3-setup-kedol.ts"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""

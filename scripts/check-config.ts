@@ -55,13 +55,13 @@ if (protocolTokenPerUsd === 0n) {
   console.log('   This is why the discount feature is failing.');
   console.log('');
   console.log('🔧 TO FIX: Run this command:');
-  console.log('   npx ts-node scripts/fetch-kedolog-price-from-pool.ts');
+  console.log('   npx ts-node scripts/fetch-kedol-price-from-pool.ts');
   console.log('');
 } else {
   console.log('✅ Configuration is VALID!');
-  console.log('   Price: 1 USD = ' + (Number(protocolTokenPerUsd) / 1_000_000) + ' KEDOLOG');
+  console.log('   Price: 1 USD = ' + (Number(protocolTokenPerUsd) / 1_000_000) + ' KEDOL');
   console.log('');
-  console.log('🎯 The KEDOLOG discount feature should work!');
+  console.log('🎯 The KEDOL discount feature should work!');
   console.log('');
 }
 

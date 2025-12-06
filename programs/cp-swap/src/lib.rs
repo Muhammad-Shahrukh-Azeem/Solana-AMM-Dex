@@ -20,7 +20,7 @@ solana_security_txt::security_txt! {
     auditors: "https://github.com/kedolik-io/kedolik-docs/blob/master/audit/MadShield%20Q1%202024/kedolik-cp-swap-v-1.0.0.pdf"
 }
 
-declare_id!("5jUxRUF75oPnBCWHNtBmDSfojJ3PkMwsu2b1QvDnTWsB");
+declare_id!("2CskEEg1Kc4tR7iEznMS3Jk5F41PgkphDouacn75enbX");
 
 pub mod admin {
     use super::{pubkey, Pubkey};
@@ -168,7 +168,7 @@ pub mod kedolik_cp_swap {
     /// # Arguments
     ///
     /// * `ctx`- The context of accounts
-    /// * `protocol_token_mint` - The mint address of the protocol token (e.g., KEDOLOG)
+    /// * `protocol_token_mint` - The mint address of the protocol token (e.g., KEDOL)
     /// * `discount_rate` - The discount rate when paying with protocol token (e.g., 2000 = 20% discount)
     /// * `authority` - The authority that can update this config later
     /// * `treasury` - The treasury account to receive protocol token fees
@@ -236,14 +236,28 @@ pub mod kedolik_cp_swap {
     /// * `init_amount_0` - the initial amount_0 to deposit
     /// * `init_amount_1` - the initial amount_1 to deposit
     /// * `open_time` - the timestamp allowed for swap
+    /// * `lp_token_name` - Optional name for LP token metadata
+    /// * `lp_token_symbol` - Optional symbol for LP token metadata
+    /// * `lp_token_uri` - Optional URI for LP token metadata
     ///
     pub fn initialize(
         ctx: Context<Initialize>,
         init_amount_0: u64,
         init_amount_1: u64,
         open_time: u64,
+        lp_token_name: Option<String>,
+        lp_token_symbol: Option<String>,
+        lp_token_uri: Option<String>,
     ) -> Result<()> {
-        instructions::initialize(ctx, init_amount_0, init_amount_1, open_time)
+        instructions::initialize(
+            ctx,
+            init_amount_0,
+            init_amount_1,
+            open_time,
+            lp_token_name,
+            lp_token_symbol,
+            lp_token_uri,
+        )
     }
 
     /// Create a pool with permission

@@ -47,23 +47,23 @@ echo -e "${BLUE}   Program ID: $PROGRAM_ID${NC}"
 # Save program ID
 echo "{\"programId\": \"$PROGRAM_ID\", \"network\": \"$CLUSTER\"}" > deployed-program.json
 
-# Step 2: KEDOLOG Token (Optional - skip if already exists)
+# Step 2: KEDOL Token (Optional - skip if already exists)
 echo -e "\n${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}Step 2: KEDOLOG Token Setup${NC}"
+echo -e "${GREEN}Step 2: KEDOL Token Setup${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 # Check if devnet-addresses.json exists and has kedologMint
 if [ -f "devnet-addresses.json" ]; then
     EXISTING_KEDOLOG=$(cat devnet-addresses.json | grep -o '"kedologMint"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
     if [ ! -z "$EXISTING_KEDOLOG" ]; then
-        echo -e "${BLUE}✅ Using existing KEDOLOG token: $EXISTING_KEDOLOG${NC}"
+        echo -e "${BLUE}✅ Using existing KEDOL token: $EXISTING_KEDOLOG${NC}"
     else
-        echo -e "${YELLOW}Creating new KEDOLOG token...${NC}"
-        ./scripts/create-kedolog.sh
+        echo -e "${YELLOW}Creating new KEDOL token...${NC}"
+        ./scripts/create-kedol.sh
     fi
 else
-    echo -e "${YELLOW}Creating new KEDOLOG token...${NC}"
-    ./scripts/create-kedolog.sh
+    echo -e "${YELLOW}Creating new KEDOL token...${NC}"
+    ./scripts/create-kedol.sh
 fi
 
 # Step 3: Create Test Tokens
@@ -85,9 +85,9 @@ echo -e "${GREEN}✅ Deployment Complete!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 echo -e "\n${BLUE}📝 Next Steps:${NC}"
-echo -e "   1. Create KEDOLOG/USDC pool"
-echo -e "   2. Run: npx ts-node scripts/create-kedolog-usdc-pool.ts"
-echo -e "   3. Update KEDOLOG price: npx ts-node scripts/update-kedolog-price-from-pool.ts --once"
+echo -e "   1. Create KEDOL/USDC pool"
+echo -e "   2. Run: npx ts-node scripts/create-kedol-usdc-pool.ts"
+echo -e "   3. Update KEDOL price: npx ts-node scripts/update-kedol-price-from-pool.ts --once"
 echo -e "   4. Test swaps: anchor test"
 
 echo -e "\n${BLUE}📋 Important Addresses:${NC}"

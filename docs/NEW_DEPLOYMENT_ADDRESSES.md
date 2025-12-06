@@ -22,7 +22,7 @@ Protocol Token Config: 7ZRkzDLJQkhYvoyKKJXHjk1qy1ArKtX8iqbNF7F4sETv
 
 ### **Token Addresses (SAME)**
 ```
-KEDOLOG Mint: 22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
+KEDOL Mint: 22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
 Protocol Owner: JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa
 Pool Creation Fee Receiver: 67D6TM8PTsuv8nU5PnUP3dV6j8kW3rmTD9KNufcEUPCa
 ```
@@ -69,9 +69,9 @@ cp target/idl/kedolik_cp_swap.json your-frontend/src/idl/
 - ✅ Protocol Fee: 0.05%
 - ✅ Pool Creation Fee: 0 SOL (can be updated to 0.15 SOL)
 
-### **KEDOLOG Discount**
+### **KEDOL Discount**
 - ✅ Discount Rate: 20%
-- ✅ KEDOLOG Price: 10 per USD
+- ✅ KEDOL Price: 10 per USD
 - ✅ Treasury: JAaHqf4p14eNij84tygdF1nQkKV8MU3h7Pi4VCtDYiqa
 
 ---
@@ -103,7 +103,7 @@ cp target/idl/kedolik_cp_swap.json your-frontend/src/idl/
 4. **Test on Devnet**
    - Create a test pool
    - Test normal swap
-   - Test KEDOLOG discount swap
+   - Test KEDOL discount swap
    - Verify fees
 
 ---
@@ -115,7 +115,7 @@ cp target/idl/kedolik_cp_swap.json your-frontend/src/idl/
 | **Program ID** | `GCm8bqvSuJ4nwj3SN3pk2eSJWTwcRjkU6KhXE96AnBod` | `2LdLPZbRokzmcJyFE7fLyTgMKNxuR9PE6PKfunn6fkUi` ⚠️ |
 | **AMM Config** | `DUzS92SbYFFN66vPGUoJqwqS2rfEBmB8CvX1EinesMZG` | `6cYBQxes3T5CRStVgKNV4GiURNu2nCcUwmHwEWCcP4Zt` ⚠️ |
 | **Protocol Config** | `JA8cRHzw2iDEh79iSHtbLa7dJU7R7KoDCWT4sJQbWvGV` | `7ZRkzDLJQkhYvoyKKJXHjk1qy1ArKtX8iqbNF7F4sETv` ⚠️ |
-| **KEDOLOG Mint** | `22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx` | `22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx` ✅ |
+| **KEDOL Mint** | `22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx` | `22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx` ✅ |
 
 ---
 
@@ -127,7 +127,7 @@ cp target/idl/kedolik_cp_swap.json your-frontend/src/idl/
 - Protocol Token Config address (derived from new program ID)
 
 ### **Stayed Same ✅**
-- KEDOLOG token mint
+- KEDOL token mint
 - Fee structure (0.25% total)
 - Discount rate (20%)
 - Pool creation fee receiver address
@@ -140,7 +140,7 @@ cp target/idl/kedolik_cp_swap.json your-frontend/src/idl/
 Your new contract is:
 - ✅ Deployed on devnet
 - ✅ Configured with fees
-- ✅ KEDOLOG discount activated
+- ✅ KEDOL discount activated
 - ✅ Ready for frontend integration
 
 **Files to Give Frontend:**

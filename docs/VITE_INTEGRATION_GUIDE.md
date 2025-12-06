@@ -233,10 +233,10 @@ export interface TokenInfo {
 
 export const TOKEN_INFO: Record<string, TokenInfo> = {
   [KEDOLOG_MINT.toString()]: {
-    symbol: 'KEDOLOG',
+    symbol: 'KEDOL',
     name: 'Kedolog Protocol Token',
     decimals: 9,
-    logoURI: '/tokens/kedolog.png',
+    logoURI: '/tokens/kedol.png',
   },
   [TEST_TOKENS.USDC.toString()]: {
     symbol: 'USDC',
@@ -1206,7 +1206,7 @@ VITE_CLUSTER=devnet
 **Your Deployment:**
 - Program: `F3mHkHDh3A61A3mp9dd35DzhypacRRKeEKYDNh4dQqRc`
 - AMM Config: `3EUgq3MYni6ui7EWnQaDfRXdJTqYPN4GsFFYd1Nb7ab6`
-- KEDOLOG: `DhKDRUdDLeSGM8tQjsCF8vewTffPFZwi3voZunY7RNsW`
+- KEDOL: `DhKDRUdDLeSGM8tQjsCF8vewTffPFZwi3voZunY7RNsW`
 
 **Support Files:**
 - `DEPLOYMENT_SUMMARY.md` - Complete deployment details

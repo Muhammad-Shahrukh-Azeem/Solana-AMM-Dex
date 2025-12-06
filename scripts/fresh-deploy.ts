@@ -154,14 +154,14 @@ async function main() {
   }
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // STEP 2: Ask for KEDOLOG mint
+  // STEP 2: Ask for KEDOL mint
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🪙 STEP 2: KEDOLOG Token Configuration');
+  console.log('🪙 STEP 2: KEDOL Token Configuration');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   
-  const kedologMintStr = await question('Enter KEDOLOG token mint address: ');
+  const kedologMintStr = await question('Enter KEDOL token mint address: ');
   let KEDOLOG_MINT: PublicKey;
   
   try {
@@ -187,7 +187,7 @@ async function main() {
   const treasuryStr = await question('\nEnter treasury address (or press Enter to use your wallet): ');
   const TREASURY = treasuryStr.trim() ? new PublicKey(treasuryStr.trim()) : admin.publicKey;
   
-  console.log('\n📋 KEDOLOG Configuration:');
+  console.log('\n📋 KEDOL Configuration:');
   console.log('   Mint:', KEDOLOG_MINT.toString());
   console.log('   Treasury:', TREASURY.toString());
   console.log('   Discount Rate:', KEDOLOG_DISCOUNT_RATE / 100, '%');
@@ -269,11 +269,11 @@ async function main() {
   }
   
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  // STEP 5: Create KEDOLOG Config
+  // STEP 5: Create KEDOL Config
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🔄 Creating KEDOLOG Config...');
+  console.log('🔄 Creating KEDOL Config...');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   
   const [protocolTokenConfig] = PublicKey.findProgramAddressSync(
@@ -308,7 +308,7 @@ async function main() {
         })
         .rpc();
       
-      console.log('✅ KEDOLOG Config created!');
+      console.log('✅ KEDOL Config created!');
       console.log('   Transaction:', kedologTx);
       console.log('   Explorer:', `https://explorer.solana.com/tx/${kedologTx}?cluster=${NETWORK}`);
       
@@ -316,7 +316,7 @@ async function main() {
       
       // Verify
       const kedologConfig: any = await (program.account as any).protocolTokenConfig.fetch(protocolTokenConfig);
-      console.log('\n📋 Verified KEDOLOG Config:');
+      console.log('\n📋 Verified KEDOL Config:');
       console.log('   Address:', protocolTokenConfig.toString());
       console.log('   Token Mint:', kedologConfig.protocolTokenMint.toString());
       console.log('   Discount Rate:', kedologConfig.discountRate.toString(), `(${kedologConfig.discountRate.toNumber() / 100}%)`);
@@ -324,7 +324,7 @@ async function main() {
       console.log('   Authority:', kedologConfig.authority.toString());
       
     } catch (error: any) {
-      console.error('\n❌ Failed to create KEDOLOG config:', error.message);
+      console.error('\n❌ Failed to create KEDOL config:', error.message);
       if (error.logs) console.error('Logs:', error.logs);
       process.exit(1);
     }
@@ -376,10 +376,10 @@ async function main() {
   console.log('\n📋 Deployment Summary:');
   console.log('   Program ID:', PROGRAM_ID.toString());
   console.log('   AMM Config:', ammConfig.toString());
-  console.log('   KEDOLOG Config:', protocolTokenConfig.toString());
+  console.log('   KEDOL Config:', protocolTokenConfig.toString());
   console.log('\n🎉 Ready to create pools from your frontend!');
   console.log('   Pool creation fee: 1 SOL');
-  console.log('   KEDOLOG discount: 25%');
+  console.log('   KEDOL discount: 25%');
   
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 }

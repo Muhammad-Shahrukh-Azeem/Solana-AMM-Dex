@@ -10,19 +10,19 @@ For USDC → SOL or SOL → USDC swaps:
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │ [0] ┌───────────────────────────────────────────────────────────┐          │
-│     │ KEDOLOG/USDC POOL ADDRESS                                 │          │
+│     │ KEDOL/USDC POOL ADDRESS                                 │          │
 │     │ BE1AdLaWKGPV61cmdV2W6aw7GY5fBRc59noUascPBje              │          │
 │     │ Type: PoolState account                                   │          │
 │     └───────────────────────────────────────────────────────────┘          │
 │                                                                             │
 │ [1] ┌───────────────────────────────────────────────────────────┐          │
-│     │ KEDOLOG/USDC Vault 0                                      │          │
+│     │ KEDOL/USDC Vault 0                                      │          │
 │     │ Gg2roHP4aRbNvjbQRj7cxB1XvLKdBw45UkrNn9eeC8DJ              │          │
 │     │ Type: TokenAccount                                        │          │
 │     └───────────────────────────────────────────────────────────┘          │
 │                                                                             │
 │ [2] ┌───────────────────────────────────────────────────────────┐          │
-│     │ KEDOLOG/USDC Vault 1                                      │          │
+│     │ KEDOL/USDC Vault 1                                      │          │
 │     │ 2yVnJLxM9Dw8YHxrEQQgvPJ12RXYXcqdYyLXftYzbJCt              │          │
 │     │ Type: TokenAccount                                        │          │
 │     └───────────────────────────────────────────────────────────┘          │
@@ -56,7 +56,7 @@ For each reference pool:
   2. Vault 0 address (TokenAccount)
   3. Vault 1 address (TokenAccount)
 
-KEDOLOG/USDC must ALWAYS come first [0-2]
+KEDOL/USDC must ALWAYS come first [0-2]
 SOL/USDC (if needed) comes second [3-5]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

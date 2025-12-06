@@ -48,4 +48,6 @@ pub enum ErrorCode {
     StaleOraclePrice,
     #[msg("Invalid authority")]
     InvalidAuthority,
+    #[msg("Invalid metadata account")]
+    InvalidMetadataAccount,
 }

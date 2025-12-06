@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 🚀 MAINNET DEPLOYMENT - STEP 3: Setup KEDOLOG Discount
+# 🚀 MAINNET DEPLOYMENT - STEP 3: Setup KEDOL Discount
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 set -e
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🚀 MAINNET DEPLOYMENT - STEP 3: Setup KEDOLOG Discount"
+echo "🚀 MAINNET DEPLOYMENT - STEP 3: Setup KEDOL Discount"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -63,15 +63,15 @@ fi
 
 # Configuration
 echo "⚙️  Configuration:"
-echo "   KEDOLOG Discount: 25%"
+echo "   KEDOL Discount: 25%"
 echo "   Reduced Protocol Fee: 0.0375% (from 0.05%)"
 echo ""
 
 # Run TypeScript script
-echo "🔄 Running KEDOLOG setup..."
+echo "🔄 Running KEDOL setup..."
 echo ""
 
-npx ts-node scripts/mainnet/3-setup-kedolog.ts
+npx ts-node scripts/mainnet/3-setup-kedol.ts
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

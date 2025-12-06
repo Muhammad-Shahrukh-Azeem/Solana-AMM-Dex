@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * Get the current fee receiver's KEDOLOG treasury account
+ * Get the current fee receiver's KEDOL treasury account
  * 
  * This script helps frontend developers get the correct treasury address
  * to pass to the swapBaseInputWithProtocolToken instruction.
@@ -69,7 +69,7 @@ async function main() {
 
   console.log('\n📋 Configuration:');
   console.log('   AMM Config:', ammConfigAddress);
-  console.log('   KEDOLOG Mint:', KEDOLOG_MINT.toString());
+  console.log('   KEDOL Mint:', KEDOLOG_MINT.toString());
   console.log('');
 
   // Fetch AMM config
@@ -92,8 +92,8 @@ async function main() {
   console.log('   ', feeReceiver.toString());
   console.log('');
 
-  // Get fee receiver's KEDOLOG token account
-  console.log('🔍 Calculating Fee Receiver\'s KEDOLOG Token Account...');
+  // Get fee receiver's KEDOL token account
+  console.log('🔍 Calculating Fee Receiver\'s KEDOL Token Account...');
   const feeReceiverKedologAccount = await getAssociatedTokenAddress(
     KEDOLOG_MINT,
     feeReceiver
@@ -130,7 +130,7 @@ async function main() {
   console.log(`const ammConfig = await program.account.ammConfig.fetch('${ammConfigAddress}');`);
   console.log('const feeReceiver = ammConfig.feeReceiver;');
   console.log('');
-  console.log('// 2. Get fee receiver\'s KEDOLOG token account');
+  console.log('// 2. Get fee receiver\'s KEDOL token account');
   console.log('const feeReceiverKedologAccount = await getAssociatedTokenAddress(');
   console.log(`  new PublicKey('${KEDOLOG_MINT.toString()}'),`);
   console.log('  feeReceiver');

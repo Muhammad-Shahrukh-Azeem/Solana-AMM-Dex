@@ -47,22 +47,22 @@ echo -e "${BLUE}   Program ID: $PROGRAM_ID${NC}"
 # Save program ID
 echo "{\"programId\": \"$PROGRAM_ID\", \"network\": \"$CLUSTER\"}" > deployed-program.json
 
-# Step 2: Check KEDOLOG
+# Step 2: Check KEDOL
 echo -e "\n${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}Step 2: Checking KEDOLOG Configuration${NC}"
+echo -e "${GREEN}Step 2: Checking KEDOL Configuration${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 if [ -f "devnet-addresses.json" ]; then
     KEDOLOG_MINT=$(cat devnet-addresses.json | grep -o '"kedologMint"[[:space:]]*:[[:space:]]*"[^"]*"' | cut -d'"' -f4)
     if [ ! -z "$KEDOLOG_MINT" ]; then
-        echo -e "${GREEN}✅ KEDOLOG configured: $KEDOLOG_MINT${NC}"
+        echo -e "${GREEN}✅ KEDOL configured: $KEDOLOG_MINT${NC}"
     else
-        echo -e "${YELLOW}⚠️  KEDOLOG not configured in devnet-addresses.json${NC}"
-        echo -e "${YELLOW}   Run: ./scripts/quick-setup-kedolog.sh YOUR_KEDOLOG_MINT${NC}"
+        echo -e "${YELLOW}⚠️  KEDOL not configured in devnet-addresses.json${NC}"
+        echo -e "${YELLOW}   Run: ./scripts/quick-setup-kedol.sh YOUR_KEDOLOG_MINT${NC}"
     fi
 else
     echo -e "${YELLOW}⚠️  devnet-addresses.json not found${NC}"
-    echo -e "${YELLOW}   Run: ./scripts/quick-setup-kedolog.sh YOUR_KEDOLOG_MINT${NC}"
+    echo -e "${YELLOW}   Run: ./scripts/quick-setup-kedol.sh YOUR_KEDOLOG_MINT${NC}"
 fi
 
 # Step 3: Initialize Configs
@@ -82,14 +82,14 @@ echo -e "${GREEN}✅ Deployment Complete!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 echo -e "\n${BLUE}📝 Next Steps:${NC}"
-echo -e "   1. Activate KEDOLOG discount:"
-echo -e "      ${YELLOW}npx ts-node scripts/activate-kedolog-discount.ts${NC}"
+echo -e "   1. Activate KEDOL discount:"
+echo -e "      ${YELLOW}npx ts-node scripts/activate-kedol-discount.ts${NC}"
 echo -e ""
-echo -e "   2. Create KEDOLOG/USDC pool (or any pool):"
-echo -e "      ${YELLOW}npx ts-node scripts/create-kedolog-usdc-pool.ts${NC}"
+echo -e "   2. Create KEDOL/USDC pool (or any pool):"
+echo -e "      ${YELLOW}npx ts-node scripts/create-kedol-usdc-pool.ts${NC}"
 echo -e ""
-echo -e "   3. Update KEDOLOG price from pool:"
-echo -e "      ${YELLOW}npx ts-node scripts/update-kedolog-price-from-pool.ts --once${NC}"
+echo -e "   3. Update KEDOL price from pool:"
+echo -e "      ${YELLOW}npx ts-node scripts/update-kedol-price-from-pool.ts --once${NC}"
 echo -e ""
 echo -e "   4. (Optional) Enable pool creation fee (0.15 SOL):"
 echo -e "      ${YELLOW}npx ts-node scripts/set-pool-creation-fee.ts${NC}"
@@ -100,7 +100,7 @@ echo -e "      ${YELLOW}npx ts-node scripts/test-swap-with-pyth.ts${NC}"
 echo -e "\n${BLUE}📋 Important Addresses:${NC}"
 echo -e "   Program ID: $PROGRAM_ID"
 if [ ! -z "$KEDOLOG_MINT" ]; then
-    echo -e "   KEDOLOG: $KEDOLOG_MINT"
+    echo -e "   KEDOL: $KEDOLOG_MINT"
 fi
 
 echo -e "\n${GREEN}🎉 Ready to configure and test!${NC}\n"

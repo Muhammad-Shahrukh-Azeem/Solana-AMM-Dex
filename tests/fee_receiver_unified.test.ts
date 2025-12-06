@@ -96,7 +96,7 @@ describe("🔐 Unified Fee Receiver Tests", () => {
     console.log("      • Pool creation fees (1 SOL)");
     console.log("      • Protocol fees from swaps");
     console.log("      • Fund fees");
-    console.log("      • KEDOLOG discount fees");
+    console.log("      • KEDOL discount fees");
   });
 
   it("✅ Test 2: Only admin can update fee receiver", async () => {

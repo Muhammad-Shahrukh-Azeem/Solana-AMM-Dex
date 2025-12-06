@@ -4,15 +4,15 @@ import { PublicKey } from "@solana/web3.js";
 import { KedolikCpSwap } from "../target/types/kedolik_cp_swap";
 
 /**
- * 🔄 Update KEDOLOG Price from Pool Reserves
+ * 🔄 Update KEDOL Price from Pool Reserves
  * 
- * This script fetches your KEDOLOG/USDC pool reserves and updates
+ * This script fetches your KEDOL/USDC pool reserves and updates
  * the protocol token config with the calculated price.
  * 
  * Usage:
  *   1. Update KEDOLOG_USDC_POOL with your pool address
- *   2. Run: npx ts-node scripts/update-kedolog-price-from-pool.ts
- *   3. Or run continuously: node -r ts-node/register scripts/update-kedolog-price-from-pool.ts --watch
+ *   2. Run: npx ts-node scripts/update-kedol-price-from-pool.ts
+ *   3. Or run continuously: node -r ts-node/register scripts/update-kedol-price-from-pool.ts --watch
  */
 
 // ========== CONFIGURATION ==========
@@ -21,7 +21,7 @@ import { KedolikCpSwap } from "../target/types/kedolik_cp_swap";
 const UPDATE_INTERVAL_MS = 5 * 60 * 1000;
 
 // Which token is which in the pool
-const KEDOLOG_IS_TOKEN0 = true; // KEDOLOG is token0, USDC is token1
+const KEDOLOG_IS_TOKEN0 = true; // KEDOL is token0, USDC is token1
 
 // ===================================
 
@@ -34,7 +34,7 @@ function getPoolAddress(): PublicKey {
     
     if (!addresses.kedologUsdcPool) {
       console.error("❌ kedologUsdcPool not found in devnet-addresses.json");
-      console.error("   Run: npx ts-node scripts/create-kedolog-usdc-pool.ts first");
+      console.error("   Run: npx ts-node scripts/create-kedol-usdc-pool.ts first");
       process.exit(1);
     }
     
@@ -59,7 +59,7 @@ async function getProtocolTokenConfigAddress(
 
 async function updateKedologPriceFromPool() {
   console.log("\n" + "=".repeat(60));
-  console.log("🔄 Updating KEDOLOG Price from Pool");
+  console.log("🔄 Updating KEDOL Price from Pool");
   console.log("=".repeat(60));
   console.log(`Time: ${new Date().toISOString()}`);
   
@@ -88,12 +88,12 @@ async function updateKedologPriceFromPool() {
     console.log(`   Token0 Reserve: ${token0Reserve}`);
     console.log(`   Token1 Reserve: ${token1Reserve}`);
     
-    // Calculate price based on which token is KEDOLOG
+    // Calculate price based on which token is KEDOL
     let kedologReserve: number;
     let usdcReserve: number;
     
     if (KEDOLOG_IS_TOKEN0) {
-      kedologReserve = token0Reserve / 1e9; // KEDOLOG has 9 decimals
+      kedologReserve = token0Reserve / 1e9; // KEDOL has 9 decimals
       usdcReserve = token1Reserve / 1e6;    // USDC has 6 decimals
     } else {
       kedologReserve = token1Reserve / 1e9;
@@ -101,12 +101,12 @@ async function updateKedologPriceFromPool() {
     }
     
     console.log(`\n💰 Adjusted Reserves:`);
-    console.log(`   KEDOLOG: ${kedologReserve.toLocaleString()} tokens`);
+    console.log(`   KEDOL: ${kedologReserve.toLocaleString()} tokens`);
     console.log(`   USDC: ${usdcReserve.toLocaleString()} USDC`);
     
-    // Calculate KEDOLOG price
+    // Calculate KEDOL price
     const kedologPriceUsd = usdcReserve / kedologReserve;
-    console.log(`\n📈 KEDOLOG Price: $${kedologPriceUsd.toFixed(6)}`);
+    console.log(`\n📈 KEDOL Price: $${kedologPriceUsd.toFixed(6)}`);
     
     // Check for reasonable price (sanity check)
     if (kedologPriceUsd <= 0 || kedologPriceUsd > 1000) {
@@ -159,7 +159,7 @@ async function updateKedologPriceFromPool() {
 
 // Main execution
 async function main() {
-  console.log("🚀 KEDOLOG Price Update Service");
+  console.log("🚀 KEDOL Price Update Service");
   console.log("================================");
   console.log(`Update interval: ${UPDATE_INTERVAL_MS / 1000} seconds`);
   console.log(`Pool address: ${KEDOLOG_USDC_POOL.toString()}`);

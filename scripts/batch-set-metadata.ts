@@ -25,10 +25,10 @@ const GENERIC_LP_METADATA = {
 
 // Pool addresses for mainnet (confirmed pools only)
 const POOL_ADDRESSES = [
-  '8KYfYHmPyzpzqYQzVzHR3uv94E1UX8TsaEFLqBWzenRJ', // KEDOLOG-USDC
+  '8KYfYHmPyzpzqYQzVzHR3uv94E1UX8TsaEFLqBWzenRJ', // KEDOL-USDC
   '3ZXK4N8Hf1uZjYqndX3bRPXf71wS6gj3DSiSjPTveE1L', // SOL-USDC
-  '9zbYdushUHfJ67SJCDAYCMtaHdg5UMnJwmGWWGuXgh3',   // KEDOLOG-SOL
-  '8XY3zNwLLBnehgvWPGjtDJRUsV48hRoPYmpVTSrApUsa', // KEDOLOG-USDT
+  '9zbYdushUHfJ67SJCDAYCMtaHdg5UMnJwmGWWGuXgh3',   // KEDOL-SOL
+  '8XY3zNwLLBnehgvWPGjtDJRUsV48hRoPYmpVTSrApUsa', // KEDOL-USDT
   '8GasayczHWCWe5bk7opeZhgRxdk3Ve9uunuqHK2Kx35A', // USDC-USDT
 ];
 

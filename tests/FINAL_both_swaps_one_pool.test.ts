@@ -51,7 +51,7 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     console.log("=".repeat(80));
     console.log("Testing: ONE pool with TWO fee configurations (normal & discount)\n");
 
-    // Create KEDOLOG token
+    // Create KEDOL token
     protocolTokenMint = await createMint(
       connection,
       admin,
@@ -62,7 +62,7 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
       undefined,
       TOKEN_PROGRAM_ID
     );
-    console.log(`✅ KEDOLOG Mint: ${protocolTokenMint.toString()}`);
+    console.log(`✅ KEDOL Mint: ${protocolTokenMint.toString()}`);
 
     // Create treasury
     treasuryKeypair = Keypair.generate();
@@ -93,7 +93,7 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
       );
       console.log("✅ Protocol Token Config created");
       console.log(`   Discount Rate: 25%`);
-      console.log(`   KEDOLOG Price: Will be fetched from pool\n`);
+      console.log(`   KEDOL Price: Will be fetched from pool\n`);
     } catch (error: any) {
       console.error("\n❌ Failed to create protocol token config:");
       console.error("Error:", error.message);
@@ -152,7 +152,7 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     console.log(`   Token1: ${token1.toString()}`);
     console.log(`   Liquidity: 1,000,000 tokens each side\n`);
 
-    // Create KEDOLOG account for user
+    // Create KEDOL account for user
     userProtocolTokenAccount = await createAssociatedTokenAccount(
       connection,
       admin,
@@ -168,12 +168,12 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
       protocolTokenMint,
       userProtocolTokenAccount,
       admin.publicKey,
-      10000_000000000, // 10,000 KEDOLOG
+      10000_000000000, // 10,000 KEDOL
       [],
       undefined,
       TOKEN_PROGRAM_ID
     );
-    console.log("✅ User KEDOLOG balance: 10,000 KEDOLOG\n");
+    console.log("✅ User KEDOL balance: 10,000 KEDOL\n");
     console.log("=".repeat(80));
     console.log("Setup complete! Starting swaps...\n");
   });
@@ -188,7 +188,7 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     // SWAP 1: NORMAL SWAP (No Discount)
     // ============================================================================
     console.log("─".repeat(80));
-    console.log("📊 SWAP 1: NORMAL SWAP (Without KEDOLOG Discount)");
+    console.log("📊 SWAP 1: NORMAL SWAP (Without KEDOL Discount)");
     console.log("─".repeat(80));
     console.log("Fee: 0.25% total (0.20% LP + 0.05% Protocol)\n");
 
@@ -251,14 +251,14 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     console.log(`   Expected: ~99.75 tokens\n`);
 
     // ============================================================================
-    // SWAP 2: DISCOUNT SWAP (With KEDOLOG) - SAME POOL!
+    // SWAP 2: DISCOUNT SWAP (With KEDOL) - SAME POOL!
     // ============================================================================
     console.log("─".repeat(80));
-    console.log("🎯 SWAP 2: DISCOUNT SWAP (With KEDOLOG Discount)");
+    console.log("🎯 SWAP 2: DISCOUNT SWAP (With KEDOL Discount)");
     console.log("─".repeat(80));
     console.log("⚠️  CRITICAL: Using THE EXACT SAME POOL as Swap 1!");
     console.log(`   Pool: ${poolAddress.toString()}`);
-    console.log("Fee: 0.20% in swap (LP) + 0.04% in KEDOLOG (Protocol)\n");
+    console.log("Fee: 0.20% in swap (LP) + 0.04% in KEDOL (Protocol)\n");
 
     const before2_token0 = await getAccount(
       connection,
@@ -288,8 +288,8 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     console.log("📊 Before Swap 2:");
     console.log(`   Token0: ${(Number(before2_token0.amount) / 1e9).toFixed(6)}`);
     console.log(`   Token1: ${(Number(before2_token1.amount) / 1e9).toFixed(6)}`);
-    console.log(`   User KEDOLOG: ${(Number(before2_kedolog.amount) / 1e9).toFixed(6)}`);
-    console.log(`   Treasury KEDOLOG: ${(Number(before2_treasury.amount) / 1e9).toFixed(6)}\n`);
+    console.log(`   User KEDOL: ${(Number(before2_kedolog.amount) / 1e9).toFixed(6)}`);
+    console.log(`   Treasury KEDOL: ${(Number(before2_treasury.amount) / 1e9).toFixed(6)}\n`);
 
     console.log(`💱 Swapping 100 tokens using DISCOUNT swap instruction...\n`);
 
@@ -342,15 +342,15 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     console.log("📊 After Swap 2:");
     console.log(`   Token0: ${(Number(after2_token0.amount) / 1e9).toFixed(6)}`);
     console.log(`   Token1: ${(Number(after2_token1.amount) / 1e9).toFixed(6)}`);
-    console.log(`   User KEDOLOG: ${(Number(after2_kedolog.amount) / 1e9).toFixed(6)}`);
-    console.log(`   Treasury KEDOLOG: ${(Number(after2_treasury.amount) / 1e9).toFixed(6)}\n`);
+    console.log(`   User KEDOL: ${(Number(after2_kedolog.amount) / 1e9).toFixed(6)}`);
+    console.log(`   Treasury KEDOL: ${(Number(after2_treasury.amount) / 1e9).toFixed(6)}\n`);
 
     console.log("✅ SWAP 2 RESULTS:");
     console.log(`   Input:    ${spent2.toFixed(6)} tokens`);
     console.log(`   Output:   ${received2.toFixed(6)} tokens`);
-    console.log(`   KEDOLOG:  ${kedologPaid.toFixed(6)} paid`);
+    console.log(`   KEDOL:  ${kedologPaid.toFixed(6)} paid`);
     console.log(`   Treasury: ${treasuryReceived.toFixed(6)} received`);
-    console.log(`   Expected: ~99.80 tokens + 0.40 KEDOLOG\n`);
+    console.log(`   Expected: ~99.80 tokens + 0.40 KEDOL\n`);
 
     // ============================================================================
     // FINAL COMPARISON
@@ -370,7 +370,7 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     console.log(`│ Pool Address     │ ${poolAddress.toString().substring(0, 14)}... │ ${poolAddress.toString().substring(0, 14)}... (SAME!) │`);
     console.log(`│ Input            │ ${spent1.toFixed(6).padEnd(14)} │ ${spent2.toFixed(6).padEnd(24)} │`);
     console.log(`│ Output (tokens)  │ ${received1.toFixed(6).padEnd(14)} │ ${received2.toFixed(6).padEnd(24)} │`);
-    console.log(`│ KEDOLOG Paid     │ ${"0.000000".padEnd(14)} │ ${kedologPaid.toFixed(6).padEnd(24)} │`);
+    console.log(`│ KEDOL Paid     │ ${"0.000000".padEnd(14)} │ ${kedologPaid.toFixed(6).padEnd(24)} │`);
     console.log(`│ Extra Benefit    │ ${"0.000000".padEnd(14)} │ ${benefit.toFixed(6).padEnd(24)} │`);
     console.log("└───────────────────────────────────────────────────────────────┘\n");
 
@@ -379,13 +379,13 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     console.log(`   ✅ Normal swap executed: ${received1.toFixed(6)} tokens received`);
     console.log(`   ✅ Discount swap executed: ${received2.toFixed(6)} tokens received`);
     console.log(`   ✅ User benefit: ${benefit.toFixed(6)} MORE tokens with discount!`);
-    console.log(`   ✅ KEDOLOG paid: ${kedologPaid.toFixed(6)} KEDOLOG to protocol`);
-    console.log(`   ✅ Treasury received: ${treasuryReceived.toFixed(6)} KEDOLOG\n`);
+    console.log(`   ✅ KEDOL paid: ${kedologPaid.toFixed(6)} KEDOL to protocol`);
+    console.log(`   ✅ Treasury received: ${treasuryReceived.toFixed(6)} KEDOL\n`);
 
     console.log("💡 HOW IT WORKS:");
     console.log("   • ONE pool supports TWO different swap instructions");
     console.log("   • swap_base_input → Normal swap (0.25% fee)");
-    console.log("   • swap_base_input_with_protocol_token → Discount swap (0.20% + KEDOLOG)");
+    console.log("   • swap_base_input_with_protocol_token → Discount swap (0.20% + KEDOL)");
     console.log("   • Users choose which instruction to call per transaction");
     console.log("   • No special pool setup needed - works automatically!\n");
 
@@ -393,8 +393,8 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     console.log("   ✅ Same pool handles both fee configurations");
     console.log("   ✅ No conflicts or issues");
     console.log("   ✅ LPs always get their 0.20%");
-    console.log("   ✅ Protocol gets 0.05% (normal) or 0.04% in KEDOLOG (discount)");
-    console.log("   ✅ Users get more tokens when using KEDOLOG discount");
+    console.log("   ✅ Protocol gets 0.05% (normal) or 0.04% in KEDOL (discount)");
+    console.log("   ✅ Users get more tokens when using KEDOL discount");
     console.log("   ✅ Ready for mainnet deployment!\n");
     console.log("=".repeat(80) + "\n");
 
@@ -419,7 +419,7 @@ describe("🎯 FINAL TEST: One Pool, Both Fee Configurations", () => {
     
     assert.isTrue(
       Math.abs(kedologPaid - 0.40) < 0.01,
-      `Should pay ~0.40 KEDOLOG, paid ${kedologPaid.toFixed(6)}`
+      `Should pay ~0.40 KEDOL, paid ${kedologPaid.toFixed(6)}`
     );
     
     assert.equal(

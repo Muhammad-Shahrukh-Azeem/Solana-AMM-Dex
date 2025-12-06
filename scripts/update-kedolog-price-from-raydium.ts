@@ -1,14 +1,14 @@
 /**
- * Update KEDOLOG Price from Existing Raydium Pool
+ * Update KEDOL Price from Existing Raydium Pool
  * 
- * This script fetches the KEDOLOG price from an existing Raydium liquidity pool
+ * This script fetches the KEDOL price from an existing Raydium liquidity pool
  * and updates the protocol token config in your CP-Swap contract.
  * 
  * Usage:
- *   RAYDIUM_POOL_ADDRESS=<pool_address> npx ts-node scripts/update-kedolog-price-from-raydium.ts
+ *   RAYDIUM_POOL_ADDRESS=<pool_address> npx ts-node scripts/update-kedol-price-from-raydium.ts
  * 
  * Example:
- *   RAYDIUM_POOL_ADDRESS=YourRaydiumPoolAddress npx ts-node scripts/update-kedolog-price-from-raydium.ts
+ *   RAYDIUM_POOL_ADDRESS=YourRaydiumPoolAddress npx ts-node scripts/update-kedol-price-from-raydium.ts
  */
 
 import * as anchor from "@coral-xyz/anchor";
@@ -76,7 +76,7 @@ interface RaydiumPoolState {
 }
 
 async function main() {
-  console.log("🔄 Updating KEDOLOG Price from Raydium Pool");
+  console.log("🔄 Updating KEDOL Price from Raydium Pool");
   console.log("═══════════════════════════════════════════\n");
 
   // Get Raydium pool address from environment
@@ -84,7 +84,7 @@ async function main() {
   if (!raydiumPoolAddress) {
     console.error("❌ Error: RAYDIUM_POOL_ADDRESS environment variable not set");
     console.log("\nUsage:");
-    console.log("  RAYDIUM_POOL_ADDRESS=<pool_address> npx ts-node scripts/update-kedolog-price-from-raydium.ts");
+    console.log("  RAYDIUM_POOL_ADDRESS=<pool_address> npx ts-node scripts/update-kedol-price-from-raydium.ts");
     process.exit(1);
   }
 
@@ -134,8 +134,8 @@ async function main() {
   console.log("\n⚠️  Automatic Raydium pool parsing requires the Raydium SDK.");
   console.log("For now, please provide the pool reserves manually:\n");
   console.log("1. Go to https://raydium.io/");
-  console.log("2. Find your KEDOLOG pool");
-  console.log("3. Note the reserves (e.g., '1M KEDOLOG' and '100K USDC')");
+  console.log("2. Find your KEDOL pool");
+  console.log("3. Note the reserves (e.g., '1M KEDOL' and '100K USDC')");
   console.log("4. Set environment variables:");
   console.log("   KEDOLOG_RESERVE=1000000");
   console.log("   USDC_RESERVE=100000");
@@ -160,10 +160,10 @@ async function main() {
   const kedologPerUsd = 1 / priceInUsd;
 
   console.log("💰 Price Calculation:");
-  console.log(`   KEDOLOG Reserve: ${kedologAmount.toLocaleString()}`);
+  console.log(`   KEDOL Reserve: ${kedologAmount.toLocaleString()}`);
   console.log(`   USDC Reserve: ${usdcAmount.toLocaleString()}`);
-  console.log(`   Price: 1 KEDOLOG = $${priceInUsd.toFixed(6)}`);
-  console.log(`   Inverse: 1 USD = ${kedologPerUsd.toFixed(2)} KEDOLOG\n`);
+  console.log(`   Price: 1 KEDOL = $${priceInUsd.toFixed(6)}`);
+  console.log(`   Inverse: 1 USD = ${kedologPerUsd.toFixed(2)} KEDOL\n`);
 
   // Convert to protocol format (scaled by 10^6)
   const protocolTokenPerUsd = Math.floor(kedologPerUsd * 1_000_000);
@@ -194,8 +194,8 @@ async function main() {
     // Verify
     const config = await program.account.protocolTokenConfig.fetch(protocolTokenConfigAddress);
     console.log("📊 Verified Configuration:");
-    console.log(`   KEDOLOG per USD: ${config.protocolTokenPerUsd.toNumber() / 1_000_000}`);
-    console.log(`   Price: 1 KEDOLOG = $${(1_000_000 / config.protocolTokenPerUsd.toNumber()).toFixed(6)}`);
+    console.log(`   KEDOL per USD: ${config.protocolTokenPerUsd.toNumber() / 1_000_000}`);
+    console.log(`   Price: 1 KEDOL = $${(1_000_000 / config.protocolTokenPerUsd.toNumber()).toFixed(6)}`);
 
   } catch (error: any) {
     console.error("❌ Error updating config:", error.message);

@@ -1,6 +1,6 @@
 # Kedolik CP-Swap
 
-A Solana-based Constant Product AMM (Automated Market Maker) with KEDOLOG token discount feature.
+A Solana-based Constant Product AMM (Automated Market Maker) with KEDOL token discount feature.
 
 ## 🚀 Quick Start
 
@@ -12,8 +12,8 @@ A Solana-based Constant Product AMM (Automated Market Maker) with KEDOLOG token 
 # Initialize configuration
 npx ts-node scripts/config/init-config.ts
 
-# Activate KEDOLOG discount
-npx ts-node scripts/activate-kedolog-discount.ts
+# Activate KEDOL discount
+npx ts-node scripts/activate-kedol-discount.ts
 ```
 
 ### Mainnet Deployment
@@ -30,7 +30,7 @@ npx ts-node scripts/activate-kedolog-discount.ts
 Program ID:              2LdLPZbRokzmcJyFE7fLyTgMKNxuR9PE6PKfunn6fkUi
 AMM Config:              6cYBQxes3T5CRStVgKNV4GiURNu2nCcUwmHwEWCcP4Zt
 Protocol Token Config:   7ZRkzDLJQkhYvoyKKJXHjk1qy1ArKtX8iqbNF7F4sETv
-KEDOLOG Mint:            22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
+KEDOL Mint:            22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx
 ```
 
 See [docs/NEW_DEPLOYMENT_ADDRESSES.md](./docs/NEW_DEPLOYMENT_ADDRESSES.md) for complete details.
@@ -45,7 +45,7 @@ See [docs/NEW_DEPLOYMENT_ADDRESSES.md](./docs/NEW_DEPLOYMENT_ADDRESSES.md) for c
 | Trade Fee | 0.25% | Total fee on each swap |
 | - LP Fee | 0.20% | Goes to liquidity providers |
 | - Protocol Fee | 0.05% | Goes to protocol owner |
-| KEDOLOG Discount | 20% | Discount on protocol fee when paying with KEDOLOG |
+| KEDOL Discount | 20% | Discount on protocol fee when paying with KEDOL |
 
 ---
 
@@ -54,7 +54,7 @@ See [docs/NEW_DEPLOYMENT_ADDRESSES.md](./docs/NEW_DEPLOYMENT_ADDRESSES.md) for c
 - ✅ **Constant Product AMM** - Standard x*y=k formula
 - ✅ **Token & Token2022 Support** - Compatible with both token standards
 - ✅ **Pool Creation Fee** - 0.15 SOL per pool (direct SOL transfer)
-- ✅ **KEDOLOG Discount** - 20% off protocol fees
+- ✅ **KEDOL Discount** - 20% off protocol fees
 - ✅ **Flexible Configuration** - Adjustable fees and parameters
 
 ---
@@ -65,7 +65,7 @@ All documentation is in the [`docs/`](./docs/) folder:
 
 - **[Complete Documentation Index](./docs/README.md)** - Start here
 - **[Frontend Integration Guide](./docs/FRONTEND_UPDATE_GUIDE.md)** - For frontend developers
-- **[KEDOLOG Discount Guide](./docs/KEDOLOG_DISCOUNT_GUIDE.md)** - Discount feature details
+- **[KEDOL Discount Guide](./docs/KEDOLOG_DISCOUNT_GUIDE.md)** - Discount feature details
 - **[Deployment Addresses](./docs/NEW_DEPLOYMENT_ADDRESSES.md)** - All contract addresses
 
 ---
@@ -77,9 +77,9 @@ All documentation is in the [`docs/`](./docs/) folder:
 npx ts-node scripts/check-fees.ts
 ```
 
-### Update KEDOLOG Price
+### Update KEDOL Price
 ```bash
-npx ts-node scripts/fetch-kedolog-price-from-pool.ts
+npx ts-node scripts/fetch-kedol-price-from-pool.ts
 ```
 
 ### Run Tests

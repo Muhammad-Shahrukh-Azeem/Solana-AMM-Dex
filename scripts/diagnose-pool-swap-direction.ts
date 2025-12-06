@@ -81,9 +81,9 @@ async function main() {
   console.log(`🔗 RPC: ${rpcUrl}`);
   console.log(`📋 Program ID: ${PROGRAM_ID.toString()}\n`);
   
-  // Check KEDOLOG/USDC pool
+  // Check KEDOL/USDC pool
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("1️⃣  KEDOLOG/USDC Pool Analysis");
+  console.log("1️⃣  KEDOL/USDC Pool Analysis");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
   
   const kedologUsdcPool = new PublicKey('8KYfYHmPyzpzqYQzVzHR3uv94E1UX8TsaEFLqBWzenRJ');
@@ -119,7 +119,7 @@ async function main() {
     const isUsdcToken1 = token1Mint.equals(USDC_MINT);
     
     if (!isKedologToken0 && !isKedologToken1) {
-      console.error("❌ Pool does not contain KEDOLOG!");
+      console.error("❌ Pool does not contain KEDOL!");
       process.exit(1);
     }
     if (!isUsdcToken0 && !isUsdcToken1) {
@@ -129,12 +129,12 @@ async function main() {
     
     console.log("🔍 Token Identification:");
     if (isKedologToken0) {
-      console.log("   ✅ Token0 = KEDOLOG");
+      console.log("   ✅ Token0 = KEDOL");
       console.log("   ✅ Token1 = USDC");
       console.log("");
       console.log("💰 Current Price:");
-      console.log(`   1 KEDOLOG = ${(token1Amount / token0Amount).toFixed(6)} USDC`);
-      console.log(`   1 USDC = ${(token0Amount / token1Amount).toFixed(6)} KEDOLOG`);
+      console.log(`   1 KEDOL = ${(token1Amount / token0Amount).toFixed(6)} USDC`);
+      console.log(`   1 USDC = ${(token0Amount / token1Amount).toFixed(6)} KEDOL`);
       console.log("");
       console.log("📈 Expected Price Behavior:");
       console.log("   When swapping USDC → KEDOL:");
@@ -150,11 +150,11 @@ async function main() {
       console.log("     - ✅ Price of KEDOL should DECREASE");
     } else {
       console.log("   ✅ Token0 = USDC");
-      console.log("   ✅ Token1 = KEDOLOG");
+      console.log("   ✅ Token1 = KEDOL");
       console.log("");
       console.log("💰 Current Price:");
-      console.log(`   1 KEDOLOG = ${(token0Amount / token1Amount).toFixed(6)} USDC`);
-      console.log(`   1 USDC = ${(token1Amount / token0Amount).toFixed(6)} KEDOLOG`);
+      console.log(`   1 KEDOL = ${(token0Amount / token1Amount).toFixed(6)} USDC`);
+      console.log(`   1 USDC = ${(token1Amount / token0Amount).toFixed(6)} KEDOL`);
       console.log("");
       console.log("📈 Expected Price Behavior:");
       console.log("   When swapping USDC → KEDOL:");

@@ -1,7 +1,7 @@
-# 🔄 Frontend Update Guide - Adding KEDOLOG Discount Feature
+# 🔄 Frontend Update Guide - Adding KEDOL Discount Feature
 
 **For**: Existing frontend that already has pool creation and swaps working  
-**What's New**: KEDOLOG discount feature + pool creation fee  
+**What's New**: KEDOL discount feature + pool creation fee  
 **Date**: October 30, 2025
 
 ---
@@ -10,7 +10,7 @@
 
 ### **1. New Swap Instruction Added**
 - **Old**: Only `swap_base_input` (normal swap)
-- **New**: Added `swap_base_input_with_protocol_token` (KEDOLOG discount swap)
+- **New**: Added `swap_base_input_with_protocol_token` (KEDOL discount swap)
 - **Impact**: Users can now choose between two swap methods
 
 ### **2. Pool Creation Fee Added**
@@ -19,9 +19,9 @@
 - **Impact**: Need to inform users about the fee
 
 ### **3. New Account: ProtocolTokenConfig**
-- Stores KEDOLOG discount settings
+- Stores KEDOL discount settings
 - PDA: `["protocol_token_config"]`
-- Contains: discount rate, KEDOLOG price, treasury address
+- Contains: discount rate, KEDOL price, treasury address
 
 ---
 
@@ -36,20 +36,20 @@ User swaps 100 SOL
 └─ User receives: 99.75 SOL worth of output token
 ```
 
-### **Option 2: KEDOLOG Discount Swap (NEW)**
+### **Option 2: KEDOL Discount Swap (NEW)**
 ```
 User swaps 100 SOL (assuming 1 SOL = $100)
 ├─ LP Fee: 0.20 SOL → Stays in pool (same as normal)
-├─ Protocol Fee: 0.04% paid in KEDOLOG
+├─ Protocol Fee: 0.04% paid in KEDOL
 │  ├─ Normal would be: 0.05 SOL = $5
 │  ├─ With 20% discount: $4 worth
-│  └─ User pays: ~40 KEDOLOG (based on current price)
+│  └─ User pays: ~40 KEDOL (based on current price)
 └─ User receives: 99.80 SOL worth of output token
 
 💡 User saves: 0.05 SOL + gets 20% discount = Better deal!
 ```
 
-**Key Point**: With KEDOLOG discount, users get MORE output tokens AND pay less in fees!
+**Key Point**: With KEDOL discount, users get MORE output tokens AND pay less in fees!
 
 ---
 
@@ -69,14 +69,14 @@ const [useKedologDiscount, setUseKedologDiscount] = useState(false);
       checked={useKedologDiscount}
       onChange={(e) => setUseKedologDiscount(e.target.checked)}
     />
-    Pay protocol fee with KEDOLOG (Save 20%!)
+    Pay protocol fee with KEDOL (Save 20%!)
   </label>
   
   {useKedologDiscount && (
     <div className="discount-info">
       ✅ You'll save 20% on protocol fees
       ✅ You'll receive more output tokens
-      💰 Estimated KEDOLOG needed: {calculateKedologFee()} KEDOLOG
+      💰 Estimated KEDOL needed: {calculateKedologFee()} KEDOL
     </div>
   )}
 </div>
@@ -107,7 +107,7 @@ cp /path/to/new/kedolik_cp_swap.json your-frontend/src/idl/
 
 ---
 
-### **Change 2: Add KEDOLOG Discount Swap Function**
+### **Change 2: Add KEDOL Discount Swap Function**
 
 Add this new function alongside your existing `normalSwap` function:
 
@@ -144,13 +144,13 @@ async function swapWithKedologDiscount(
   const userInputAccount = await getAssociatedTokenAddress(inputMint, wallet.publicKey);
   const userOutputAccount = await getAssociatedTokenAddress(outputMint, wallet.publicKey);
   
-  // Get user KEDOLOG account (NEW)
+  // Get user KEDOL account (NEW)
   const userKedologAccount = await getAssociatedTokenAddress(
     config.protocolTokenMint, 
     wallet.publicKey
   );
   
-  // Get treasury KEDOLOG account (NEW)
+  // Get treasury KEDOL account (NEW)
   const treasuryKedologAccount = await getAssociatedTokenAddress(
     config.protocolTokenMint,
     config.treasury
@@ -167,7 +167,7 @@ async function swapWithKedologDiscount(
     program.programId
   );
   
-  // Execute swap with KEDOLOG discount (NEW INSTRUCTION)
+  // Execute swap with KEDOL discount (NEW INSTRUCTION)
   const tx = await program.methods
     .swapBaseInputWithProtocolToken(
       new BN(amountIn),
@@ -214,7 +214,7 @@ async function handleSwap() {
     let tx;
     
     if (useKedologDiscount) {
-      // NEW: Use KEDOLOG discount
+      // NEW: Use KEDOL discount
       tx = await swapWithKedologDiscount(
         poolAddress,
         inputMint,
@@ -244,9 +244,9 @@ async function handleSwap() {
 
 ---
 
-### **Change 4: Calculate KEDOLOG Fee (for UI display)**
+### **Change 4: Calculate KEDOL Fee (for UI display)**
 
-Add this helper function to show users how much KEDOLOG they'll need:
+Add this helper function to show users how much KEDOL they'll need:
 
 ```typescript
 async function calculateKedologFee(amountIn: number, inputTokenPrice: number) {
@@ -265,7 +265,7 @@ async function calculateKedologFee(amountIn: number, inputTokenPrice: number) {
   const protocolFeeUsd = (amountInUsd * protocolFeeRate) / 1_000_000;
   const discountedFeeUsd = (protocolFeeUsd * (10000 - discountRate)) / 10000;
   
-  // Convert to KEDOLOG
+  // Convert to KEDOL
   const kedologPerUsd = config.protocolTokenPerUsd.toNumber() / 1_000_000;
   const kedologFee = discountedFeeUsd * kedologPerUsd;
   
@@ -318,13 +318,13 @@ export const CONTRACT_ADDRESSES = {
 - [ ] Fees are correct (0.25%)
 - [ ] User receives expected output
 
-### **Test KEDOLOG Discount Swap (New)**
+### **Test KEDOL Discount Swap (New)**
 - [ ] Toggle appears in UI
-- [ ] KEDOLOG fee calculation is correct
+- [ ] KEDOL fee calculation is correct
 - [ ] Swap executes successfully
 - [ ] User receives MORE output than normal swap
-- [ ] KEDOLOG is deducted from user's wallet
-- [ ] Error handling if user doesn't have enough KEDOLOG
+- [ ] KEDOL is deducted from user's wallet
+- [ ] Error handling if user doesn't have enough KEDOL
 
 ### **Test Pool Creation (Updated)**
 - [ ] Pool creation still works
@@ -338,8 +338,8 @@ export const CONTRACT_ADDRESSES = {
 
 ### **What to Add:**
 1. ✅ New swap function: `swapWithKedologDiscount()`
-2. ✅ UI toggle: "Pay with KEDOLOG"
-3. ✅ KEDOLOG fee calculator
+2. ✅ UI toggle: "Pay with KEDOL"
+3. ✅ KEDOL fee calculator
 4. ✅ Pool creation fee notice
 
 ### **What to Update:**
@@ -358,14 +358,14 @@ export const CONTRACT_ADDRESSES = {
 
 ### **Swap Method Selector**
 ```
-□ Pay protocol fee with KEDOLOG (Save 20%!)
+□ Pay protocol fee with KEDOL (Save 20%!)
 
 Benefits:
 • 20% discount on protocol fees
 • Receive more output tokens
-• Support the KEDOLOG ecosystem
+• Support the KEDOL ecosystem
 
-Estimated KEDOLOG needed: 40 KEDOLOG
+Estimated KEDOL needed: 40 KEDOL
 ```
 
 ### **Pool Creation Notice**
@@ -385,9 +385,9 @@ Normal Swap:
   - LP Fee: 0.20% (goes to liquidity providers)
   - Protocol Fee: 0.05% (goes to protocol)
 
-KEDOLOG Discount Swap:
+KEDOL Discount Swap:
 • LP Fee: 0.20% (same as normal)
-• Protocol Fee: 0.04% paid in KEDOLOG (20% discount!)
+• Protocol Fee: 0.04% paid in KEDOL (20% discount!)
 • You receive MORE output tokens!
 ```
 
@@ -426,17 +426,17 @@ KEDOLOG Discount Swap:
 
 ## ❓ FAQ for Users
 
-**Q: What's the difference between normal swap and KEDOLOG discount swap?**  
-A: KEDOLOG discount swap gives you 20% off protocol fees and more output tokens, but requires KEDOLOG tokens.
+**Q: What's the difference between normal swap and KEDOL discount swap?**  
+A: KEDOL discount swap gives you 20% off protocol fees and more output tokens, but requires KEDOL tokens.
 
-**Q: Do I need KEDOLOG to swap?**  
-A: No! Normal swaps work without KEDOLOG. The discount is optional.
+**Q: Do I need KEDOL to swap?**  
+A: No! Normal swaps work without KEDOL. The discount is optional.
 
-**Q: How much KEDOLOG do I need?**  
+**Q: How much KEDOL do I need?**  
 A: It depends on your swap size. The UI will show you the estimated amount before you swap.
 
-**Q: What if I don't have enough KEDOLOG?**  
-A: You can use the normal swap method, or buy KEDOLOG first.
+**Q: What if I don't have enough KEDOL?**  
+A: You can use the normal swap method, or buy KEDOL first.
 
 **Q: Why is there a pool creation fee?**  
 A: The 0.15 SOL fee helps prevent spam pools and ensures quality liquidity.
@@ -450,9 +450,9 @@ A: No, this is a one-time fee that goes to the protocol.
 
 **Program ID**: `GCm8bqvSuJ4nwj3SN3pk2eSJWTwcRjkU6KhXE96AnBod`  
 **Network**: Devnet (ready for mainnet)  
-**KEDOLOG Mint**: `22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx`
+**KEDOL Mint**: `22NataEERKBqvBt3SFYJj5oE1fqiTx4HbsxU1FuSNWbx`
 
 ---
 
-**That's it!** These are the only changes needed to add KEDOLOG discount support to your existing frontend. 🚀
+**That's it!** These are the only changes needed to add KEDOL discount support to your existing frontend. 🚀
 

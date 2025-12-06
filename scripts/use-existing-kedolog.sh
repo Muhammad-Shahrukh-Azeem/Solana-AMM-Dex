@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# 🪙 Use Existing KEDOLOG Token
-# This script helps you configure your existing KEDOLOG token
+# 🪙 Use Existing KEDOL Token
+# This script helps you configure your existing KEDOL token
 
-echo "🪙 Configure Existing KEDOLOG Token"
+echo "🪙 Configure Existing KEDOL Token"
 echo "===================================="
 
-# Prompt for KEDOLOG mint address
+# Prompt for KEDOL mint address
 echo ""
-echo "Please enter your existing KEDOLOG mint address:"
-read -p "KEDOLOG Mint: " KEDOLOG_MINT
+echo "Please enter your existing KEDOL mint address:"
+read -p "KEDOL Mint: " KEDOLOG_MINT
 
 if [ -z "$KEDOLOG_MINT" ]; then
-    echo "❌ Error: KEDOLOG mint address is required"
+    echo "❌ Error: KEDOL mint address is required"
     exit 1
 fi
 
@@ -59,14 +59,14 @@ fi
 
 echo ""
 echo "======================================"
-echo "✅ KEDOLOG Token Configured!"
+echo "✅ KEDOL Token Configured!"
 echo "======================================"
 echo ""
-echo "📝 KEDOLOG Mint: $KEDOLOG_MINT"
+echo "📝 KEDOL Mint: $KEDOLOG_MINT"
 echo "💾 Saved to: devnet-addresses.json"
 echo ""
 echo "🎯 Next Steps:"
 echo "   1. Run deployment: ./scripts/deploy-and-test-devnet.sh"
-echo "   2. The script will use your existing KEDOLOG token"
+echo "   2. The script will use your existing KEDOL token"
 echo ""
 

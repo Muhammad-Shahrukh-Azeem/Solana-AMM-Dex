@@ -8,8 +8,8 @@ Complete guide for deploying the Kedolik CP Swap program to Solana mainnet.
    - Ensure your wallet has at least **15 SOL** for deployment
    - Backup your wallet keypair: `~/.config/solana/id.json`
 
-2. **KEDOLOG Token**
-   - Have your KEDOLOG token mint address ready
+2. **KEDOL Token**
+   - Have your KEDOL token mint address ready
    - Verify it exists on mainnet
 
 3. **RPC Endpoint** (Optional but recommended)
@@ -29,7 +29,7 @@ solana config set --url devnet
 # Run deployment
 ./scripts/mainnet/1-deploy-program.sh
 npx ts-node scripts/mainnet/2-create-config.ts
-npx ts-node scripts/mainnet/3-setup-kedolog.ts
+npx ts-node scripts/mainnet/3-setup-kedol.ts
 ```
 
 ### Deploy to Mainnet
@@ -48,8 +48,8 @@ solana config set --url mainnet-beta
 # Step 2: Create AMM Config (~0.05 SOL)
 ./scripts/mainnet/2-create-config.sh
 
-# Step 3: Setup KEDOLOG Discount (~0.05 SOL)
-./scripts/mainnet/3-setup-kedolog.sh
+# Step 3: Setup KEDOL Discount (~0.05 SOL)
+./scripts/mainnet/3-setup-kedol.sh
 ```
 
 #### Option 2: Run All Steps at Once
@@ -72,16 +72,16 @@ This will automatically:
 - This fee is paid when creating a new pool
 - Fee goes to the address specified in the config
 
-### KEDOLOG Discount
-- **Discount Rate**: 25% (set in `3-setup-kedolog.ts`)
-- **Token Per USD**: 10 KEDOLOG per $1 USD
-- Users holding KEDOLOG get 25% off protocol fees
+### KEDOL Discount
+- **Discount Rate**: 25% (set in `3-setup-kedol.ts`)
+- **Token Per USD**: 10 KEDOL per $1 USD
+- Users holding KEDOL get 25% off protocol fees
 
 ### Fee Structure
 - **Trade Fee**: 0.25%
   - **LP Fee**: 0.20% (stays in pool)
   - **Protocol Fee**: 0.05% (claimable by admin)
-- **With KEDOLOG**: Protocol fee reduced to 0.0375%
+- **With KEDOL**: Protocol fee reduced to 0.0375%
 
 ## 📝 Deployment Output
 
@@ -94,14 +94,14 @@ After successful deployment, you'll have:
 2. **Program Addresses**
    - Program ID
    - AMM Config address
-   - KEDOLOG Config address
+   - KEDOL Config address
 
 ## 🔐 Security Checklist
 
 - [ ] Tested on devnet first
 - [ ] Verified wallet has sufficient SOL
 - [ ] Backed up wallet keypair
-- [ ] Verified KEDOLOG token mint address
+- [ ] Verified KEDOL token mint address
 - [ ] Reviewed all configuration values
 - [ ] Confirmed network is mainnet before deployment
 
@@ -122,7 +122,7 @@ After successful deployment, you'll have:
 
 3. **Test Everything**
    - Create a small test pool
-   - Test swaps with and without KEDOLOG
+   - Test swaps with and without KEDOL
    - Verify fee distribution
 
 ## 🆘 Troubleshooting
@@ -135,7 +135,7 @@ After successful deployment, you'll have:
 - Script will ask if you want to upgrade
 - Only upgrade if you're sure!
 
-### "KEDOLOG token not found"
+### "KEDOL token not found"
 - Verify the mint address is correct
 - Check it exists on mainnet: `solana account <mint-address>`
 
@@ -164,7 +164,7 @@ anchor build
 ./scripts/mainnet/1-deploy-program.sh
 ```
 
-**Note**: Config and KEDOLOG setup only need to be done once!
+**Note**: Config and KEDOL setup only need to be done once!
 
 ## ⚠️ Important Notes
 

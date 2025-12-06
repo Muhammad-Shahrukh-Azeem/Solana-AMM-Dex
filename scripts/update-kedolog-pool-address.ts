@@ -5,8 +5,8 @@ import { KedolikCpSwap } from "../target/types/kedolik_cp_swap";
 import * as fs from "fs";
 
 /**
- * Script to update the KEDOLOG pool address in ProtocolTokenConfig
- * This allows the contract to fetch KEDOLOG price from your pool
+ * Script to update the KEDOL pool address in ProtocolTokenConfig
+ * This allows the contract to fetch KEDOL price from your pool
  */
 
 const NETWORK = process.env.NETWORK || "devnet";
@@ -15,7 +15,7 @@ const RPC_URL = NETWORK === "mainnet"
   : "https://api.devnet.solana.com";
 
 async function main() {
-  console.log("🔄 Updating KEDOLOG Pool Address in Protocol Config");
+  console.log("🔄 Updating KEDOL Pool Address in Protocol Config");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("");
 
@@ -53,10 +53,10 @@ async function main() {
   console.log("📋 Current Configuration:");
   console.log(`   Program ID: ${deployment.programId}`);
   console.log(`   Protocol Token Config: ${deployment.protocolTokenConfig}`);
-  console.log(`   KEDOLOG Mint: ${deployment.kedologMint}`);
+  console.log(`   KEDOL Mint: ${deployment.kedologMint}`);
   console.log("");
 
-  // Derive the KEDOLOG/USDC pool address
+  // Derive the KEDOL/USDC pool address
   const kedologMint = new PublicKey(deployment.kedologMint);
   const usdcMint = new PublicKey("2YAPUKzhzPDnV3gxHew5kUUt1L157Tdrdbv7Gbbg3i32"); // From your screenshot
   const ammConfig = new PublicKey(deployment.ammConfig);
@@ -77,7 +77,7 @@ async function main() {
   );
 
   console.log("🔍 Derived Pool Address:");
-  console.log(`   KEDOLOG/USDC Pool: ${poolState.toString()}`);
+  console.log(`   KEDOL/USDC Pool: ${poolState.toString()}`);
   console.log("");
 
   // Verify the pool exists
@@ -92,7 +92,7 @@ async function main() {
     console.log("");
   } catch (error) {
     console.error("❌ Pool not found on-chain!");
-    console.error("   Make sure you've created the KEDOLOG/USDC pool first.");
+    console.error("   Make sure you've created the KEDOL/USDC pool first.");
     process.exit(1);
   }
 
@@ -151,12 +151,12 @@ async function main() {
     console.log("");
 
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.log("✅ SUCCESS! KEDOLOG pool address updated!");
+    console.log("✅ SUCCESS! KEDOL pool address updated!");
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     console.log("");
     console.log("🎯 Next Steps:");
-    console.log("   1. The contract can now fetch KEDOLOG price from your pool");
-    console.log("   2. Users can pay protocol fees with KEDOLOG (20% discount)");
+    console.log("   1. The contract can now fetch KEDOL price from your pool");
+    console.log("   2. Users can pay protocol fees with KEDOL (20% discount)");
     console.log("   3. The discount is OPTIONAL - users choose at swap time");
     console.log("");
 

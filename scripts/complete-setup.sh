@@ -20,23 +20,23 @@ echo "🎯 Complete Setup"
 echo "=================================="
 echo ""
 
-# Step 1: Activate KEDOLOG Discount
+# Step 1: Activate KEDOL Discount
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}Step 1: Activating KEDOLOG Discount${NC}"
+echo -e "${GREEN}Step 1: Activating KEDOL Discount${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-npx ts-node scripts/activate-kedolog-discount.ts
+npx ts-node scripts/activate-kedol-discount.ts
 
-# Step 2: Create KEDOLOG/USDC Pool
+# Step 2: Create KEDOL/USDC Pool
 echo -e "\n${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}Step 2: Creating KEDOLOG/USDC Pool${NC}"
+echo -e "${GREEN}Step 2: Creating KEDOL/USDC Pool${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-npx ts-node scripts/create-kedolog-usdc-pool.ts
+npx ts-node scripts/create-kedol-usdc-pool.ts
 
-# Step 3: Update KEDOLOG Price
+# Step 3: Update KEDOL Price
 echo -e "\n${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${GREEN}Step 3: Updating KEDOLOG Price${NC}"
+echo -e "${GREEN}Step 3: Updating KEDOL Price${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-npx ts-node scripts/update-kedolog-price-from-pool.ts --once
+npx ts-node scripts/update-kedol-price-from-pool.ts --once
 
 # Step 4: Test Swaps
 echo -e "\n${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -50,9 +50,9 @@ echo -e "${GREEN}✅ Setup Complete!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 echo -e "\n${BLUE}📋 Summary:${NC}"
-echo -e "   ✅ KEDOLOG discount activated"
-echo -e "   ✅ KEDOLOG/USDC pool created"
-echo -e "   ✅ KEDOLOG price updated"
+echo -e "   ✅ KEDOL discount activated"
+echo -e "   ✅ KEDOL/USDC pool created"
+echo -e "   ✅ KEDOL price updated"
 echo -e ""
 echo -e "${BLUE}🎯 Next Steps:${NC}"
 echo -e "   1. Test swaps: ${YELLOW}npx ts-node scripts/test-swap-with-pyth.ts${NC}"

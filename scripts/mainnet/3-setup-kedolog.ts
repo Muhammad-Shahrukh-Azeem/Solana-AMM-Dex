@@ -26,16 +26,16 @@ const getCurrentNetwork = (): { network: string; rpcUrl: string } => {
 const { network: NETWORK, rpcUrl: RPC_URL } = getCurrentNetwork();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 🔧 KEDOLOG TOKEN CONFIGURATION
+// 🔧 KEDOL TOKEN CONFIGURATION
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// ⚠️ IMPORTANT: Set your KEDOLOG token mint address here!
+// ⚠️ IMPORTANT: Set your KEDOL token mint address here!
 const KEDOLOG_MINT = process.env.KEDOLOG_MINT || '';
 
 const DISCOUNT_RATE = 2500;          // 25% discount
-const PROTOCOL_TOKEN_PER_USD = 10000000; // 10 KEDOLOG per $1 USD (assuming 6 decimals)
+const PROTOCOL_TOKEN_PER_USD = 10000000; // 10 KEDOL per $1 USD (assuming 6 decimals)
 
-// Treasury address (where collected KEDOLOG tokens go)
+// Treasury address (where collected KEDOL tokens go)
 // Default: same as admin, but you can change this
 const TREASURY = process.env.TREASURY || '';
 
@@ -55,14 +55,14 @@ function question(query: string): Promise<string> {
 
 async function main() {
   console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🚀 MAINNET DEPLOYMENT - STEP 3: Setup KEDOLOG Discount');
+  console.log('🚀 MAINNET DEPLOYMENT - STEP 3: Setup KEDOL Discount');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   
   // Check if KEDOLOG_MINT is set
   if (!KEDOLOG_MINT) {
     console.log('⚠️  KEDOLOG_MINT not set!');
     console.log('');
-    const mintInput = await question('Enter KEDOLOG token mint address: ');
+    const mintInput = await question('Enter KEDOL token mint address: ');
     if (!mintInput || mintInput.length < 32) {
       console.error('❌ Invalid mint address');
       process.exit(1);
@@ -116,23 +116,23 @@ async function setupKedolog(kedologMint: PublicKey, treasuryInput: string) {
   console.log('📡 Network:', NETWORK);
   console.log('📋 Program ID:', PROGRAM_ID.toString());
   console.log('👤 Admin:', admin.publicKey.toString());
-  console.log('🪙 KEDOLOG Mint:', kedologMint.toString());
+  console.log('🪙 KEDOL Mint:', kedologMint.toString());
   console.log('🏦 Treasury:', treasury.toString());
   
   // Check balance
   const balance = await connection.getBalance(admin.publicKey);
   console.log('💰 Balance:', (balance / 1e9).toFixed(4), 'SOL\n');
   
-  // Verify KEDOLOG token exists
+  // Verify KEDOL token exists
   try {
     const mintInfo = await connection.getAccountInfo(kedologMint);
     if (!mintInfo) {
-      console.error(`❌ KEDOLOG token mint not found on ${NETWORK}!`);
+      console.error(`❌ KEDOL token mint not found on ${NETWORK}!`);
       process.exit(1);
     }
-    console.log(`✅ KEDOLOG token verified on ${NETWORK}\n`);
+    console.log(`✅ KEDOL token verified on ${NETWORK}\n`);
   } catch (e) {
-    console.error('❌ Error verifying KEDOLOG token:', e);
+    console.error('❌ Error verifying KEDOL token:', e);
     process.exit(1);
   }
   
@@ -151,14 +151,14 @@ async function setupKedolog(kedologMint: PublicKey, treasuryInput: string) {
   // Check if already exists
   try {
     const existingConfig: any = await (program.account as any).protocolTokenConfig.fetch(protocolTokenConfig);
-    console.log('\n⚠️  KEDOLOG config already exists!');
+    console.log('\n⚠️  KEDOL config already exists!');
     console.log('   Token Mint:', existingConfig.protocolTokenMint.toString());
     console.log('   Discount Rate:', existingConfig.discountRate.toString(), '(' + (existingConfig.discountRate.toNumber() / 100) + '%)');
     console.log('   Treasury:', existingConfig.treasury.toString());
-    console.log('\n✅ KEDOLOG already configured. Skipping...');
+    console.log('\n✅ KEDOL already configured. Skipping...');
     
     // Update deployment info
-    deploymentInfo.kedolog = {
+    deploymentInfo.kedol = {
       mint: existingConfig.protocolTokenMint.toString(),
       config: protocolTokenConfig.toString(),
       discountRate: existingConfig.discountRate.toNumber(),
@@ -168,19 +168,19 @@ async function setupKedolog(kedologMint: PublicKey, treasuryInput: string) {
     
     return;
   } catch (e) {
-    console.log('✅ KEDOLOG not configured yet, setting up...\n');
+    console.log('✅ KEDOL not configured yet, setting up...\n');
   }
   
   // Configuration
-  console.log('⚙️  KEDOLOG Configuration:');
+  console.log('⚙️  KEDOL Configuration:');
   console.log('   Discount Rate:', DISCOUNT_RATE / 100, '%');
-  console.log('   Token Per USD:', PROTOCOL_TOKEN_PER_USD / 1e6, 'KEDOLOG');
+  console.log('   Token Per USD:', PROTOCOL_TOKEN_PER_USD / 1e6, 'KEDOL');
   console.log('');
   
   // Confirm
   // Confirm with network-aware prompt
   const networkUpper = NETWORK.toUpperCase();
-  const confirm = await question(`⚠️  Setup KEDOLOG on ${networkUpper}? Type "DEPLOY" to confirm: `);
+  const confirm = await question(`⚠️  Setup KEDOL on ${networkUpper}? Type "DEPLOY" to confirm: `);
   if (confirm !== 'DEPLOY') {
     console.log('❌ Aborted');
     process.exit(1);
@@ -210,7 +210,7 @@ async function setupKedolog(kedologMint: PublicKey, treasuryInput: string) {
     
     // Verify
     const config: any = await (program.account as any).protocolTokenConfig.fetch(protocolTokenConfig);
-    console.log('\n📋 Verified KEDOLOG Config:');
+    console.log('\n📋 Verified KEDOL Config:');
     console.log('   Token Mint:', config.protocolTokenMint.toString());
     console.log('   Discount Rate:', config.discountRate.toString(), '(' + (config.discountRate.toNumber() / 100) + '%)');
     console.log('   Treasury:', config.treasury.toString());
@@ -218,7 +218,7 @@ async function setupKedolog(kedologMint: PublicKey, treasuryInput: string) {
     console.log('   Authority:', config.authority.toString());
     
     // Update deployment info
-    deploymentInfo.kedolog = {
+    deploymentInfo.kedol = {
       mint: kedologMint.toString(),
       config: protocolTokenConfig.toString(),
       discountRate: DISCOUNT_RATE,
@@ -238,9 +238,9 @@ async function setupKedolog(kedologMint: PublicKey, treasuryInput: string) {
     console.log('\n📋 Summary:');
     console.log('   Program ID:', deploymentInfo.programId);
     console.log('   AMM Config:', deploymentInfo.ammConfig);
-    console.log('   KEDOLOG Config:', protocolTokenConfig.toString());
+    console.log('   KEDOL Config:', protocolTokenConfig.toString());
     console.log('   Pool Creation Fee: 1 SOL');
-    console.log('   KEDOLOG Discount: 25%');
+    console.log('   KEDOL Discount: 25%');
     console.log('\n➡️  Next Steps:');
     console.log('   1. Update your frontend with the new addresses');
     console.log(`   2. Copy ${deploymentFile} to your frontend`);

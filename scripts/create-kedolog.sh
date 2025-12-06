@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Create KEDOLOG token on devnet
+# Create KEDOL token on devnet
 set -e
 
-echo "🪙 Creating KEDOLOG Token on Devnet"
+echo "🪙 Creating KEDOL Token on Devnet"
 echo "===================================="
 echo ""
 
@@ -25,24 +25,24 @@ if (( $(echo "$BALANCE < 1" | bc -l) )); then
 fi
 
 echo ""
-echo "Creating KEDOLOG token (9 decimals)..."
+echo "Creating KEDOL token (9 decimals)..."
 KEDOLOG_MINT=$(spl-token create-token --decimals 9 --url devnet 2>&1 | grep "Creating token" | awk '{print $3}')
-echo "✅ KEDOLOG Mint: $KEDOLOG_MINT"
+echo "✅ KEDOL Mint: $KEDOLOG_MINT"
 echo ""
 
 echo "Creating token account..."
 spl-token create-account $KEDOLOG_MINT --url devnet
 echo ""
 
-echo "Minting 1 Billion KEDOLOG..."
+echo "Minting 1 Billion KEDOL..."
 spl-token mint $KEDOLOG_MINT 1000000000 --url devnet
 echo ""
 
 echo "======================================"
-echo "✅ KEDOLOG Created Successfully!"
+echo "✅ KEDOL Created Successfully!"
 echo "======================================"
 echo ""
-echo "📝 KEDOLOG Mint Address:"
+echo "📝 KEDOL Mint Address:"
 echo "$KEDOLOG_MINT"
 echo ""
 echo "💾 Save this to devnet-addresses.json"

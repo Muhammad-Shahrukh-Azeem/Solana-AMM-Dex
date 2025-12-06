@@ -18,8 +18,8 @@ scripts/
 ├── ⚙️  Configuration (config/)/
 │   ├── init-config.ts                 # Initialize AMM config
 │   ├── update-fees.ts                 # Update fee rates
-│   ├── setup-kedolog.ts               # Setup KEDOLOG discount
-│   └── update-kedolog-price.ts        # Update KEDOLOG price
+│   ├── setup-kedol.ts               # Setup KEDOL discount
+│   └── update-kedol-price.ts        # Update KEDOL price
 │
 ├── 🔐 Administration (admin/)/
 │   ├── transfer-program-authority.ts  # Transfer program upgrade authority
@@ -28,7 +28,7 @@ scripts/
 │   └── emergency-pause.ts             # Emergency controls
 │
 └── 🛠️  Utilities/
-    ├── quick-setup-kedolog.sh         # Quick KEDOLOG setup
+    ├── quick-setup-kedol.sh         # Quick KEDOL setup
     ├── create-pool.ts                 # Create liquidity pool
     └── test-swap.ts                   # Test swap functionality
 ```
@@ -198,9 +198,9 @@ NETWORK=mainnet NEW_OWNER=<address> npx ts-node scripts/admin/transfer-config-ow
 # 2. Initialize config
 npx ts-node scripts/config/init-config.ts
 
-# 3. Setup KEDOLOG (if using)
-./scripts/quick-setup-kedolog.sh YOUR_KEDOLOG_MINT
-npx ts-node scripts/config/setup-kedolog.ts
+# 3. Setup KEDOL (if using)
+./scripts/quick-setup-kedol.sh YOUR_KEDOLOG_MINT
+npx ts-node scripts/config/setup-kedol.ts
 
 # 4. Create pools and test
 npx ts-node scripts/create-pool.ts
@@ -220,8 +220,8 @@ npx ts-node scripts/test-swap.ts
 # 3. Initialize config
 NETWORK=mainnet npx ts-node scripts/config/init-config.ts
 
-# 4. Setup KEDOLOG
-NETWORK=mainnet npx ts-node scripts/config/setup-kedolog.ts
+# 4. Setup KEDOL
+NETWORK=mainnet npx ts-node scripts/config/setup-kedol.ts
 
 # 5. Enable pool creation fee (optional)
 NETWORK=mainnet POOL_CREATION_FEE=150000000 npx ts-node scripts/config/update-fees.ts
@@ -334,8 +334,8 @@ NETWORK=mainnet NEW_OWNER=<address> npx ts-node scripts/admin/transfer-config-ow
 |--------|---------|----------------|
 | `init-config.ts` | Initialize AMM config | No (first time) |
 | `update-fees.ts` | Update fee rates | Yes |
-| `setup-kedolog.ts` | Setup KEDOLOG discount | Yes |
-| `update-kedolog-price.ts` | Update KEDOLOG price | Yes |
+| `setup-kedol.ts` | Setup KEDOL discount | Yes |
+| `update-kedol-price.ts` | Update KEDOL price | Yes |
 
 ### **Administration**
 

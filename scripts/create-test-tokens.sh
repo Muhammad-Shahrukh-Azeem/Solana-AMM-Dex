@@ -52,11 +52,11 @@ spl-token create-account $BTC_MINT --url devnet
 spl-token mint $BTC_MINT 100 --url devnet  # 100 BTC
 echo ""
 
-echo "Creating KEDOLOG (9 decimals)..."
+echo "Creating KEDOL (9 decimals)..."
 KEDOLOG_MINT=$(spl-token create-token --decimals 9 --url devnet 2>&1 | grep "Creating token" | awk '{print $3}')
-echo -e "${GREEN}✅ KEDOLOG Mint: $KEDOLOG_MINT${NC}"
+echo -e "${GREEN}✅ KEDOL Mint: $KEDOLOG_MINT${NC}"
 spl-token create-account $KEDOLOG_MINT --url devnet
-spl-token mint $KEDOLOG_MINT 1000000000 --url devnet  # 1B KEDOLOG
+spl-token mint $KEDOLOG_MINT 1000000000 --url devnet  # 1B KEDOL
 echo ""
 
 echo "======================================"
@@ -69,7 +69,7 @@ echo "USDC:    $USDC_MINT"
 echo "SOL:     $SOL_MINT"
 echo "ETH:     $ETH_MINT"
 echo "BTC:     $BTC_MINT"
-echo "KEDOLOG: $KEDOLOG_MINT"
+echo "KEDOL: $KEDOLOG_MINT"
 echo ""
 echo "Add them to devnet-addresses.json:"
 echo ""
