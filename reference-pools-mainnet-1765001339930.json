@@ -1,0 +1,24 @@
+{
+  "network": "mainnet",
+  "programId": "Hr4iqmE5wiStSiHGgzgUSryNG4hyqkSHUT7PDyAsE6Li",
+  "protocolTokenConfig": "8cdqhJuzKiRvwkh5vv9zYSEfRh4ddbhYySz1EFQvY5mn",
+  "referencePools": {
+    "kedologUsdc": {
+      "pool": "DKLZ3JNvv8NLjmcXsLNiWZaxV4hYCHRMVWTKAk5Aqb48",
+      "vault0": "7YkhnRLbiUXAVvZ4S57GLJKMCwvDSShqNYxTC1mgFQ5S",
+      "vault1": "GX2BBrAaGUDUKKtCz2uZMWEX3vPycd2PoTTMcrCrnooi"
+    },
+    "solUsdc": {
+      "pool": "554JreVzZoRoCW4igPnuqkLZ3E6gUDYU63pCGNEhJY8m",
+      "vault0": "4FxDGNCQNDFrmgywawZVR9te4CxcQw1GtJyMw2R6etiw",
+      "vault1": "C1pm2PzSUuZooSRj5ABX7DBaa3ZbRXjH6sW4YHgKR3Ho"
+    },
+    "kedologSol": {
+      "pool": "5RQ4PyDTxhWnRB29BUv1HEXFMoD6ffDpNRyu7MvZMTYc",
+      "vault0": "64tZE1UoxSWpsGZjW8RyxVsARfyFaDKLPLCZ2cE5Rpwk",
+      "vault1": "E5pzTnDqVS9auWh1qjpfLNcnzHnUUBJeWNxqaZW7ge7W"
+    }
+  },
+  "updatedAt": "2025-12-06T06:08:59.929Z",
+  "updatedBy": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot"
+}

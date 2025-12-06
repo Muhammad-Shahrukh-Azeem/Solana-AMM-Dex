@@ -20,7 +20,7 @@ solana_security_txt::security_txt! {
     auditors: "https://github.com/kedolik-io/kedolik-docs/blob/master/audit/MadShield%20Q1%202024/kedolik-cp-swap-v-1.0.0.pdf"
 }
 
-declare_id!("2CskEEg1Kc4tR7iEznMS3Jk5F41PgkphDouacn75enbX");
+declare_id!("Hr4iqmE5wiStSiHGgzgUSryNG4hyqkSHUT7PDyAsE6Li");
 
 pub mod admin {
     use super::{pubkey, Pubkey};

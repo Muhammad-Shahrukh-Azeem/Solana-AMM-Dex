@@ -112,15 +112,72 @@ echo "🚀 STEP 4: Deploy Program"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-solana program deploy target/deploy/kedolik_cp_swap.so
+# Close any existing buffer accounts first
+echo "🔍 Checking for existing buffer accounts..."
+BUFFERS=$(solana program show --buffers 2>/dev/null | grep "Buffer Address" -A 100 | grep -E "^[A-Za-z0-9]{32,44}" | awk '{print $1}' || true)
+if [ ! -z "$BUFFERS" ]; then
+    echo "⚠️  Found existing buffer accounts, closing them..."
+    for BUFFER in $BUFFERS; do
+        echo "   Closing buffer: $BUFFER"
+        solana program close "$BUFFER" 2>/dev/null || true
+    done
+    echo "✅ Buffer accounts closed"
+    echo ""
+fi
 
+# Deploy with program ID specified and retry logic
+echo "📤 Deploying program..."
+MAX_RETRIES=3
+RETRY_COUNT=0
+DEPLOY_SUCCESS=false
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$DEPLOY_SUCCESS" = false ]; do
+    if [ $RETRY_COUNT -gt 0 ]; then
+        echo "   Retry attempt $RETRY_COUNT of $MAX_RETRIES..."
+        sleep 5
+    fi
+    
+    if solana program deploy target/deploy/kedolik_cp_swap.so \
+        --program-id target/deploy/kedolik_cp_swap-keypair.json \
+        --max-sign-attempts 10; then
+        DEPLOY_SUCCESS=true
+        echo ""
+        echo "✅ Program deployed successfully!"
+    else
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+            echo "   ⚠️  Deployment failed, will retry..."
+        else
+            echo ""
+            echo "❌ Deployment failed after $MAX_RETRIES attempts"
+            echo ""
+            echo "💡 If deployment partially succeeded, check for buffer accounts:"
+            echo "   solana program show --buffers"
+            echo ""
+            echo "💡 To resume deployment from buffer:"
+            echo "   solana program deploy target/deploy/kedolik_cp_swap.so \\"
+            echo "     --program-id target/deploy/kedolik_cp_swap-keypair.json \\"
+            echo "     --buffer <BUFFER_ADDRESS>"
+            exit 1
+        fi
+    fi
+done
+
+# Verify deployment
 echo ""
-echo "✅ Program deployed!"
-echo ""
+echo "🔍 Verifying deployment..."
+if solana program show "$NEW_PROGRAM_ID" > /dev/null 2>&1; then
+    echo "✅ Program verified on-chain: $NEW_PROGRAM_ID"
+else
+    echo "⚠️  Warning: Could not verify program on-chain immediately"
+    echo "   This might be a temporary network issue. Check manually:"
+    echo "   solana program show $NEW_PROGRAM_ID"
+fi
 
 # Wait for deployment to settle
+echo ""
 echo "⏳ Waiting for deployment to settle..."
-sleep 3
+sleep 5
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
