@@ -1,0 +1,25 @@
+{
+  "status": "live",
+  "network": "devnet",
+  "rpc_url": "https://api.devnet.solana.com",
+  "deployer_wallet": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot",
+  "locker_program": "9mtTTmx6ncn7FKfE9oyeiURctm2fZUN6kPLAbPLoXuvU",
+  "lock_setup": {
+    "base": "Bt4qWtDYFwkzhjbnmnWUFofzMKGsf4CPyBNMfqA7Brjm",
+    "escrow": "9msyBhDx6TUN8wSvxBrQwfq1UN1vFtphVMjZhduh99KJ",
+    "escrow_token": "3sPDLoBWZkKEEfiBj4dSumkWBXy2p4F12HvW9DNqQuRk",
+    "token_mint": "3uSQheD8cTnWQxzBn334PMQJHHYUHs6ReYube7gAGiSX",
+    "sender_token": "6ATeYdpAdnzB9FjckR9ZfVzER29tfMxzRfqeyEdJX1hZ",
+    "recipient": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot",
+    "vesting_start_time": 1776665163,
+    "cliff_time": 1776665178,
+    "frequency": 15,
+    "cliff_unlock_amount": "10000000000",
+    "amount_per_period": "5000000000",
+    "number_of_period": "8",
+    "total_locked_amount": "50000000000",
+    "update_recipient_mode": 3,
+    "cancel_mode": 3
+  },
+  "signature": "2436eundFDFt8zMHJe3A7SqJEhJoKrBWQKmR1NEuJPk1cNXvKhbjYZAK55pG7vCV56hFaj8sYHZKpq2MURx16Z9E"
+}

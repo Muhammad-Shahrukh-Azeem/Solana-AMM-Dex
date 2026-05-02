@@ -1,0 +1,52 @@
+{
+  "status": "live",
+  "network": "devnet",
+  "rpc_url": "https://api.devnet.solana.com",
+  "deployer_wallet": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot",
+  "programs": {
+    "kedolik_mint_wrapper": "EzMFbFNvJMFmts6LchtweBq1VKTsfpDpJknGu4kLiH85",
+    "kedolik_staking": "3dAuLSedbDtzha2uV7K8Mf63ottPCYyMJwRuvouiZ85J",
+    "kedolik_locker": "9mtTTmx6ncn7FKfE9oyeiURctm2fZUN6kPLAbPLoXuvU"
+  },
+  "staking_setup": {
+    "mint_wrapper_base": "4k6HVS5N4tCrZrUA8deuVuFUaUUtNvz6vH987qhMD5B3",
+    "mint_wrapper": "JDZA277vy1eZhPsQrZdxZatKPVKPAhNS8H6hFfdPb9tw",
+    "rewarder_base": "E7vck3YJ9jH3WSJGwezy99UmHd5shEAQY74etcMKvxa9",
+    "rewarder": "2LoDeTSddNRFDda7pqtWhtPGJzR3DRnztwpzSQ6PtgxG",
+    "minter": "BPL62zj831pdRBPSEJuCNtAeXF2mhmdK2Jvb6h5yn16o",
+    "quarry": "4EuEpZAzddBmGDctuQsFza4WZMifH8q4egby53L2JJfs",
+    "miner": "F4osQmEEZ9QVqXAcrpe5q4FM2cLmij8TSDbkHN8ndQqF",
+    "miner_vault": "34742PNwAVqpyGna7iRpP1P7N1j5SAHUMWKEEMM3mcX1",
+    "reward_token_mint": "ACEkFGhT9C1ypsZR2nyrvLGMsZ1288CFckujMMpjwZNv",
+    "reward_token_account": "9PPegT8hZe3ecdoEWdhMQyafieFyZRHDdYwWBkvX9gXM",
+    "claim_fee_token_account": "UyF5GWD5Nj2VGYoDcsMTAczmW3akCLibHASkCPwN4qG",
+    "stake_token_mint": "3uSQheD8cTnWQxzBn334PMQJHHYUHs6ReYube7gAGiSX",
+    "stake_token_account": "6ATeYdpAdnzB9FjckR9ZfVzER29tfMxzRfqeyEdJX1hZ",
+    "annual_rewards_rate": "3153600000000000",
+    "rewards_share": "1",
+    "seeded_stake_amount": "100000000000"
+  },
+  "balances": {
+    "wallet_stake_token_account_amount": "999900000000000",
+    "wallet_reward_token_account_amount": "299970000",
+    "claim_fee_token_account_amount": "29999"
+  },
+  "signatures": {
+    "createRewardMint": "mj29mn4NW6YB4RKPiwNtoS3MRBPmGkHMNfdH5eSvJDQVeFoXQvagFdRCnyZDos883x7pD5wwSRMfkQtkbBybNza",
+    "newWrapper": "5KCK95y3GcaEh9zKJ2hLLUZmpUGDKPHGzK5EfqkAPKZBQ9sMiLPNXVbRoqPKEND155TdXX4427N6pbw1TzF9tNf4",
+    "createClaimFeeAccount": "2nBwWrwup8Lg2UhdTB8DuvV3QQjjBZAFwoLE4m71DUq1CsY58oDtWAasdG28uadkujKEVEeNhrEP1ZuU3aXgkz4p",
+    "newRewarder": "dRSM8T4RZiMUUmcJTVY9Jnb9gsvSSfY4G8Rat3S23kPXTk5R4keVZkmHyQVAXFjaRWPsaxTYW7k8XjGA3WkMjUJ",
+    "newMinter": "5hTAKH7exP8QqYLiq61MtKVLsUnjmRTEoQ3UmrvZtE2VdWb49Ja97GdDt1CrgBzmA53aCQVz8NxUp2oJjB9gXsZU",
+    "minterUpdate": "33jYBsPEVaLZ9Mdxy8zp78rmTpX7NJ9otWntTEW4S1JeeXPmbwjJGpvgqEYsFirJrY6p2xpaLPsMDAwajxE3xSuX",
+    "createStakeMint": "3dFQRA28VuFBWNYsSMtUXAnqUFZ3SQz9ebRTsxHNRV8Mn1gGRE1pFh1km51nr14YcxsiT1hRkpdo67nVkvZ7gMn",
+    "mintStakeTokens": "taXrRyUrs6wPbqGU97XD4Cs5p9FZYHgTYerzCf4nZ5pFjKAjgrmZ6b8cy3RhzTDegRnpX2yKqeE53Xiwg78wBB4",
+    "createQuarry": "5r3r31SWo3FhqtXnbuFtLgtMMapE1AFk4b6zgUCKfP6neYFyoJR6GgjYUjM4JqHEzpi7RsehdQyLRCow7ogKLXyn",
+    "setAnnualRewards": "4TJdrYGDXn4ZxSCtTRFWHJ8WXUxgvq4pT7Lj8uCcfcZXFFfq2m3xDuqm2UDeTHSpghb2o2HXr1pYkw2qhmZR4TiP",
+    "setRewardsShare": "1qxA2xLVhPcnQWBqP5hkG9kvCUNZUwWFZp2hAM4ZYcJ4nUuEGKhVMqsNPkE3QPfe6ah5ETfayC6gUZ2iWdDUgZN",
+    "updateQuarryRewards": "4inchXWdVHFgMk1eaSEgoGnqA16Ae1E9T8YpvAD1LuaZHNS8xSFxREEFeZE5rNok1AgL9mKnYKJry5TWyYebtqB6",
+    "createMinerVault": "6yX2Z3MY918Q6TDr4FW5guqGCrDPKwDYzWhDodH7M4HRMY8C9bePfqFQLa5Bm35vR8qBbXd5yFXTAuKvbQPcCFK",
+    "createMiner": "5wb9VWiqZvvdSYStdZXJ5ijwWejD2Psdq3XmaqcLvMWiWKyCGxPQQAHUJAxjsttzqRg8aviup5SjpA1ZL4zh69DF",
+    "stakeTokens": "2Vi6L1jocXrVV8ZNpj1kcZDNcGiU3PXqJQme7VMDvTL9Py7UCspbdj1nYc3Fx5KtGP4ZSNu4Hxd2mBjdcg5WKNav",
+    "claimRewards": "2qMoviqTzWTReWL4eQoee5cXcbHZ5qH2qpHzyrrwHmAPxqDQHPGDygUGcpC8BkiBp9Sbiv6nYRqLNfThvRDvX2J3"
+  }
+}
