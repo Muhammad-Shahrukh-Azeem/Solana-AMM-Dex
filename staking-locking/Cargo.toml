@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["programs/*", "merkle-verify"]
+members = ["programs/kedolik-stake-lock-v1"]
 
 [workspace.package]
 edition = "2021"
@@ -8,7 +8,7 @@ version = "0.0.1"
 
 [workspace.dependencies]
 anchor-lang = "0.31.1"
-anchor-spl = "0.31.1"
+anchor-spl = { version = "0.31.1", default-features = false }
 
 [profile.release]
 overflow-checks = true

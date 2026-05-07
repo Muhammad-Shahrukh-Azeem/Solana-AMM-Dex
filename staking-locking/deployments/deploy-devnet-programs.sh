@@ -10,28 +10,12 @@ echo "Using cluster: $URL"
 solana balance -u "$URL" -k "$WALLET"
 
 echo
-echo "Deploying Kedolik Locker..."
+echo "Deploying Kedolik lean staking/locking..."
 solana program deploy -u "$URL" \
   --keypair "$WALLET" \
-  --program-id "$ROOT_DIR/locker-workspace/target/deploy/locker-keypair.json" \
-  "$ROOT_DIR/locker-workspace/target/deploy/locker.so"
+  --program-id "$ROOT_DIR/target/deploy/kedolik_stake_lock-keypair.json" \
+  "$ROOT_DIR/target/deploy/kedolik_stake_lock.so"
 
 echo
-echo "Deploying Kedolik Mint Wrapper..."
-solana program deploy -u "$URL" \
-  --keypair "$WALLET" \
-  --program-id "$ROOT_DIR/quarry-workspace/target/deploy/quarry_mint_wrapper-keypair.json" \
-  "$ROOT_DIR/quarry-workspace/target/deploy/quarry_mint_wrapper.so"
-
-echo
-echo "Deploying Kedolik Staking..."
-solana program deploy -u "$URL" \
-  --keypair "$WALLET" \
-  --program-id "$ROOT_DIR/quarry-workspace/target/deploy/quarry_mine-keypair.json" \
-  "$ROOT_DIR/quarry-workspace/target/deploy/quarry_mine.so"
-
-echo
-echo "Prepared devnet program IDs:"
-echo "  locker:               9mtTTmx6ncn7FKfE9oyeiURctm2fZUN6kPLAbPLoXuvU"
-echo "  kedolik_mint_wrapper: EzMFbFNvJMFmts6LchtweBq1VKTsfpDpJknGu4kLiH85"
-echo "  kedolik_staking:      3dAuLSedbDtzha2uV7K8Mf63ottPCYyMJwRuvouiZ85J"
+echo "Prepared devnet program ID:"
+echo "  kedolik_stake_lock: 6M6TzGRSRqYxYmAihrXgF6MrmrCJno4RK9mEDdtkanCW"

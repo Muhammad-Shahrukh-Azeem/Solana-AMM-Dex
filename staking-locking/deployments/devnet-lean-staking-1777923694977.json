@@ -1,0 +1,15 @@
+{
+  "cluster": "https://api.devnet.solana.com",
+  "programId": "6M6TzGRSRqYxYmAihrXgF6MrmrCJno4RK9mEDdtkanCW",
+  "admin": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot",
+  "adminConfig": "6zJinApyxvq5FK84oQjvuwj4i1xnoLNbD28WEmmyDQPR",
+  "poolId": "1777923694977",
+  "stakeMint": "3uSQheD8cTnWQxzBn334PMQJHHYUHs6ReYube7gAGiSX",
+  "rewardMint": "ACEkFGhT9C1ypsZR2nyrvLGMsZ1288CFckujMMpjwZNv",
+  "pool": "HXL4Z5EFpzQzQ1FGrWqrpfiJeDUewETfeg1vuZDEK9J1",
+  "stakeVault": "9GRiwYsNjHccVGWX4TfWphhSXoVxaSZStCQqhdMKHn44",
+  "rewardVault": "FxHQ8RcCNroyHbvMiCETXLNLpC1qvP2Qxa8fJkD7HDtg",
+  "rewardAmountRaw": "100000000",
+  "rewardDurationSeconds": "2592000",
+  "rewardRatePerSecond": "38"
+}

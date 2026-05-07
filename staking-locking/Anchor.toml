@@ -4,23 +4,25 @@ solana_version = "2.1.0"
 
 [workspace]
 members = [
-  "programs/kedolik-locker-v1",
-  "programs/kedolik-mint-wrapper-v1",
-  "programs/kedolik-staking-v1",
+  "programs/kedolik-stake-lock-v1",
 ]
 
 [features]
 seeds = true
 skip-lint = false
 
+[test]
+startup_wait = 10000
+
+[scripts]
+test = "../node_modules/.bin/ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
 [provider]
 cluster = "devnet"
 wallet = "~/.config/solana/mainnet-deployer.json"
 
 [programs.localnet]
-locker = "9mtTTmx6ncn7FKfE9oyeiURctm2fZUN6kPLAbPLoXuvU"
-quarry_mint_wrapper = "QMWoBmAyJLAsA1Lh9ugMTw2gciTihncciphzdNzdZYV"
-quarry_mine = "QMNeHCGYnLVDn1icRAfQZpjPLBNkfGbSKRB83G5d8KB"
+kedolik_stake_lock = "6M6TzGRSRqYxYmAihrXgF6MrmrCJno4RK9mEDdtkanCW"
 
 [programs.devnet]
-locker = "9mtTTmx6ncn7FKfE9oyeiURctm2fZUN6kPLAbPLoXuvU"
+kedolik_stake_lock = "6M6TzGRSRqYxYmAihrXgF6MrmrCJno4RK9mEDdtkanCW"
