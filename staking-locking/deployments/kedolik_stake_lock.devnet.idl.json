@@ -31,8 +31,13 @@
           "name": "pool",
           "writable": true,
           "relations": [
+            "pool_admin",
             "position"
           ]
+        },
+        {
+          "name": "pool_admin",
+          "writable": true
         },
         {
           "name": "position",
@@ -379,6 +384,33 @@
           }
         },
         {
+          "name": "pool_admin",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108,
+                  95,
+                  97,
+                  100,
+                  109,
+                  105,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
           "name": "stake_vault",
           "writable": true,
           "pda": {
@@ -456,6 +488,10 @@
         {
           "name": "reward_rate_per_second",
           "type": "u64"
+        },
+        {
+          "name": "reward_duration_seconds",
+          "type": "u64"
         }
       ]
     },
@@ -479,6 +515,13 @@
         },
         {
           "name": "pool",
+          "writable": true,
+          "relations": [
+            "pool_admin"
+          ]
+        },
+        {
+          "name": "pool_admin",
           "writable": true
         },
         {
@@ -513,6 +556,49 @@
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "reclaim_unclaimed_rewards",
+      "discriminator": [
+        129,
+        232,
+        57,
+        227,
+        1,
+        241,
+        168,
+        137
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "relations": [
+            "pool_admin"
+          ]
+        },
+        {
+          "name": "pool_admin",
+          "writable": true
+        },
+        {
+          "name": "reward_vault",
+          "writable": true
+        },
+        {
+          "name": "admin_reward_token",
+          "writable": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
         }
       ],
       "args": []
@@ -559,6 +645,13 @@
         },
         {
           "name": "pool",
+          "writable": true,
+          "relations": [
+            "pool_admin"
+          ]
+        },
+        {
+          "name": "pool_admin",
           "writable": true
         },
         {
@@ -600,8 +693,13 @@
           "name": "pool",
           "writable": true,
           "relations": [
+            "pool_admin",
             "position"
           ]
+        },
+        {
+          "name": "pool_admin",
+          "writable": true
         },
         {
           "name": "position",
@@ -753,8 +851,13 @@
           "name": "pool",
           "writable": true,
           "relations": [
+            "pool_admin",
             "position"
           ]
+        },
+        {
+          "name": "pool_admin",
+          "writable": true
         },
         {
           "name": "position",
@@ -819,6 +922,19 @@
         154,
         24,
         102
+      ]
+    },
+    {
+      "name": "StakingPoolAdmin",
+      "discriminator": [
+        191,
+        175,
+        3,
+        92,
+        92,
+        162,
+        73,
+        45
       ]
     },
     {
@@ -895,6 +1011,21 @@
       "code": 6011,
       "name": "InvalidAuthority",
       "msg": "The new authority address is invalid."
+    },
+    {
+      "code": 6012,
+      "name": "InvalidDuration",
+      "msg": "Reward duration must be greater than zero."
+    },
+    {
+      "code": 6013,
+      "name": "StakingExpired",
+      "msg": "This staking pool has expired."
+    },
+    {
+      "code": 6014,
+      "name": "StakingNotExpired",
+      "msg": "This staking pool has not expired yet."
     }
   ],
   "types": [
@@ -1001,6 +1132,34 @@
           },
           {
             "name": "reward_vault_bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakingPoolAdmin",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pool",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "reward_end_ts",
+            "type": "i64"
+          },
+          {
+            "name": "reserved_rewards",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
             "type": "u8"
           }
         ]

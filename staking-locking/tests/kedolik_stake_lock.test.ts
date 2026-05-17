@@ -8,7 +8,12 @@ import {
   mintTo,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
+import {
+  Keypair,
+  PublicKey,
+  SystemProgram,
+  SYSVAR_RENT_PUBKEY,
+} from "@solana/web3.js";
 import { KedolikStakeLock } from "../target/types/kedolik_stake_lock";
 
 describe("kedolik stake lock", () => {
@@ -22,6 +27,8 @@ describe("kedolik stake lock", () => {
     program.programId
   );
 
+  let poolNonce = Date.now();
+  const nextPoolId = () => new BN(poolNonce++);
   const toLeBytes = (value: BN) => value.toArrayLike(Buffer, "le", 8);
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -34,6 +41,37 @@ describe("kedolik stake lock", () => {
       rejected = true;
     }
     assert.isTrue(rejected, message);
+  };
+
+  const derivePoolAccounts = (
+    stakeMint: PublicKey,
+    rewardMint: PublicKey,
+    poolId: BN
+  ) => {
+    const [pool] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("staking_pool"),
+        adminConfig.toBuffer(),
+        stakeMint.toBuffer(),
+        rewardMint.toBuffer(),
+        toLeBytes(poolId),
+      ],
+      program.programId
+    );
+    const [poolAdmin] = PublicKey.findProgramAddressSync(
+      [Buffer.from("pool_admin"), pool.toBuffer()],
+      program.programId
+    );
+    const [stakeVault] = PublicKey.findProgramAddressSync(
+      [Buffer.from("stake_vault"), pool.toBuffer()],
+      program.programId
+    );
+    const [rewardVault] = PublicKey.findProgramAddressSync(
+      [Buffer.from("reward_vault"), pool.toBuffer()],
+      program.programId
+    );
+
+    return { pool, poolAdmin, stakeVault, rewardVault };
   };
 
   before(async () => {
@@ -70,35 +108,23 @@ describe("kedolik stake lock", () => {
       6
     );
 
-    const poolId = new BN(Date.now());
-    const [pool] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("staking_pool"),
-        adminConfig.toBuffer(),
-        stakeMint.toBuffer(),
-        rewardMint.toBuffer(),
-        toLeBytes(poolId),
-      ],
-      program.programId
-    );
-    const [stakeVault] = PublicKey.findProgramAddressSync(
-      [Buffer.from("stake_vault"), pool.toBuffer()],
-      program.programId
-    );
-    const [rewardVault] = PublicKey.findProgramAddressSync(
-      [Buffer.from("reward_vault"), pool.toBuffer()],
-      program.programId
+    const poolId = nextPoolId();
+    const { pool, poolAdmin, stakeVault, rewardVault } = derivePoolAccounts(
+      stakeMint,
+      rewardMint,
+      poolId
     );
 
     await expectReject(
       program.methods
-        .initializeStakingPool(poolId, new BN(1))
+        .initializeStakingPool(poolId, new BN(1), new BN(3_600))
         .accounts({
           authority: nextAdmin.publicKey,
           adminConfig,
           stakeMint,
           rewardMint,
           pool,
+          poolAdmin,
           stakeVault,
           rewardVault,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -122,13 +148,14 @@ describe("kedolik stake lock", () => {
     assert.equal(movedConfig.authority.toString(), nextAdmin.publicKey.toString());
 
     await program.methods
-      .initializeStakingPool(poolId, new BN(1))
+      .initializeStakingPool(poolId, new BN(1), new BN(3_600))
       .accounts({
         authority: nextAdmin.publicKey,
         adminConfig,
         stakeMint,
         rewardMint,
         pool,
+        poolAdmin,
         stakeVault,
         rewardVault,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -137,6 +164,9 @@ describe("kedolik stake lock", () => {
       })
       .signers([nextAdmin])
       .rpc();
+
+    const poolAdminAccount = await program.account.stakingPoolAdmin.fetch(poolAdmin);
+    assert.equal(poolAdminAccount.creator.toString(), nextAdmin.publicKey.toString());
 
     await program.methods
       .transferAdminAuthority(authority.publicKey)
@@ -194,24 +224,11 @@ describe("kedolik stake lock", () => {
       1_000_000
     );
 
-    const poolId = new BN(Date.now());
-    const [pool] = PublicKey.findProgramAddressSync(
-      [
-        Buffer.from("staking_pool"),
-        adminConfig.toBuffer(),
-        stakeMint.toBuffer(),
-        rewardMint.toBuffer(),
-        toLeBytes(poolId),
-      ],
-      program.programId
-    );
-    const [stakeVault] = PublicKey.findProgramAddressSync(
-      [Buffer.from("stake_vault"), pool.toBuffer()],
-      program.programId
-    );
-    const [rewardVault] = PublicKey.findProgramAddressSync(
-      [Buffer.from("reward_vault"), pool.toBuffer()],
-      program.programId
+    const poolId = nextPoolId();
+    const { pool, poolAdmin, stakeVault, rewardVault } = derivePoolAccounts(
+      stakeMint,
+      rewardMint,
+      poolId
     );
     const [position] = PublicKey.findProgramAddressSync(
       [Buffer.from("position"), pool.toBuffer(), authority.publicKey.toBuffer()],
@@ -219,13 +236,14 @@ describe("kedolik stake lock", () => {
     );
 
     await program.methods
-      .initializeStakingPool(poolId, new BN(10))
+      .initializeStakingPool(poolId, new BN(10), new BN(60))
       .accounts({
         authority: authority.publicKey,
         adminConfig,
         stakeMint,
         rewardMint,
         pool,
+        poolAdmin,
         stakeVault,
         rewardVault,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -250,6 +268,7 @@ describe("kedolik stake lock", () => {
       .accounts({
         owner: authority.publicKey,
         pool,
+        poolAdmin,
         position,
         systemProgram: SystemProgram.programId,
       })
@@ -260,6 +279,7 @@ describe("kedolik stake lock", () => {
       .accounts({
         owner: authority.publicKey,
         pool,
+        poolAdmin,
         position,
         ownerStakeToken,
         stakeVault,
@@ -274,6 +294,7 @@ describe("kedolik stake lock", () => {
       .accounts({
         adminConfig,
         pool,
+        poolAdmin,
         authority: authority.publicKey,
       })
       .rpc();
@@ -284,6 +305,7 @@ describe("kedolik stake lock", () => {
       .accounts({
         owner: authority.publicKey,
         pool,
+        poolAdmin,
         position,
         ownerRewardToken,
         rewardVault,
@@ -303,6 +325,7 @@ describe("kedolik stake lock", () => {
       .accounts({
         owner: authority.publicKey,
         pool,
+        poolAdmin,
         position,
         ownerStakeToken,
         stakeVault,
@@ -324,6 +347,117 @@ describe("kedolik stake lock", () => {
 
     const closedPosition = await provider.connection.getAccountInfo(position);
     assert.isNull(closedPosition);
+  });
+
+  it("lets only the pool creator reclaim leftover rewards after expiry", async () => {
+    const attacker = Keypair.generate();
+    const stakeMint = await createMint(
+      provider.connection,
+      authority.payer,
+      authority.publicKey,
+      null,
+      6
+    );
+    const rewardMint = await createMint(
+      provider.connection,
+      authority.payer,
+      authority.publicKey,
+      null,
+      6
+    );
+
+    const adminRewardToken = await createAccount(
+      provider.connection,
+      authority.payer,
+      rewardMint,
+      authority.publicKey
+    );
+    const attackerRewardToken = await createAccount(
+      provider.connection,
+      authority.payer,
+      rewardMint,
+      attacker.publicKey
+    );
+
+    await mintTo(
+      provider.connection,
+      authority.payer,
+      rewardMint,
+      adminRewardToken,
+      authority.publicKey,
+      10_000
+    );
+
+    const poolId = nextPoolId();
+    const { pool, poolAdmin, stakeVault, rewardVault } = derivePoolAccounts(
+      stakeMint,
+      rewardMint,
+      poolId
+    );
+
+    await program.methods
+      .initializeStakingPool(poolId, new BN(10), new BN(2))
+      .accounts({
+        authority: authority.publicKey,
+        adminConfig,
+        stakeMint,
+        rewardMint,
+        pool,
+        poolAdmin,
+        stakeVault,
+        rewardVault,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        systemProgram: SystemProgram.programId,
+        rent: SYSVAR_RENT_PUBKEY,
+      })
+      .rpc();
+
+    await program.methods
+      .fundRewards(new BN(1_000))
+      .accounts({
+        funder: authority.publicKey,
+        pool,
+        funderRewardToken: adminRewardToken,
+        rewardVault,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+
+    await sleep(2_500);
+
+    await expectReject(
+      program.methods
+        .reclaimUnclaimedRewards()
+        .accounts({
+          authority: attacker.publicKey,
+          pool,
+          poolAdmin,
+          rewardVault,
+          adminRewardToken: attackerRewardToken,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([attacker])
+        .rpc(),
+      "non-creator should not reclaim rewards"
+    );
+
+    const adminBefore = await getAccount(provider.connection, adminRewardToken);
+    await program.methods
+      .reclaimUnclaimedRewards()
+      .accounts({
+        authority: authority.publicKey,
+        pool,
+        poolAdmin,
+        rewardVault,
+        adminRewardToken,
+        tokenProgram: TOKEN_PROGRAM_ID,
+      })
+      .rpc();
+    const adminAfter = await getAccount(provider.connection, adminRewardToken);
+    const vaultAfter = await getAccount(provider.connection, rewardVault);
+
+    assert.equal((adminAfter.amount - adminBefore.amount).toString(), "1000");
+    assert.equal(vaultAfter.amount.toString(), "0");
   });
 
   it("locks tokens, blocks early unlock, and unlocks after expiry", async () => {
@@ -350,7 +484,7 @@ describe("kedolik stake lock", () => {
       10_000
     );
 
-    const lockId = new BN(Date.now());
+    const lockId = nextPoolId();
     const [tokenLock] = PublicKey.findProgramAddressSync(
       [
         Buffer.from("lock"),

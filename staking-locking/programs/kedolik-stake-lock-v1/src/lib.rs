@@ -36,9 +36,17 @@ pub mod kedolik_stake_lock {
         ctx: Context<InitializeStakingPool>,
         pool_id: u64,
         reward_rate_per_second: u64,
+        reward_duration_seconds: u64,
     ) -> Result<()> {
+        require!(reward_duration_seconds > 0, ErrorCode::InvalidDuration);
+
         let pool = &mut ctx.accounts.pool;
         let now = Clock::get()?.unix_timestamp;
+        let reward_end_ts = now
+            .checked_add(
+                i64::try_from(reward_duration_seconds).map_err(|_| ErrorCode::MathOverflow)?,
+            )
+            .ok_or(ErrorCode::MathOverflow)?;
 
         pool.pool_id = pool_id;
         pool.admin_config = ctx.accounts.admin_config.key();
@@ -53,6 +61,13 @@ pub mod kedolik_stake_lock {
         pool.bump = ctx.bumps.pool;
         pool.stake_vault_bump = ctx.bumps.stake_vault;
         pool.reward_vault_bump = ctx.bumps.reward_vault;
+
+        let pool_admin = &mut ctx.accounts.pool_admin;
+        pool_admin.pool = ctx.accounts.pool.key();
+        pool_admin.creator = ctx.accounts.authority.key();
+        pool_admin.reward_end_ts = reward_end_ts;
+        pool_admin.reserved_rewards = 0;
+        pool_admin.bump = ctx.bumps.pool_admin;
 
         initialize_token_account(
             &ctx.accounts.stake_vault,
@@ -73,7 +88,7 @@ pub mod kedolik_stake_lock {
     }
 
     pub fn set_reward_rate(ctx: Context<SetRewardRate>, reward_rate_per_second: u64) -> Result<()> {
-        sync_pool(&mut ctx.accounts.pool)?;
+        sync_pool(&mut ctx.accounts.pool, &mut ctx.accounts.pool_admin)?;
         ctx.accounts.pool.reward_rate_per_second = reward_rate_per_second;
         Ok(())
     }
@@ -90,7 +105,7 @@ pub mod kedolik_stake_lock {
     }
 
     pub fn open_position(ctx: Context<OpenPosition>) -> Result<()> {
-        sync_pool(&mut ctx.accounts.pool)?;
+        sync_pool(&mut ctx.accounts.pool, &mut ctx.accounts.pool_admin)?;
 
         let position = &mut ctx.accounts.position;
         position.owner = ctx.accounts.owner.key();
@@ -105,8 +120,12 @@ pub mod kedolik_stake_lock {
 
     pub fn stake(ctx: Context<Stake>, amount: u64) -> Result<()> {
         require!(amount > 0, ErrorCode::InvalidAmount);
+        require!(
+            Clock::get()?.unix_timestamp < ctx.accounts.pool_admin.reward_end_ts,
+            ErrorCode::StakingExpired
+        );
 
-        sync_pool(&mut ctx.accounts.pool)?;
+        sync_pool(&mut ctx.accounts.pool, &mut ctx.accounts.pool_admin)?;
         sync_position(&ctx.accounts.pool, &mut ctx.accounts.position)?;
 
         ctx.accounts.position.amount = checked_add(ctx.accounts.position.amount, amount)?;
@@ -124,7 +143,7 @@ pub mod kedolik_stake_lock {
     pub fn unstake(ctx: Context<Unstake>, amount: u64) -> Result<()> {
         require!(amount > 0, ErrorCode::InvalidAmount);
 
-        sync_pool(&mut ctx.accounts.pool)?;
+        sync_pool(&mut ctx.accounts.pool, &mut ctx.accounts.pool_admin)?;
         sync_position(&ctx.accounts.pool, &mut ctx.accounts.position)?;
 
         require!(
@@ -145,7 +164,7 @@ pub mod kedolik_stake_lock {
     }
 
     pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
-        sync_pool(&mut ctx.accounts.pool)?;
+        sync_pool(&mut ctx.accounts.pool, &mut ctx.accounts.pool_admin)?;
         sync_position(&ctx.accounts.pool, &mut ctx.accounts.position)?;
 
         let amount = ctx.accounts.position.rewards_owed;
@@ -156,6 +175,8 @@ pub mod kedolik_stake_lock {
         );
 
         ctx.accounts.position.rewards_owed = 0;
+        ctx.accounts.pool_admin.reserved_rewards =
+            checked_sub(ctx.accounts.pool_admin.reserved_rewards, amount)?;
 
         transfer_from_pool(
             &ctx.accounts.pool,
@@ -176,6 +197,26 @@ pub mod kedolik_stake_lock {
             ErrorCode::PositionNotEmpty
         );
         Ok(())
+    }
+
+    pub fn reclaim_unclaimed_rewards(ctx: Context<ReclaimUnclaimedRewards>) -> Result<()> {
+        sync_pool(&mut ctx.accounts.pool, &mut ctx.accounts.pool_admin)?;
+        require!(
+            Clock::get()?.unix_timestamp >= ctx.accounts.pool_admin.reward_end_ts,
+            ErrorCode::StakingNotExpired
+        );
+
+        let reserved = ctx.accounts.pool_admin.reserved_rewards;
+        let amount = checked_sub(ctx.accounts.reward_vault.amount, reserved)?;
+        require!(amount > 0, ErrorCode::NoRewards);
+
+        transfer_from_pool(
+            &ctx.accounts.pool,
+            &ctx.accounts.reward_vault,
+            &ctx.accounts.admin_reward_token,
+            &ctx.accounts.token_program,
+            amount,
+        )
     }
 
     pub fn create_lock(
@@ -303,6 +344,14 @@ pub struct InitializeStakingPool<'info> {
     #[account(
         init,
         payer = authority,
+        space = 8 + StakingPoolAdmin::LEN,
+        seeds = [b"pool_admin", pool.key().as_ref()],
+        bump
+    )]
+    pub pool_admin: Account<'info, StakingPoolAdmin>,
+    #[account(
+        init,
+        payer = authority,
         space = TOKEN_ACCOUNT_LEN,
         owner = token::ID,
         seeds = [b"stake_vault", pool.key().as_ref()],
@@ -335,6 +384,8 @@ pub struct SetRewardRate<'info> {
     pub admin_config: Account<'info, AdminConfig>,
     #[account(mut, has_one = admin_config)]
     pub pool: Account<'info, StakingPool>,
+    #[account(mut, has_one = pool)]
+    pub pool_admin: Account<'info, StakingPoolAdmin>,
     pub authority: Signer<'info>,
 }
 
@@ -359,6 +410,8 @@ pub struct OpenPosition<'info> {
     pub owner: Signer<'info>,
     #[account(mut)]
     pub pool: Account<'info, StakingPool>,
+    #[account(mut, has_one = pool)]
+    pub pool_admin: Account<'info, StakingPoolAdmin>,
     #[account(
         init,
         payer = owner,
@@ -375,6 +428,8 @@ pub struct Stake<'info> {
     pub owner: Signer<'info>,
     #[account(mut)]
     pub pool: Account<'info, StakingPool>,
+    #[account(mut, has_one = pool)]
+    pub pool_admin: Account<'info, StakingPoolAdmin>,
     #[account(mut, has_one = owner, has_one = pool)]
     pub position: Account<'info, StakePosition>,
     #[account(
@@ -393,6 +448,8 @@ pub struct Unstake<'info> {
     pub owner: Signer<'info>,
     #[account(mut)]
     pub pool: Account<'info, StakingPool>,
+    #[account(mut, has_one = pool)]
+    pub pool_admin: Account<'info, StakingPoolAdmin>,
     #[account(mut, has_one = owner, has_one = pool)]
     pub position: Account<'info, StakePosition>,
     #[account(
@@ -411,6 +468,8 @@ pub struct ClaimRewards<'info> {
     pub owner: Signer<'info>,
     #[account(mut)]
     pub pool: Account<'info, StakingPool>,
+    #[account(mut, has_one = pool)]
+    pub pool_admin: Account<'info, StakingPoolAdmin>,
     #[account(mut, has_one = owner, has_one = pool)]
     pub position: Account<'info, StakePosition>,
     #[account(
@@ -421,6 +480,28 @@ pub struct ClaimRewards<'info> {
     pub owner_reward_token: Account<'info, TokenAccount>,
     #[account(mut, address = pool.reward_vault)]
     pub reward_vault: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+}
+
+#[derive(Accounts)]
+pub struct ReclaimUnclaimedRewards<'info> {
+    pub authority: Signer<'info>,
+    #[account(mut)]
+    pub pool: Account<'info, StakingPool>,
+    #[account(
+        mut,
+        has_one = pool,
+        constraint = pool_admin.creator == authority.key() @ ErrorCode::Unauthorized
+    )]
+    pub pool_admin: Account<'info, StakingPoolAdmin>,
+    #[account(mut, address = pool.reward_vault)]
+    pub reward_vault: Account<'info, TokenAccount>,
+    #[account(
+        mut,
+        constraint = admin_reward_token.mint == pool.reward_mint @ ErrorCode::InvalidMint,
+        constraint = admin_reward_token.owner == authority.key() @ ErrorCode::Unauthorized
+    )]
+    pub admin_reward_token: Account<'info, TokenAccount>,
     pub token_program: Program<'info, Token>,
 }
 
@@ -508,6 +589,19 @@ impl AdminConfig {
 }
 
 #[account]
+pub struct StakingPoolAdmin {
+    pub pool: Pubkey,
+    pub creator: Pubkey,
+    pub reward_end_ts: i64,
+    pub reserved_rewards: u64,
+    pub bump: u8,
+}
+
+impl StakingPoolAdmin {
+    pub const LEN: usize = 32 + 32 + 8 + 8 + 1;
+}
+
+#[account]
 pub struct StakingPool {
     pub pool_id: u64,
     pub admin_config: Pubkey,
@@ -558,19 +652,29 @@ impl TokenLock {
     pub const LEN: usize = 32 + 32 + 32 + 8 + 8 + 8 + 1 + 1;
 }
 
-fn sync_pool(pool: &mut Account<StakingPool>) -> Result<()> {
+fn sync_pool(
+    pool: &mut Account<StakingPool>,
+    pool_admin: &mut Account<StakingPoolAdmin>,
+) -> Result<()> {
     let now = Clock::get()?.unix_timestamp;
-    if now <= pool.last_update_ts {
+    let effective_now = if now < pool_admin.reward_end_ts {
+        now
+    } else {
+        pool_admin.reward_end_ts
+    };
+
+    if effective_now <= pool.last_update_ts {
         return Ok(());
     }
 
     if pool.total_staked > 0 && pool.reward_rate_per_second > 0 {
-        let elapsed = now
+        let elapsed = effective_now
             .checked_sub(pool.last_update_ts)
             .ok_or(ErrorCode::MathOverflow)? as u128;
         let reward = elapsed
             .checked_mul(pool.reward_rate_per_second as u128)
             .ok_or(ErrorCode::MathOverflow)?;
+        let reward_as_u64 = u64::try_from(reward).map_err(|_| ErrorCode::MathOverflow)?;
         let increment = reward
             .checked_mul(REWARD_PRECISION)
             .ok_or(ErrorCode::MathOverflow)?
@@ -581,9 +685,10 @@ fn sync_pool(pool: &mut Account<StakingPool>) -> Result<()> {
             .reward_per_token_stored
             .checked_add(increment)
             .ok_or(ErrorCode::MathOverflow)?;
+        pool_admin.reserved_rewards = checked_add(pool_admin.reserved_rewards, reward_as_u64)?;
     }
 
-    pool.last_update_ts = now;
+    pool.last_update_ts = effective_now;
     Ok(())
 }
 
@@ -768,4 +873,10 @@ pub enum ErrorCode {
     PositionNotEmpty,
     #[msg("The new authority address is invalid.")]
     InvalidAuthority,
+    #[msg("Reward duration must be greater than zero.")]
+    InvalidDuration,
+    #[msg("This staking pool has expired.")]
+    StakingExpired,
+    #[msg("This staking pool has not expired yet.")]
+    StakingNotExpired,
 }

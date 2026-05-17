@@ -103,6 +103,10 @@ async function main() {
     ],
     PROGRAM_ID
   );
+  const [poolAdmin] = PublicKey.findProgramAddressSync(
+    [Buffer.from("pool_admin"), pool.toBuffer()],
+    PROGRAM_ID
+  );
   const [stakeVault] = PublicKey.findProgramAddressSync(
     [Buffer.from("stake_vault"), pool.toBuffer()],
     PROGRAM_ID
@@ -118,6 +122,7 @@ async function main() {
   console.log("Admin config:", adminConfig.toString());
   console.log("Pool id:", poolId.toString());
   console.log("Pool:", pool.toString());
+  console.log("Pool admin:", poolAdmin.toString());
 
   const adminConfigInfo = await connection.getAccountInfo(adminConfig);
   if (!adminConfigInfo) {
@@ -145,7 +150,8 @@ async function main() {
     await program.methods
       .initializeStakingPool(
         new anchor.BN(poolId.toString()),
-        new anchor.BN(rewardRatePerSecond.toString())
+        new anchor.BN(rewardRatePerSecond.toString()),
+        new anchor.BN(rewardDurationSeconds.toString())
       )
       .accounts({
         authority: admin.publicKey,
@@ -153,6 +159,7 @@ async function main() {
         stakeMint,
         rewardMint,
         pool,
+        poolAdmin,
         stakeVault,
         rewardVault,
         tokenProgram: TOKEN_PROGRAM_ID,
@@ -199,6 +206,7 @@ async function main() {
     stakeMint: stakeMint.toString(),
     rewardMint: rewardMint.toString(),
     pool: pool.toString(),
+    poolAdmin: poolAdmin.toString(),
     stakeVault: stakeVault.toString(),
     rewardVault: rewardVault.toString(),
     rewardAmountRaw: rewardAmountRaw.toString(),
