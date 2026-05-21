@@ -1,0 +1,14 @@
+{
+  "cluster": "mainnet-beta",
+  "rpc": "alchemy",
+  "programId": "6M6TzGRSRqYxYmAihrXgF6MrmrCJno4RK9mEDdtkanCW",
+  "programData": "9YB6N5m85wC2rGLaAmzXEEUbJ1stL7daTBrjzvePfefr",
+  "deploySignature": "rv1CWTQLEt5LdoaUEZrmMbN4LYJeG3wG49ZNHDJx8SLvNye2bCJ21odCSd7JNWCb5wa1Uz6Zf77Y1w4234ukX9d",
+  "deploySlot": 421242613,
+  "deployer": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot",
+  "adminConfig": "6zJinApyxvq5FK84oQjvuwj4i1xnoLNbD28WEmmyDQPR",
+  "adminAuthority": "68ntKmiyhSdRT448Hj1VPW19a7EERJHCcGyjbmodVqot",
+  "programSize": 419584,
+  "programDataRentSol": 2.92150872,
+  "status": "deployed"
+}
