@@ -18,8 +18,8 @@ const SOL_MINT = new PublicKey('So11111111111111111111111111111111111111112');
 
 // Generic LP token metadata for all pools
 const GENERIC_LP_METADATA = {
-  name: 'Kedolik LP',
-  symbol: 'KLP',
+  name: 'KedoX LP',
+  symbol: 'KDLX',
   uri: 'https://raw.githubusercontent.com/KedolikSwap/metadata/refs/heads/main/klp.json'
 };
 
@@ -127,7 +127,11 @@ async function main() {
     }
   };
 
-  const { network, rpcUrl } = getCurrentNetwork();
+  let { network, rpcUrl } = getCurrentNetwork();
+  rpcUrl = process.env.SOLANA_URL || process.env.ANCHOR_PROVIDER_URL || rpcUrl;
+  if (rpcUrl.includes('devnet')) network = 'devnet';
+  else if (rpcUrl.includes('testnet')) network = 'testnet';
+  else network = 'mainnet';
 
   // Setup connection
   const connection = new Connection(rpcUrl, 'confirmed');
@@ -137,6 +141,12 @@ async function main() {
 
   // Get wallet path
   let walletPath: string;
+  if (process.env.SOLANA_WALLET || process.env.ANCHOR_WALLET) {
+    walletPath = process.env.SOLANA_WALLET || process.env.ANCHOR_WALLET || '';
+    if (walletPath.startsWith('~')) {
+      walletPath = walletPath.replace('~', os.homedir());
+    }
+  } else {
   try {
     const configOutput = execSync('solana config get', { encoding: 'utf-8' });
     const keypairLine = configOutput.split('\n').find(line => line.includes('Keypair Path'));
@@ -146,6 +156,7 @@ async function main() {
     }
   } catch (e) {
     walletPath = `${os.homedir()}/.config/solana/id.json`;
+  }
   }
 
   // Load wallet

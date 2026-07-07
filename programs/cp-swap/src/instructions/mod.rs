@@ -25,3 +25,6 @@ pub use swap_base_input_with_protocol_token::*;
 
 pub mod set_lp_token_metadata;
 pub use set_lp_token_metadata::*;
+
+pub mod update_lp_token_metadata;
+pub use update_lp_token_metadata::*;

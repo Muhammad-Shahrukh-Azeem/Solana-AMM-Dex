@@ -12,8 +12,8 @@ use anchor_spl::{
     associated_token::AssociatedToken,
     metadata::{
         create_metadata_accounts_v3,
-        CreateMetadataAccountsV3,
         mpl_token_metadata::types::{Creator, DataV2},
+        CreateMetadataAccountsV3,
     },
     token::Token,
     token_interface::{Mint, TokenAccount, TokenInterface},
@@ -344,22 +344,25 @@ pub fn initialize(
 
     // Create LP token metadata if accounts and parameters are provided
     // Check if metadata should be created by verifying if token_metadata_program is the Metaplex program
-    let metaplex_program_id = anchor_lang::solana_program::pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
-    
+    let metaplex_program_id =
+        anchor_lang::solana_program::pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+
     if ctx.accounts.token_metadata_program.key() == metaplex_program_id {
-        // Use standard Kedolik LP metadata defaults if not provided
-        // Default name and symbol for all Kedolik LP tokens
-        let name = lp_token_name.unwrap_or_else(|| String::from("Kedolik LP"));
-        let symbol = lp_token_symbol.unwrap_or_else(|| String::from("KLP"));
-        
-        // Use standard Kedolik LP metadata URI from GitHub
-        // This points to the klp-metadata.json file hosted in the KedolikSwap/metadata repo
-        let default_uri = String::from("https://raw.githubusercontent.com/KedolikSwap/metadata/refs/heads/main/klp.json");
+        // Use standard KedoX LP metadata defaults if not provided
+        // Default name and symbol for all KedoX LP tokens
+        let name = lp_token_name.unwrap_or_else(|| String::from("KedoX LP"));
+        let symbol = lp_token_symbol.unwrap_or_else(|| String::from("KDLX"));
+
+        // Use the mint-specific LP metadata file in the KedolikSwap metadata repo.
+        let default_uri = format!(
+            "https://raw.githubusercontent.com/KedolikSwap/metadata/main/lp-tokens/{}.json",
+            ctx.accounts.lp_mint.key()
+        );
         let uri = lp_token_uri.unwrap_or_else(|| default_uri.clone());
-        
+
         msg!("🔥 STARTING MANDATORY LP TOKEN METADATA CREATION");
         msg!("📝 Metadata: name={}, symbol={}, uri={}", name, symbol, uri);
-        
+
         // Verify metadata account is correct PDA
         let (expected_metadata_account, _) = Pubkey::find_program_address(
             &[
@@ -369,17 +372,14 @@ pub fn initialize(
             ],
             &ctx.accounts.token_metadata_program.key(),
         );
-        
+
         require!(
             ctx.accounts.metadata_account.key() == expected_metadata_account,
             ErrorCode::InvalidMetadataAccount
         );
 
         // Create the metadata
-        let seeds = &[
-            crate::AUTH_SEED.as_bytes(),
-            &[ctx.bumps.authority],
-        ];
+        let seeds = &[crate::AUTH_SEED.as_bytes(), &[ctx.bumps.authority]];
         let signer_seeds = &[&seeds[..]];
 
         create_metadata_accounts_v3(
@@ -396,25 +396,30 @@ pub fn initialize(
                 },
                 signer_seeds,
             ),
-                DataV2 {
-                    name: name.clone(),
-                    symbol: symbol.clone(),
-                    uri: uri.clone(),
-                    seller_fee_basis_points: 0,
-                    creators: Some(vec![Creator {
-                        address: ctx.accounts.creator.key(),
-                        verified: false, // Creator will be verified in a separate transaction if needed
-                        share: 100,
-                    }]),
-                    collection: None,
-                    uses: None,
-                },
+            DataV2 {
+                name: name.clone(),
+                symbol: symbol.clone(),
+                uri: uri.clone(),
+                seller_fee_basis_points: 0,
+                creators: Some(vec![Creator {
+                    address: ctx.accounts.creator.key(),
+                    verified: false, // Creator will be verified in a separate transaction if needed
+                    share: 100,
+                }]),
+                collection: None,
+                uses: None,
+            },
             true, // is_mutable
             true, // update_authority_is_signer
             None, // collection_details
         )?;
 
-        msg!("✅ LP TOKEN METADATA CREATED SUCCESSFULLY: name={}, symbol={}, uri={}", name, symbol, uri);
+        msg!(
+            "✅ LP TOKEN METADATA CREATED SUCCESSFULLY: name={}, symbol={}, uri={}",
+            name,
+            symbol,
+            uri
+        );
     }
 
     Ok(())

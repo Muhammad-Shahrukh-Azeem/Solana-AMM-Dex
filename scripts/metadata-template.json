@@ -1,9 +1,16 @@
 {
-  "name": "Kedolik LP",
-  "symbol": "KLP",
-  "description": "Liquidity Provider token for Kedolik AMM pools. Represents ownership in Kedolik liquidity pools and earns trading fees.",
+  "name": "KedoX LP",
+  "symbol": "KDLX",
+  "description": "Liquidity Provider token for Kedolik Swap AMM pools. Represents ownership in Kedolik liquidity pools and earns trading fees.",
   "image": "https://raw.githubusercontent.com/KedolikSwap/metadata/refs/heads/main/LP-Tokens.png",
-  "external_url": "https://kedolikswap.com",
+  "external_url": "https://www.kedolikswap.com/",
+  "links": {
+    "website": "https://www.kedolikswap.com/",
+    "x": "https://x.com/kedolik_swap",
+    "twitter": "https://x.com/kedolik_swap",
+    "telegram": "https://t.me/Kedolik_Swap",
+    "github": "https://github.com/KedolikSwap"
+  },
   "attributes": [
     {
       "trait_type": "AMM",
@@ -11,11 +18,15 @@
     },
     {
       "trait_type": "Protocol",
-      "value": "Kedolik AMM"
+      "value": "Kedolik Swap"
     },
     {
       "trait_type": "Category",
       "value": "LP Token"
+    },
+    {
+      "trait_type": "Ticker",
+      "value": "KDLX"
     }
   ],
   "properties": {
@@ -25,6 +36,10 @@
         "type": "image/png"
       }
     ],
-    "category": "lp-token"
+    "category": "lp-token",
+    "website": "https://www.kedolikswap.com/",
+    "x": "https://x.com/kedolik_swap",
+    "telegram": "https://t.me/Kedolik_Swap",
+    "github": "https://github.com/KedolikSwap"
   }
 }
