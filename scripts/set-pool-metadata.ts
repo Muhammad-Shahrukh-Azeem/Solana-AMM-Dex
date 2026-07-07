@@ -26,7 +26,7 @@ async function main() {
     console.error("Usage: npx ts-node scripts/set-pool-metadata.ts <POOL_ADDRESS> [NAME] [SYMBOL] [URI]");
     console.error("Examples:");
     console.error("  npx ts-node scripts/set-pool-metadata.ts 8KYfYHmPyzpzqYQzVzHR3uv94E1UX8TsaEFLqBWzenRJ");
-    console.error("  npx ts-node scripts/set-pool-metadata.ts 8KYfYHmPyzpzqYQzVzHR3uv94E1UX8TsaEFLqBWzenRJ 'KEDOL-USDC LP' 'KEDO-USDC' 'https://kedolik.io/metadata/kedo-usdc-lp.json'");
+    console.error("  npx ts-node scripts/set-pool-metadata.ts 8KYfYHmPyzpzqYQzVzHR3uv94E1UX8TsaEFLqBWzenRJ 'KedoX LP' 'KDLX' 'https://raw.githubusercontent.com/KedolikSwap/metadata/refs/heads/main/klp.json'");
     process.exit(1);
   }
 
@@ -53,7 +53,11 @@ async function main() {
     }
   };
 
-  const { network, rpcUrl } = getCurrentNetwork();
+  let { network, rpcUrl } = getCurrentNetwork();
+  rpcUrl = process.env.SOLANA_URL || process.env.ANCHOR_PROVIDER_URL || rpcUrl;
+  if (rpcUrl.includes('devnet')) network = 'devnet';
+  else if (rpcUrl.includes('testnet')) network = 'testnet';
+  else network = 'mainnet';
 
   // Setup connection
   const connection = new Connection(rpcUrl, 'confirmed');
@@ -64,6 +68,12 @@ async function main() {
 
   // Get wallet path
   let walletPath: string;
+  if (process.env.SOLANA_WALLET || process.env.ANCHOR_WALLET) {
+    walletPath = process.env.SOLANA_WALLET || process.env.ANCHOR_WALLET || '';
+    if (walletPath.startsWith('~')) {
+      walletPath = walletPath.replace('~', os.homedir());
+    }
+  } else {
   try {
     const configOutput = execSync('solana config get', { encoding: 'utf-8' });
     const keypairLine = configOutput.split('\n').find(line => line.includes('Keypair Path'));
@@ -73,6 +83,7 @@ async function main() {
     }
   } catch (e) {
     walletPath = `${os.homedir()}/.config/solana/id.json`;
+  }
   }
 
   // Load wallet
@@ -107,7 +118,7 @@ async function main() {
     console.log(`🔍 Token1: ${token1Mint.toString()}`);
     console.log(`🪙 LP Mint: ${lpMint.toString()}\n`);
 
-    // Use generic Kedolik LP metadata for all pools (or custom if specified)
+    // Use generic KedoX LP metadata for all pools (or custom if specified)
     let name: string;
     let symbol: string;
 
@@ -116,11 +127,11 @@ async function main() {
       symbol = customSymbol;
     } else {
       // All pools use the same generic LP token metadata
-      name = 'Kedolik LP';
-      symbol = 'KLP';
+      name = 'KedoX LP';
+      symbol = 'KDLX';
     }
 
-    const uri = customUri || `https://kedolik.io/metadata/${symbol.toLowerCase().replace('-', '-')}-lp.json`;
+    const uri = customUri || 'https://raw.githubusercontent.com/KedolikSwap/metadata/refs/heads/main/klp.json';
 
     console.log("📋 Metadata to set:");
     console.log(`   Name: ${name}`);

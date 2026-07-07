@@ -183,8 +183,8 @@ async function main() {
 
     console.log("📝 Calling initialize with null metadata parameters...");
     console.log("   Expected defaults:");
-    console.log("     Name: Kedolik LP");
-    console.log("     Symbol: KLP");
+    console.log("     Name: KedoX LP");
+    console.log("     Symbol: KDLX");
     console.log("     URI: https://raw.githubusercontent.com/KedolikSwap/metadata/refs/heads/main/klp.json\n");
 
     const tx = await (program.methods as any)
@@ -192,8 +192,8 @@ async function main() {
         initAmount0,
         initAmount1,
         openTime,
-        null,  // lp_token_name - should use "Kedolik LP"
-        null,  // lp_token_symbol - should use "KLP"
+        null,  // lp_token_name - should use "KedoX LP"
+        null,  // lp_token_symbol - should use "KDLX"
         null   // lp_token_uri - should use default URI
       )
       .accounts({
@@ -262,7 +262,7 @@ async function main() {
           console.log("      Name:", name);
           console.log("      Symbol:", symbol);
           
-          if (name === "Kedolik LP" && symbol === "KLP") {
+          if (name === "KedoX LP" && symbol === "KDLX") {
             console.log("   ✅ Metadata matches expected defaults!");
           } else {
             console.log("   ⚠️  Metadata doesn't match expected defaults");

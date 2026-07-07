@@ -393,4 +393,22 @@ pub mod kedolik_cp_swap {
     ) -> Result<()> {
         instructions::set_lp_token_metadata(ctx, name, symbol, uri)
     }
+
+    /// Update existing LP token metadata for wallet and explorer display
+    ///
+    /// # Arguments
+    ///
+    /// * `ctx`- The context of accounts
+    /// * `name` - The name of the LP token
+    /// * `symbol` - The symbol of the LP token
+    /// * `uri` - The metadata URI for the LP token
+    ///
+    pub fn update_lp_token_metadata(
+        ctx: Context<UpdateLpTokenMetadata>,
+        name: String,
+        symbol: String,
+        uri: String,
+    ) -> Result<()> {
+        instructions::update_lp_token_metadata(ctx, name, symbol, uri)
+    }
 }
