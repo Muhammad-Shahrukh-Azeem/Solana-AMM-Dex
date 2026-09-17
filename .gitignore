@@ -9,3 +9,9 @@ test-ledger
 Makefile
 KEDOLIK_SWAP_GUIDE.md
 config.bat
+
+# Never commit secrets or editor auto-run tasks
+.env
+.env.local
+.env.*.local
+.vscode/
